@@ -1,0 +1,3 @@
+[submodule "lib/hal"]
+	path = lib/hal
+	url = https://github.com/matgla/EmbeddedHAL.git
