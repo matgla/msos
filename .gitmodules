@@ -1,3 +1,6 @@
 [submodule "lib/hal"]
 	path = lib/hal
 	url = https://github.com/matgla/EmbeddedHAL.git
+[submodule "lib/msgui"]
+	path = lib/msgui
+	url = https://github.com/matgla/MsGui.git
