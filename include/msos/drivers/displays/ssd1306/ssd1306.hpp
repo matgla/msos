@@ -73,19 +73,14 @@ public:
         sendCommand(SSD1306_SET_DISPLAY_ON);
     }
 
-    constexpr uint32_t getHeight() const
+    constexpr uint32_t height() const
     {
         return 64;
     }
 
-    constexpr uint32_t getWidth() const
+    constexpr uint32_t width() const
     {
         return 128;
-    }
-
-    void setPixel(uint16_t x, uint16_t y)
-    {
-
     }
 
     void display(const gsl::span<uint8_t>& buffer)
