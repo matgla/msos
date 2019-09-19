@@ -47,9 +47,9 @@ public:
         I2CInterface::init();
         sendCommand(SSD1306_SET_DISPLAY_OFF);
         sendCommand(SSD1306_SET_DISPLAY_CLOCK_DIVIDE_RATIO);
-        sendCommand(0xf0);
+        sendCommand(0x80);
         sendCommand(SSD1306_SET_MULTIPLEX_RATIO);
-        sendCommand(0x7E);
+        sendCommand(0x3f);
         sendCommand(SSD1306_SET_DISPLAY_OFFSET);
         sendCommand(0x00);
         sendCommand(SSD1306_SET_DISPLAY_START_LINE);
@@ -59,14 +59,14 @@ public:
         sendCommand(SSD1306_SET_MEMORY_ADDRESSING_MODE);
         sendCommand(0x00);
 
-        sendCommand(SSD1306_SET_SEGMENT_REMAP_1);
-        sendCommand(SSD1306_SET_COM_OUTPUT_SCAN_INCREMENTAL);
+        sendCommand(SSD1306_SET_SEGMENT_REMAP_2);
+        sendCommand(SSD1306_SET_COM_OUTPUT_SCAN_DECREMENTAL);
         sendCommand(SSD1306_SET_COM_PINS_HARDWARE_CONFIGURATION);
         sendCommand(0x12);
         sendCommand(SSD1306_SET_CONTRAST_CONTROL_FOR_BANK0);
         sendCommand(0xCF);
         sendCommand(SSD1306_SET_PRE_CHARGE_PERIOD);
-        sendCommand(0xF1);
+        sendCommand(0x14);
         sendCommand(SSD1306_SET_VCOMH_DESELECT_LEVEL);
         sendCommand(0x40);
         sendCommand(SSD1306_ENTIRE_DISPLAY_ON_RESUME);
@@ -83,6 +83,54 @@ public:
         return 128;
     }
 
+    void setPixel(uint16_t x, uint16_t y)
+    {
+        // sendCommand(SSD1306_SET_COLUMN_ADDRESS);
+        // sendCommand(x);
+        // sendCommand(x);
+
+        // sendCommand(SSD1306_SET_PAGE_ADDRESS);
+        // sendCommand(y/8);
+        // sendCommand(y/8);
+
+        // I2CInterface::start(address_ | 0x01);
+        // uint8_t old_byte = I2CInterface::read();
+        // old_byte = I2CInterface::read();
+        // using Serial = board::interfaces::SERIAL;
+        // char data[20];
+        // Serial::write("Requesting x: ");
+        // itoa(x, data, 10);
+        // Serial::write(data);
+        // Serial::write(", y: ");
+        // itoa(y, data, 10);
+        // Serial::write(data);
+        // Serial::write("\n");
+
+        // itoa(old_byte, data, 10);
+        // Serial::write("Old: ");
+        // Serial::write(data);
+        // Serial::write("\n");
+        // I2CInterface::stop();
+
+        // I2CInterface::start(address_);
+        // I2CInterface::write(SSD1306_SET_DISPLAY_START_LINE);
+        // I2CInterface::write(old_byte | (1 << (y % 8)));
+        // I2CInterface::stop();
+    }
+    void clear()
+    {
+        setHome();
+        for (int x = 0; x < 128; x++)
+        {
+            for (int page = 0; page < 8; page++)
+            {
+                I2CInterface::start(address_);
+                I2CInterface::write(SSD1306_SET_DISPLAY_START_LINE);
+                I2CInterface::write(0);
+                I2CInterface::stop();
+            }
+        }
+    }
     void display(const gsl::span<uint8_t>& buffer)
     {
         setHome();
@@ -99,10 +147,14 @@ public:
         }
     }
 
-    void clear()
+    void write(const uint8_t byte)
     {
-
+        I2CInterface::start(address_);
+        I2CInterface::write(SSD1306_SET_DISPLAY_START_LINE);
+        I2CInterface::write(byte);
+        I2CInterface::stop();
     }
+
 private:
     void setHome() const
     {
