@@ -7,7 +7,7 @@ function(get_device_info mcu mcu_family arch vendor)
 endfunction()
 
 function(add_device_hal_library hal_device_library)
-    set(${hal_device_library} "board_library")
+    set(${hal_device_library} "nucleo_f103rb_board_library")
     set(hal_device_library ${hal_device_library} PARENT_SCOPE)
     add_library(${hal_device_library} INTERFACE)
 
@@ -16,14 +16,14 @@ function(add_device_hal_library hal_device_library)
     )
 
     target_include_directories(${hal_device_library} INTERFACE
-        ${user_boards_path}/F103RB)
+        ${user_boards_path}/NUCLEO-F103RB)
 
     include(${PROJECT_SOURCE_DIR}/devices/arm/stm32/stm32f1/stm32f103rbt6/configure_stm32f103rbt6.cmake)
 
     target_link_libraries(${hal_device_library}
         INTERFACE
             hal_interface
-            hal_devices_avr_attiny85
+            hal_stm32f1xx
     )
 
 endfunction()

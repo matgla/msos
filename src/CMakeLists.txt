@@ -18,6 +18,6 @@ include (GenerateBinary)
 generate_binary(${target_name} ${vendor})
 
 target_include_directories(${target_name}
-    INTERFACE
+    PUBLIC
         ${PROJECT_SOURCE_DIR}/include
 )
