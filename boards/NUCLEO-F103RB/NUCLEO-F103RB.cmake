@@ -30,9 +30,7 @@ function(add_device_hal_library hal_device_library)
     target_link_libraries(${hal_device_library}
         PUBLIC 
             hal_interface
-            hal_stm32f1xx
             hal_devices_arm_stm32f103rbt6
-            hal_stm32_common
 )
 
 endfunction()
