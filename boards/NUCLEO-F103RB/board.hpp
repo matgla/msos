@@ -9,6 +9,9 @@
 
 namespace board
 {
+
+void board_init();
+
 namespace gpio
 {
 using LED_GREEN = hal::devices::gpio::PA5::OutputType;

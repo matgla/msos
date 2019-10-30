@@ -17,11 +17,12 @@ function(add_device_hal_library hal_device_library)
     set(hal_device_library ${hal_device_library} PARENT_SCOPE)
     add_library(${hal_device_library} OBJECT)
 
-    target_sources(${hal_device_library} PUBLIC
+    target_sources(${hal_device_library} PUBLIC 
         ${user_boards_path}/NUCLEO-F103RB/board.hpp
+        ${user_boards_path}/NUCLEO-F103RB/board.cpp
     )
 
-    target_include_directories(${hal_device_library} PUBLIC
+    target_include_directories(${hal_device_library} PUBLIC 
         ${user_boards_path}/NUCLEO-F103RB)
 
     include(${PROJECT_SOURCE_DIR}/devices/arm/stm32/stm32f1/stm32f103rbt6/configure_stm32f103rbt6.cmake)

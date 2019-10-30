@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.9)
 
 project(msos NONE)
 
+set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 include(cmake/GitModules.cmake)
 
 set (user_boards_path ${PROJECT_SOURCE_DIR}/boards CACHE STRING "Path to boards provided from user" FORCE)
@@ -19,3 +21,6 @@ enable_language(ASM C CXX)
 
 add_subdirectory(include/msos/drivers)
 add_subdirectory(src)
+
+set(compile_commands_path ${PROJECT_BINARY_DIR})
+configure_file(ycm_extra_conf.py.in ${PROJECT_SOURCE_DIR}/ycm_extra_conf.py @ONLY)

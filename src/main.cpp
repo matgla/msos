@@ -4,6 +4,7 @@
 
 int main()
 {
+    board::board_init();   
     hal::core::Core::initializeClocks();
     board::gpio::LED_GREEN::init(hal::gpio::Output::OutputPushPull, hal::gpio::Speed::Default);
     while (true)
