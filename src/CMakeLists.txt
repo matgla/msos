@@ -19,3 +19,5 @@ target_include_directories(msos
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
 )
+
+add_subdirectory(modules/example)
