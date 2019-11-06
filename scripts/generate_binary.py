@@ -87,15 +87,49 @@ def get_sections(elf_filename):
 
     return sections
         
+def get_symbol_names(symbols):
+    symbol_names = []
+    for key in symbols:
+        symbol_names.append(key)
+    return symbol_names
+
+import subprocess 
+
+def wrap_symbols(symbol_names, filename, objcopy_executable):
+    if (not objcopy_executable):
+        print ("objcopy executable not provided")
+    print ("wrapping symbols in: ", filename)
+    for symbol in symbol_names:
+        if symbol.endswith("_dl_original"):
+            continue
+
+        print ("Renaming symbol: ", symbol, ", to: ", symbol + "_dl_original")
+        subprocess.run([objcopy_executable, filename, "--redefine-sym", " " + symbol + "=" + symbol + "_dl_original"])
+            
+
 
 parser = argparse.ArgumentParser(description = "Relocable modules and shared libraries generator")
-parser.add_argument("-i", "--input", dest="elf_filename", action="store", help="Path to input file")
+parser.add_argument("-i", "--input", dest="input_directory", action="store", help="Path to input file")
 parser.add_argument("-o", "--output", dest="output_directory", action="store", help="Path to output file")
+parser.add_argument("--objcopy", dest="objcopy_executable", action="store", help="Path to objcopy executable")
+
 args, rest = parser.parse_known_args()
 
-print("Filename: ", args.elf_filename)
+print("Filename: ", args.input_directory)
 
-symbols = get_symbols(args.elf_filename)
-print(get_public_functions_from_symbols(symbols))
-relocations = get_relocations(args.elf_filename)
-print(relocations)
+#symbols = get_symbols(args.elf_filename)
+#print(get_public_functions_from_symbols(symbols))
+#relocations = get_relocations(args.elf_filename)
+#print(relocations)
+
+from pathlib import Path
+
+for file in Path(args.input_directory).rglob("*.o"):
+    print (file)
+    symbols = get_symbols(file)
+    public_symbols = get_public_functions_from_symbols(symbols)
+    symbols_to_rename = get_symbol_names(public_symbols)
+    wrap_symbols(symbols_to_rename, file, args.objcopy_executable)
+    relocations = get_relocations(file)
+    #print(relocations)
+
