@@ -21,3 +21,9 @@ target_include_directories(msos
 )
 
 add_subdirectory(modules/example)
+
+set_target_properties(
+    msos
+    PROPERTIES
+        SUFFIX ".elf"
+)
