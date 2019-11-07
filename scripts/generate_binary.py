@@ -105,7 +105,7 @@ def wrap_symbols(symbol_names, filename, objcopy_executable):
 
         print ("Renaming symbol: ", symbol, ", to: ", symbol + "_dl_original")
         print ("Calling: ", objcopy_executable, filename, "--redefine-sym", " " + symbol + "=" + symbol + "_dl_original")
-        subprocess.run([objcopy_executable, filename, "--redefine-sym", " " + symbol + "=" + symbol + "_dl_original"])
+        subprocess.run([objcopy_executable + " --redefine-sym " + symbol + "=" + symbol + "_dl_original " + str(filename)], shell=True)
 
 
 
@@ -129,6 +129,7 @@ for file in Path(args.input_directory).rglob("*.o"):
     print (file)
     symbols = get_symbols(file)
     public_symbols = get_public_functions_from_symbols(symbols)
+    print (public_symbols)
     symbols_to_rename = get_symbol_names(public_symbols)
     wrap_symbols(symbols_to_rename, file, args.objcopy_executable)
     relocations = get_relocations(file)
