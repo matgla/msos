@@ -7,7 +7,7 @@ from elftools.elf.elffile import ELFFile
 from elftools.elf.sections import SymbolTableSection
 from elftools.elf.relocation import RelocationSection
 from elftools.elf.descriptions import describe_reloc_type
-
+from jinja2 import Template
 
 def get_symbols(elf_filename):
     symbols = {}
@@ -100,12 +100,17 @@ def wrap_symbols(symbol_names, filename, objcopy_executable):
         print ("objcopy executable not provided")
     print ("wrapping symbols in: ", filename)
     for symbol in symbol_names:
+        t = Template("Hello {{ symbol_name }}!")
+        print("Redering: ", t.render(symbol_name = symbol))
+
         if symbol.endswith("_dl_original"):
             continue
 
         print ("Renaming symbol: ", symbol, ", to: ", symbol + "_dl_original")
         print ("Calling: ", objcopy_executable, filename, "--redefine-sym", " " + symbol + "=" + symbol + "_dl_original")
         subprocess.run([objcopy_executable + " --redefine-sym " + symbol + "=" + symbol + "_dl_original " + str(filename)], shell=True)
+
+
 
 
 

@@ -34,8 +34,6 @@ add_custom_target(
     DEPENDS venv.stamp
 )
 
-message("SSSS: ${CMAKE_OBJCOPY}")
-
 add_custom_command(
     TARGET example_module_wrapper_generator
     COMMAND ${CMAKE_CURRENT_BINARY_DIR}/venv/bin/python3 ${PROJECT_SOURCE_DIR}/scripts/generate_binary.py generate_wrapper_code --output ${PROJECT_BINARY_DIR}/example_module_wrapper --input ${PROJECT_BINARY_DIR}/src/modules/example/CMakeFiles/example_module.dir --objcopy=${CMAKE_OBJCOPY}
