@@ -5,7 +5,8 @@ add_executable(msos)
 target_sources(msos
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-)
+        ${CMAKE_CURRENT_SOURCE_DIR}/get_address.s
+        )
 
 target_link_libraries(msos
     PUBLIC
@@ -27,3 +28,4 @@ set_target_properties(
     PROPERTIES
         SUFFIX ".elf"
 )
+

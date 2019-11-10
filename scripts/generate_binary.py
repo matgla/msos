@@ -7,7 +7,7 @@ from elftools.elf.elffile import ELFFile
 from elftools.elf.sections import SymbolTableSection
 from elftools.elf.relocation import RelocationSection
 from elftools.elf.descriptions import describe_reloc_type
-from jinja2 import Template
+from jinja2 import Template, Environment, FileSystemLoader
 
 def get_symbols(elf_filename):
     symbols = {}
@@ -95,33 +95,58 @@ def get_symbol_names(symbols):
 
 import subprocess
 
-def wrap_symbols(symbol_names, filename, objcopy_executable):
-    if (not objcopy_executable):
-        print ("objcopy executable not provided")
-    print ("wrapping symbols in: ", filename)
+def wrap_symbols(symbol_names, filename, objcopy_executable, output_directory):
+    wrapped_files = []
+    #if (not objcopy_executable):
+        #print ("objcopy executable not provided")
+    #print ("wrapping symbols in: ", filename)
+    symbols_to_generate = {}
     for symbol in symbol_names:
-        t = Template("Hello {{ symbol_name }}!")
-        print("Redering: ", t.render(symbol_name = symbol))
-
+        symbol_name = symbol 
+        print ("processing symbol: ", symbol_name)
+        if (symbol_name.endswith("_dl_original")):
+            symbol_name = symbol_name.replace("_dl_original", "")
+        
+        if not os.path.exists(output_directory):
+            os.makedirs(output_directory)
+        
+        wrapped_symbol = symbol_name + "_dl_original"
+        
+        symbols_to_generate.update({symbol_name: wrapped_symbol})
         if symbol.endswith("_dl_original"):
             continue
-
-        print ("Renaming symbol: ", symbol, ", to: ", symbol + "_dl_original")
-        print ("Calling: ", objcopy_executable, filename, "--redefine-sym", " " + symbol + "=" + symbol + "_dl_original")
+        
         subprocess.run([objcopy_executable + " --redefine-sym " + symbol + "=" + symbol + "_dl_original " + str(filename)], shell=True)
+    output_filename = output_directory + "/wrapped_symbols.s" 
+    current_path = os.path.dirname(os.path.abspath(__file__))
+    template_loader = FileSystemLoader(current_path)
+    env = Environment(loader = template_loader)
+    t = env.get_template("wrapped_symbols.s.template")
+    print ("Storing wrapped symbols under: ", output_filename)    
+    with open(output_filename, "w+") as file: 
+        file.write(t.render(wrapped_symbols = symbols_to_generate, address_to_got_obtainer=0x123))
+    return wrapped_files 
 
-
-
+def generate_cmake(files, output_directory):
+    current_path = os.path.dirname(os.path.abspath(__file__))
+    template_loader = FileSystemLoader(current_path)
+    env = Environment(loader = template_loader)
+    t = env.get_template("CMakeLists.txt.template")
+    if not os.path.exists(output_directory):
+        os.makedirs(output_directory)
+    output_filename = output_directory + "/" + "CMakeLists.txt"
+    with open(output_filename, "w+") as file:
+        file.write(t.render(source_files = files))
 
 
 parser = argparse.ArgumentParser(description = "Relocable modules and shared libraries generator")
 parser.add_argument("-i", "--input", dest="input_directory", action="store", help="Path to input file")
 parser.add_argument("-o", "--output", dest="output_directory", action="store", help="Path to output file")
 parser.add_argument("--objcopy", dest="objcopy_executable", action="store", help="Path to objcopy executable")
-
+parser.add_argument("--print_dependencies", dest="print_dependencies", action="store_true", help="Prints only generated files")
 args, rest = parser.parse_known_args()
 
-print("Filename: ", args.input_directory)
+#print("Filename: ", args.input_directory)
 
 #symbols = get_symbols(args.elf_filename)
 #print(get_public_functions_from_symbols(symbols))
@@ -131,12 +156,16 @@ print("Filename: ", args.input_directory)
 from pathlib import Path
 
 for file in Path(args.input_directory).rglob("*.o"):
-    print (file)
+    #print (file)
     symbols = get_symbols(file)
     public_symbols = get_public_functions_from_symbols(symbols)
-    print (public_symbols)
+    #print (public_symbols)
     symbols_to_rename = get_symbol_names(public_symbols)
-    wrap_symbols(symbols_to_rename, file, args.objcopy_executable)
+    wrapped_files = wrap_symbols(symbols_to_rename, file, args.objcopy_executable, args.output_directory)
     relocations = get_relocations(file)
+    #print (wrapped_files)
+    generate_cmake(wrapped_files, args.output_directory)
     #print(relocations)
+    for file in wrapped_files: 
+        print(file)
 

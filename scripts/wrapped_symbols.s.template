@@ -1,0 +1,25 @@
+.thumb
+.syntax unified 
+.arch armv7-m
+
+.equ BKP_BASE, 0x40006c00
+
+{% for original_symbol_name, wrapped_symbol_name in wrapped_symbols.items() %}
+.global {{original_symbol_name}}
+.extern {{wrapped_symbol_name}}
+{{original_symbol_name}}:
+    push    {r9, lr}
+    push    {r0, r1}
+    ldr     r0, =BKP_BASE
+    ldr     r1, [r0, #8]
+    lsl     r1, r1, #16
+    ldr     r0, [r0, #12]
+    orr     r1, r0 
+    mov     r0, pc
+    blx     r1
+    mov     r9, r0
+    pop     {r0, r1}
+    bl      {{wrapped_symbol_name}}
+    pop     {r9, pc}
+
+{% endfor %}

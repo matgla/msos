@@ -31,26 +31,24 @@ add_custom_command(
 
 add_custom_target(
     example_module_wrapper_generator
-    DEPENDS venv.stamp
+    DEPENDS example_module venv.stamp
 )
 
 add_custom_command(
     TARGET example_module_wrapper_generator
+    POST_BUILD
     COMMAND ${CMAKE_CURRENT_BINARY_DIR}/venv/bin/python3 ${PROJECT_SOURCE_DIR}/scripts/generate_binary.py generate_wrapper_code --output ${PROJECT_BINARY_DIR}/example_module_wrapper --input ${PROJECT_BINARY_DIR}/src/modules/example/CMakeFiles/example_module.dir --objcopy=${CMAKE_OBJCOPY}
-    DEPENDS example_module
+    VERBATIM
 )
 
-add_dependencies(example_module_wrapper_generator example_module)
+add_library(example_module_wrapper OBJECT)
 
-file (GLOB_RECURSE example_module_wrapper_sources ${PROJECT_BINARY_DIR}/src/*.s)
+set_source_files_properties(${PROJECT_BINARY_DIR}/example_module_wrapper/wrapped_symbols.s PROPERTIES GENERATED 1)
 
-add_library(example_module_wrapper STATIC)
-target_sources(example_module_wrapper
-    PUBLIC
-        ${example_module_wrapper_sources}
-        ${CMAKE_CURRENT_SOURCE_DIR}/empty.c
+target_sources(example_module_wrapper 
+    PRIVATE 
+    ${PROJECT_BINARY_DIR}/example_module_wrapper/wrapped_symbols.s
 )
-
 add_dependencies(example_module_wrapper example_module_wrapper_generator)
 
 target_compile_options(example_module_wrapper PUBLIC -msingle-pic-base -fno-inline -fPIE -mno-pic-data-is-text-relative

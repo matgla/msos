@@ -1,0 +1,10 @@
+Each module has own header in RAM memory 
+
+with at least
+
+module has 
+
+uint32_t module address at 0x0000000
+
+U32 HEADER_PTR
+
