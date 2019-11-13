@@ -39,7 +39,14 @@ int main()
     Usart::write("Readed addres: 0x");
     Usart::write(data);
     Usart::write("\n");
-     void(*call)()  = reinterpret_cast<void(*)()>(readed_address);
+    void(*call)()  = reinterpret_cast<void(*)()>(readed_address);
+    hal::core::BackupRegisters::reset();
+    readed_address = get_address();
+    eul::utils::itoa(readed_address, data, 16);
+    Usart::write("Readed addres: 0x");
+    Usart::write(data);
+    Usart::write("\n");
+    
     while (true)
     {
         call();

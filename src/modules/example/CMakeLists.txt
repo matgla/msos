@@ -37,7 +37,10 @@ add_custom_target(
 add_custom_command(
     TARGET example_module_wrapper_generator
     POST_BUILD
-    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/venv/bin/python3 ${PROJECT_SOURCE_DIR}/scripts/generate_binary.py generate_wrapper_code --output ${PROJECT_BINARY_DIR}/example_module_wrapper --input ${PROJECT_BINARY_DIR}/src/modules/example/CMakeFiles/example_module.dir --objcopy=${CMAKE_OBJCOPY}
+    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/venv/bin/python3 ${PROJECT_SOURCE_DIR}/scripts/generate_binary.py
+    generate_wrapper_code --output ${PROJECT_BINARY_DIR}/example_module_wrapper --input
+    ${PROJECT_BINARY_DIR}/src/modules/example/CMakeFiles/example_module.dir --objcopy=${CMAKE_OBJCOPY}
+    --module_name=example_module
     VERBATIM
 )
 

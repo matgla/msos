@@ -97,9 +97,9 @@ import subprocess
 
 def wrap_symbols(symbol_names, filename, objcopy_executable, output_directory):
     wrapped_files = []
-    #if (not objcopy_executable):
-        #print ("objcopy executable not provided")
-    #print ("wrapping symbols in: ", filename)
+    if (not objcopy_executable):
+        print ("objcopy executable not provided")
+    print ("wrapping symbols in: ", filename)
     symbols_to_generate = {}
     for symbol in symbol_names:
         symbol_name = symbol 
@@ -124,26 +124,23 @@ def wrap_symbols(symbol_names, filename, objcopy_executable, output_directory):
     t = env.get_template("wrapped_symbols.s.template")
     print ("Storing wrapped symbols under: ", output_filename)    
     with open(output_filename, "w+") as file: 
-        file.write(t.render(wrapped_symbols = symbols_to_generate, address_to_got_obtainer=0x123))
+        file.write(t.render(wrapped_symbols = symbols_to_generate))
     return wrapped_files 
 
-def generate_cmake(files, output_directory):
-    current_path = os.path.dirname(os.path.abspath(__file__))
-    template_loader = FileSystemLoader(current_path)
-    env = Environment(loader = template_loader)
-    t = env.get_template("CMakeLists.txt.template")
-    if not os.path.exists(output_directory):
-        os.makedirs(output_directory)
-    output_filename = output_directory + "/" + "CMakeLists.txt"
-    with open(output_filename, "w+") as file:
-        file.write(t.render(source_files = files))
-
+def generate_module(name, elf_filename):
+    print("Generating module: ", name);
+    with open(elf_filename, "rb") as elf_file:
+        elf = ELFFile(elf_file)
+        code_section = elf.get_section(".text")
+        print(code_section)
 
 parser = argparse.ArgumentParser(description = "Relocable modules and shared libraries generator")
 parser.add_argument("-i", "--input", dest="input_directory", action="store", help="Path to input file")
 parser.add_argument("-o", "--output", dest="output_directory", action="store", help="Path to output file")
 parser.add_argument("--objcopy", dest="objcopy_executable", action="store", help="Path to objcopy executable")
 parser.add_argument("--print_dependencies", dest="print_dependencies", action="store_true", help="Prints only generated files")
+parser.add_argument("--module_name", dest="module_name", action="store", help="Module name")
+
 args, rest = parser.parse_known_args()
 
 #print("Filename: ", args.input_directory)
@@ -164,8 +161,8 @@ for file in Path(args.input_directory).rglob("*.o"):
     wrapped_files = wrap_symbols(symbols_to_rename, file, args.objcopy_executable, args.output_directory)
     relocations = get_relocations(file)
     #print (wrapped_files)
-    generate_cmake(wrapped_files, args.output_directory)
     #print(relocations)
     for file in wrapped_files: 
         print(file)
+    generate_module(args.module_name, file)
 
