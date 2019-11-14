@@ -9,6 +9,8 @@ from elftools.elf.relocation import RelocationSection
 from elftools.elf.descriptions import describe_reloc_type
 from jinja2 import Template, Environment, FileSystemLoader
 from colorama import Fore, Style, init
+from pathlib import Path
+
 
 def get_symbols(elf_filename):
     symbols = {}
@@ -70,7 +72,7 @@ def get_relocations(elf_filename):
 def get_sections(elf_filename):
     sections = {}
     with open(elf_filename, "rb") as elf_file:
-        elf = ELFFile(elf_file)
+        elf = ELFFile(elf_filename)
         for section in elf.iter_sections():
             section_data = {}
             section_data["name"] = section.name
@@ -82,7 +84,7 @@ def get_sections(elf_filename):
             section_data["link"] = section["sh_link"]
             section_data["info"] = section["sh_info"]
             section_data["addralign"] = section["sh_addralign"]
-            section_data["entsize"] = section["sh_entsize"]
+            section_data["size"] = section["sh_entsize"]
             section_data["data"] = section.data()
             sections[section.name] = section_data
 
@@ -96,45 +98,89 @@ def get_symbol_names(symbols):
 
 import subprocess
 
-def generate_module(name, elf_filename):
-    sections = get_sections(elf_filename)
-    code_section = sections[".text"]
-    if code_section["address"] != 0:
-        print(Fore.RED + " .text section must be placed at address 0" + Style.RESET_ALL)
-    code_data = bytearray(code_section["data"])
+def wrap_symbols(symbol_names, filename, objcopy_executable):
+    symbols_to_generate = {}
+    for symbol in symbol_names:
+        symbol_name = symbol
 
-    data_section = sections[".rodata"]
-    print("Data: ", data_section["address"] )
-    print("Code: ", code_section["size"] )
+        if (symbol_name.endswith("_dl_original")):
+            symbol_name = symbol_name.replace("_dl_original", "")
 
-    if data_section["address"] != code_section["size"]:
-        print(Fore.RED + " .data (", hex(data_section["address"]), ") section must be placed just after .text(" + hex(code_section["size"]) + ")" + Style.RESET_ALL)
+        wrapped_symbol = symbol_name + "_dl_original"
+        print (Fore.YELLOW + "[INF]" + Style.RESET_ALL + "          Renaming " + symbol + " -> " + wrapped_symbol)
 
+        symbols_to_generate.update({symbol_name: wrapped_symbol})
+        if symbol.endswith("_dl_original"):
+            continue
 
-parser = argparse.ArgumentParser(description = "Relocable modules and shared libraries generator")
-parser.add_argument("-o", "--output", dest="output_directory", action="store", help="Path to output file")
-parser.add_argument("--module_name", dest="module_name", action="store", help="Module name")
-parser.add_argument("-i", "--elf_filename", dest="elf_filename", action="store", help="Path to module ELF file")
+        subprocess.run([objcopy_executable + " --redefine-sym " + symbol + "=" + symbol + "_dl_original " + str(filename)], shell=True)
+    return symbols_to_generate
 
-args, rest = parser.parse_known_args()
+def generate_wrapper_file(symbols_to_generate, output_directory):
+    output_filename = output_directory + "/wrapped_symbols.s"
+    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "          Generating function calls wrappers: ", output_filename)
+    if not os.path.exists(output_directory):
+        print (Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Creating directory for output")
+        os.makedirs(output_directory)
 
-from pathlib import Path
+    current_path = os.path.dirname(os.path.abspath(__file__))
+    template_loader = FileSystemLoader(current_path)
+    env = Environment(loader = template_loader)
+    t = env.get_template("wrapped_symbols.s.template")
+    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "          Generated wrapper for public symbols")
+
+    with open(output_filename, "w+") as file:
+        file.write(t.render(wrapped_symbols = symbols_to_generate))
+
 
 def main():
     init()
 
-    symbols_to_generate = []
+    parser = argparse.ArgumentParser(description = "Relocable modules and shared libraries generator")
+    parser.add_argument("-i", "--input", dest="input_directory", action="store", help="Path to input file")
+    parser.add_argument("-o", "--output", dest="output_directory", action="store", help="Path to output file")
+    parser.add_argument("--objcopy", dest="objcopy_executable", action="store", help="Path to objcopy executable")
+    parser.add_argument("--print_dependencies", dest="print_dependencies", action="store_true", help="Prints only generated files")
+    parser.add_argument("--module_name", dest="module_name", action="store", help="Module name")
+    parser.add_argument("--elf_filename", dest="elf_filename", action="store", help="Path to module ELF file")
+
+    args, rest = parser.parse_known_args()
+
+    symbols_to_generate = {}
 
     print(Fore.CYAN + "==========================================")
-    print(Fore.CYAN + "=            MODULE_GENERATOR            =")
+    print(Fore.CYAN + "=           WRAPPERS_GENERATOR           =")
     print(Fore.CYAN + "==========================================")
     print(Style.RESET_ALL)
 
     print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + " STEP 1. Initialization")
-    if not args.elf_filename:
-        print(Fore.RED + "[ERR] Please provide module ELF file (--elf_filename=<path_to_elf_file>)" + Style.RESET_ALL)
-        return
-    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + " STEP 2. Generating module: ", args.module_name, ", ELF: ", args.elf_filename)
 
-    generate_module(args.module_name, args.elf_filename)
+    if not args.input_directory:
+        print(Fore.RED + "[ERR] Please provide directory with .o files (--input_directory=<path_to_directory>)")
+        return
+
+    if not args.objcopy_executable:
+        print(Fore.RED + "[ERR] Please objcopy executable (--objcopy=<path_to_objcopy>)")
+        return
+
+    files = list(Path(args.input_directory).rglob("*.o"))
+
+    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + " STEP 2. Wrapping symbols in files")
+    file_number = 1
+    for file in files:
+        print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "   [" + str(file_number) + "/" + str(len(files)) + "] " + str(file))
+        symbols = get_symbols(file)
+
+        public_symbols = get_public_functions_from_symbols(symbols)
+        symbols_to_rename = get_symbol_names(public_symbols)
+        symbols_to_generate.update(wrap_symbols(symbols_to_rename, file, args.objcopy_executable))
+
+    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + " STEP 3. Generating wrapper file")
+
+    generate_wrapper_file(symbols_to_generate, args.output_directory)
+    print(Fore.GREEN + "=========================================" + Style.RESET_ALL)
+    print(Fore.GREEN + "[SUCCESS]" + "All steps succeeded" + Style.RESET_ALL)
+    print()
+
+
 main()
