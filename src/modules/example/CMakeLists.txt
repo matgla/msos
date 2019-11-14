@@ -5,12 +5,13 @@ target_sources(example_module
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 
-set(CMAKE_EXE_LINKER_FLAGS "-T${PROJECT_SOURCE_DIR}/linker_scripts/dynamic_module.ld -nostartfiles -nodefaultlibs -nostdlib -Wl,--unresolved-symbols=ignore-in-object-files -Wl,--emit-relocs" CACHE INTERNAL "linker flags" FORCE)
+
+set (module_linker_flags "${hal_linker_flags};-T${PROJECT_SOURCE_DIR}/linker_scripts/dynamic_module.ld;-nostartfiles;-nodefaultlibs;-nostdlib;-Wl,--unresolved-symbols=ignore-in-object-files;-Wl,--emit-relocs")
+set (module_compiler_flags "${hal_compilation_flags};-msingle-pic-base;-fno-inline;-fPIE;-mno-pic-data-is-text-relative")
 
 
-target_compile_options(example_module PUBLIC "${hal_compilation_flags};-msingle-pic-base;-fno-inline;-fPIE;-mno-pic-data-is-text-relative")
-# target_link_options(example_module PUBLIC -T${PROJECT_SOURCE_DIR}/linker_scripts/dynamic_module.ld -nostartfiles -nodefaultlibs -nostdlib -Wl,--unresolved-symbols=ignore-in-object-files -Wl,--emit-relocs)
-
+target_compile_options(example_module PUBLIC ${module_compiler_flags}) 
+target_link_options(example_module PUBLIC ${module_linker_flags})
 
 find_program(VIRTUALENV virtualenv)
 
@@ -57,10 +58,8 @@ target_sources(example_module_wrapper
 )
 add_dependencies(example_module_wrapper example_module_wrapper_generator)
 
-target_compile_options(example_module_wrapper PUBLIC -msingle-pic-base -fno-inline -fPIE -mno-pic-data-is-text-relative
-    -x assembler-with-cpp)
-# target_link_options(example_module_wrapper PUBLIC -T${PROJECT_SOURCE_DIR}/linker_scripts/dynamic_module.ld
-#     -nostartfiles -nodefaultlibs -nostdlib -Wl,--unresolved-symbols=ignore-in-object-files -Wl,--emit-relocs)
+target_compile_options(example_module_wrapper PUBLIC ${module_compiler_flags}) 
+target_link_options(example_module_wrapper PUBLIC ${module_linker_flags})
 
 add_executable(example_module_shared)
 
@@ -70,16 +69,8 @@ target_link_libraries(example_module_shared
         example_module
 )
 
-
-# get_target_property(example_module_location  example_module LINK_LIBRARIES)
-# message("Location: ${example_module_location}")
-
-target_compile_options(example_module_shared PUBLIC
-    "${hal_compilation_flags};-msingle-pic-base;-fno-inline;-fPIE;-mno-pic-data-is-text-relative")
-
-# set_target_properties(example_module_shared
-#     PROPERTIES LINK_FLAGS
-#         "-T${PROJECT_SOURCE_DIR}/linker_scripts/dynamic_module.ld -nostartfiles -nodefaultlibs -nostdlib -Wl,--unresolved-symbols=ignore-in-object-files -Wl,--emit-relocs")
+target_compile_options(example_module_shared PUBLIC ${module_compiler_flags})
+target_link_options(example_module_shared PUBLIC ${module_linker_flags})    
 
 add_custom_command(
     TARGET example_module_shared

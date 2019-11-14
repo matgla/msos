@@ -2,6 +2,7 @@
 
 import os
 import argparse
+import struct 
 
 from elftools.elf.elffile import ELFFile
 from elftools.elf.sections import SymbolTableSection
@@ -103,12 +104,115 @@ def generate_module(name, elf_filename):
         print(Fore.RED + " .text section must be placed at address 0" + Style.RESET_ALL)
     code_data = bytearray(code_section["data"])
 
-    data_section = sections[".rodata"]
-    print("Data: ", data_section["address"] )
-    print("Code: ", code_section["size"] )
+    rodata_section = sections[".rodata"]
+    if rodata_section["address"] != code_section["size"]:
+        print(Fore.RED + " .rodata (", hex(rodata_section["address"]), ") section must be placed just after .text(" + hex(code_section["size"]) + ")" + Style.RESET_ALL)
+        return 
+    rodata_data = bytearray(rodata_section["data"])
+   
+    data_section = sections[".data"]
+    if data_section["address"] != rodata_section["address"] + rodata_section["size"]:
+        print(Fore.RED + " .data (",  hex(data_section["address"]),  ") section must be placed just after .rodata (",
+            hex(rodata_section["address"] + rodata_section["size"]) + ")" + Style.RESET_ALL)
+        return 
 
-    if data_section["address"] != code_section["size"]:
-        print(Fore.RED + " .data (", hex(data_section["address"]), ") section must be placed just after .text(" + hex(code_section["size"]) + ")" + Style.RESET_ALL)
+    bss_section = sections[".bss"]
+    if (bss_section["address"] != data_section["address"] + data_section["size"]):
+        print(Fore.RED + " .bss (", hex(bss_section["address"]), ") section must be placed just after .data(" +
+                hex(data_section["address"] + data_section["size"]) + Style.RESET_ALL)
+        return 
+    
+    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Reading symbols")
+    symbols = get_symbols(elf_filename)
+
+    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Reading relocations")
+    relocations = get_relocations(elf_filename)
+    
+    symbol_map = {}
+    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Processing symbols")
+    for name, data in symbols.items():
+        if not name or name == "$t" or name == "$d":
+            continue 
+        
+        if data["binding"] == "STB_GLOBAL":
+            if data["section_index"] == "SHN_UNDEF":
+                symbol_map[name] = "external"
+            else:
+                symbol_map[name] = "exported"
+        else:
+            if data["type"] == "STT_FILE":
+                continue 
+            symbol_map[name] = "internal"
+
+    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "     External symbols: ")
+    for name in filter(lambda elem: elem[1] == "external", symbol_map.items()):
+        print("                    ", name[0])
+    print("------------------------------------------------------")
+
+    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "     Exported symbols: ")
+    for name in filter(lambda elem: elem[1] == "exported", symbol_map.items()):
+        print("                    ", name[0])
+    print("------------------------------------------------------")
+
+    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "     Internal symbols: ")
+    for name in filter(lambda elem: elem[1] == "internal", symbol_map.items()):
+        print("                    ", name[0])
+    print("------------------------------------------------------")
+
+    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Processing relocations")
+    local_relocations = []
+    external_relocations = []
+
+    for relocation in relocations:
+        offset = relocation["offset"]
+        if relocation["info_type"] == "R_ARM_THM_CALL":
+            continue 
+        elif relocation["info_type"] == "R_ARM_GOT_BREL":
+            symbol_visibility = symbol_map[relocation["symbol_name"]]
+            if symbol_visibility == "external":
+                external_relocations.append((relocation["symbol_name"], offset))
+            elif symbol_visibility == "exported" or symbol_visibility == "internal":
+                local_relocations.append((relocation["symbol_name"], offset))
+        elif relocation["info_type"] != "R_ARM_ABS32": 
+            print (Fore.RED + "Unknown relocation type. Please fix generate_binary.py")
+            raise RuntimeError("Script not working for this binary")
+    print (Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Local relocations:")
+    for relocation in local_relocations:
+        print ("                      ", relocation[0])
+
+    print (Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      External relocations:")
+    for relocation in external_relocations:
+        print ("                       ", relocation[0])
+
+
+    relocation_to_index_map = {}
+    index = 0
+    total_relocations = 0
+    for relocation in local_relocations + external_relocations:
+        symbol_name = relocation[0]
+        if not symbol_name in relocation_to_index_map:
+            relocation_to_index_map[symbol_name] = index 
+            index += 1
+            total_relocations += 1
+
+    lot_offset = index
+    for relocation in relocations:
+        if relocation["info_type"] == "R_ARM_ABS32":
+            offset = relocation["offset"]
+            print(relocation["symbol_name"], hex(offset))
+            raise RuntimeError("Data relocations not supported yet!")
+    
+    for relocation in local_relocations + external_relocations:
+        offset = relocation[1]
+        old = struct.unpack_from("<I", code_data, offset)[0]
+        new = relocation_to_index_map[relocation[0]] * 4
+        print ("Patching relocation for ", relocation[0], " from ", hex(old), " to ", hex(new))
+        struct.pack_into(">I", code_data, offset, new)
+
+    print (Fore.YELLOW + "[INF]" + Style.RESET_ALL + " Creating image of module")
+    image = bytearray("MDYN")
+    number_of_lot_relocations = index
+    image += bytearray(number_of_lot_relocations)
 
 
 parser = argparse.ArgumentParser(description = "Relocable modules and shared libraries generator")
