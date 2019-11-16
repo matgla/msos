@@ -3,6 +3,7 @@
 #include <hal/core/core.hpp>
 #include <hal/core/backupRegisters.hpp>
 #include <eul/utils/string.hpp>
+#include <string_view>
 
 void call_me()
 {
@@ -15,6 +16,42 @@ extern "C"
     int get_address();
 }
 
+struct EndlineTag{};
+
+constexpr EndlineTag endl;
+
+template <typename UsartType>
+class UsartWriter
+{
+public:
+    using SelfType = UsartWriter<UsartType>;
+  
+    template <typename T>
+    const SelfType& operator<<(const T& t) const
+    {
+        write(t); 
+        return *this;
+    }
+
+    const SelfType& operator<<(const EndlineTag) const 
+    {
+        write("\n");
+        return *this;
+    }
+
+    template <typename T>
+    void writeln(const T& t) const
+    {
+        write(t);
+        write("\n");
+    }
+
+    void write(const std::string_view& str) const 
+    {
+        SelfType::write(str);
+    }
+};
+
 int main()
 {
     board::board_init();   
@@ -23,7 +60,9 @@ int main()
     LED::init(hal::gpio::Output::OutputPushPull, hal::gpio::Speed::Default);
     using Usart = board::interfaces::Usart1; 
     Usart::init(9600);
-    Usart::write("Hello from MSOS Kernel!\n");
+    
+    UsartWriter<Usart> writer; 
+    writer << "Hello from MSOS Kernel!" << endl;
     uint32_t address = reinterpret_cast<uint32_t>(&call_me);
     char data[30];
     eul::utils::itoa(address, data, 16);
@@ -47,6 +86,13 @@ int main()
     Usart::write(data);
     Usart::write("\n");
     
+    std::size_t module_address = 0x08000000;
+    module_address += 32 * 1024;
+
+    std::string_view cookie(reinterpret_cast<const char*>(module_address), 4);
+    Usart::write(cookie.data());
+    Usart::write("\n");
+
     while (true)
     {
         call();

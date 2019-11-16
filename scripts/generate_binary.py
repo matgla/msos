@@ -72,7 +72,7 @@ def get_sections(elf_filename):
     sections = {}
     with open(elf_filename, "rb") as elf_file:
         elf = ELFFile(elf_file)
-        for section in elf.iter_sections():
+        for i, section in enumerate(elf.iter_sections()):
             section_data = {}
             section_data["name"] = section.name
             section_data["address"] = section["sh_addr"]
@@ -85,6 +85,7 @@ def get_sections(elf_filename):
             section_data["addralign"] = section["sh_addralign"]
             section_data["entsize"] = section["sh_entsize"]
             section_data["data"] = section.data()
+            section_data["index"] = i
             sections[section.name] = section_data
 
     return sections
@@ -97,7 +98,7 @@ def get_symbol_names(symbols):
 
 import subprocess
 
-def generate_module(name, elf_filename):
+def generate_module(module_name, elf_filename, objcopy_executable):
     sections = get_sections(elf_filename)
     code_section = sections[".text"]
     if code_section["address"] != 0:
@@ -115,6 +116,7 @@ def generate_module(name, elf_filename):
         print(Fore.RED + " .data (",  hex(data_section["address"]),  ") section must be placed just after .rodata (",
             hex(rodata_section["address"] + rodata_section["size"]) + ")" + Style.RESET_ALL)
         return 
+    data_data = data_section["data"]
 
     bss_section = sections[".bss"]
     if (bss_section["address"] != data_section["address"] + data_section["size"]):
@@ -125,6 +127,11 @@ def generate_module(name, elf_filename):
     print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Reading symbols")
     symbols = get_symbols(elf_filename)
 
+    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Changing visibility of wrapped symbols")
+    for symbol_name in symbols:
+        if symbol_name.endswith("_dl_original"):
+            subprocess.run([objcopy_executable + " -L " + symbol_name + " " + str(elf_filename)], shell=True) 
+    symbols = get_symbols(elf_filename)
     print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Reading relocations")
     relocations = get_relocations(elf_filename)
     
@@ -210,16 +217,98 @@ def generate_module(name, elf_filename):
         struct.pack_into(">I", code_data, offset, new)
 
     print (Fore.YELLOW + "[INF]" + Style.RESET_ALL + " Creating image of module")
-    image = bytearray("MDYN")
-    number_of_lot_relocations = index
-    image += bytearray(number_of_lot_relocations)
+    
+    # +---+---+---+---+
+    # | M | S | D | L |
+    # +---+---+---+---+
+    # |   code size   |
+    # +---+---+---+---+
+    # | rodata size   |
+    # +---+---+---+---+
+    # |   data size   |
+    # +---+---+---+---+
+    # |   bss size    |
+    # +---+---+---+---+
+    # | n.rel | n.sym |
+    # +---+---+---+---+
+    # | s.siz | l.nam |
+    # +---+---+---+---+
+    # |     name      |
+    # : aligned to 4  : 
+    # +---+---+---+---+
+    # |  relocations  |
+    # |   n-rel - 1   |
+    # :     n-rel     :
+    # +---+---+---+---+
+    # |  symbol table |
+    # |   s.siz - 1   |
+    # :     s.siz     :
+    # +---+---+---+---+
 
+    # symbol table
+    # +---+---+---+---+
+    # 
+
+    image = bytearray("MSDL", "ascii")
+    image += struct.pack("<IIII", len(code_data), len(rodata_data), len(data_data), len(bss_section["data"]))
+    number_of_lot_relocations = index
+    image += struct.pack("<HH", number_of_lot_relocations, total_relocations)
+    name = bytearray(module_name + "\0", "ascii")
+    image += name
+    if (len(module_name + "\0") % 4): 
+        image += bytearray("\0" * (4 - (len(module_name + "\0") % 4)), "ascii")
+
+    symbol_to_index_map = {}
+    symbol_index = 0
+    for symbol in filter(lambda elem: elem[0] in relocation_to_index_map or elem[1] == "external" or elem[1] == "exported", symbol_map.items()):
+        symbol_name = symbol[0] 
+        symbol_to_index_map.update({symbol_name: symbol_index}) 
+        symbol_index = symbol_index + 1
+
+    processed = []
+    for relocation in local_relocations + external_relocations:
+        symbol, value = relocation 
+        if symbol in processed:
+            continue 
+        image += struct.pack("<II", relocation_to_index_map[symbol], symbol_to_index_map[symbol])
+        processed.append(symbol)    
+    
+    image += struct.pack("<I", len(symbol_to_index_map)) 
+    for symbol in symbol_to_index_map:
+        print (symbol)
+        if symbol_map[symbol] == "internal":
+            visibility = 0 
+        elif symbol_map[symbol] == "exported":
+            visibility = 1 
+        elif symbol_map[symbol] == "external":
+            visibility = 2
+       
+        print ("ss: ", symbols[symbol])
+        if symbols[symbol]["section_index"] == code_section["index"]:
+            section = 0
+        elif symbols[symbol]["section_index"] == rodata_section["index"]:
+            section = 1
+        elif symbols[symbol]["section_index"] == data_section["index"]:
+            section = 2
+
+        image += struct.pack("<HHI", visibility, section,symbol_to_index_map[symbol])
+        image += bytearray(symbol + "\0", "ascii")
+    
+    if (len(image) % 4):
+        image += bytearray('\0' * (4 - (len(image) % 4)), "ascii")
+
+    image += code_data
+    image += rodata_data 
+    image += data_data
+    with open(module_name + ".bin", "wb") as file: 
+        file.write(image)
 
 parser = argparse.ArgumentParser(description = "Relocable modules and shared libraries generator")
 parser.add_argument("-o", "--output", dest="output_directory", action="store", help="Path to output file")
 parser.add_argument("--module_name", dest="module_name", action="store", help="Module name")
 parser.add_argument("-i", "--elf_filename", dest="elf_filename", action="store", help="Path to module ELF file")
-
+parser.add_argument("--objcopy", dest="objcopy_executable", action="store", help="Path to objcopy executable")
+    
 args, rest = parser.parse_known_args()
 
 from pathlib import Path
@@ -240,5 +329,5 @@ def main():
         return
     print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + " STEP 2. Generating module: ", args.module_name, ", ELF: ", args.elf_filename)
 
-    generate_module(args.module_name, args.elf_filename)
+    generate_module(args.module_name, args.elf_filename, args.objcopy_executable)
 main()

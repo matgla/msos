@@ -76,6 +76,6 @@ add_custom_command(
     TARGET example_module_shared
     POST_BUILD
     COMMAND ${CMAKE_CURRENT_BINARY_DIR}/venv/bin/python3 ${PROJECT_SOURCE_DIR}/scripts/generate_binary.py
-    generate_wrapper_code --elf_filename=$<TARGET_FILE:example_module_shared> --module_name=example_module
+    generate_wrapper_code --elf_filename=$<TARGET_FILE:example_module_shared> --module_name=example_module --objcopy=${CMAKE_OBJCOPY}
     VERBATIM
 )
