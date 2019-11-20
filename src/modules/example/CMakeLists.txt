@@ -7,7 +7,8 @@ target_sources(example_module
 
 
 set (module_linker_flags "${hal_linker_flags};-T${PROJECT_SOURCE_DIR}/linker_scripts/dynamic_module.ld;-nostartfiles;-nodefaultlibs;-nostdlib;-Wl,--unresolved-symbols=ignore-in-object-files;-Wl,--emit-relocs")
-set (module_compiler_flags "${hal_compilation_flags};-msingle-pic-base;-fno-inline;-fPIE;-mno-pic-data-is-text-relative")
+set (module_compiler_flags
+    "${hal_compilation_flags};-msingle-pic-base;-fno-inline;-fPIE;-mno-pic-data-is-text-relative;-fomit-frame-pointer;-fno-inline;-mlong-calls")
 
 
 target_compile_options(example_module PUBLIC ${module_compiler_flags}) 

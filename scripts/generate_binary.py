@@ -171,6 +171,7 @@ def generate_module(module_name, elf_filename, objcopy_executable):
     external_relocations = []
 
     for relocation in relocations:
+        print ("relocation: ", relocation)
         offset = relocation["offset"]
         if relocation["info_type"] == "R_ARM_THM_CALL":
             continue 
@@ -266,14 +267,21 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         symbol_index = symbol_index + 1
 
     processed = []
+    relocation_to_image = []
     for relocation in local_relocations + external_relocations:
         symbol, value = relocation 
         if symbol in processed:
-            continue 
-        image += struct.pack("<II", relocation_to_index_map[symbol], symbol_to_index_map[symbol])
+            continue
+        rel = {}
+        rel["index"] = relocation_to_index_map[symbol]
+        rel["symbol"] = symbol_to_index_map[symbol]
+
+        relocation_to_image.append(rel)
+        #image += struct.pack("<II", relocation_to_index_map[symbol], symbol_to_index_map[symbol])
         processed.append(symbol)    
     
-    image += struct.pack("<I", len(symbol_to_index_map)) 
+    #image += struct.pack("<I", len(symbol_to_index_map)) 
+    symbol_to_image = []
     for symbol in symbol_to_index_map:
         print (symbol)
         if symbol_map[symbol] == "internal":
@@ -290,10 +298,42 @@ def generate_module(module_name, elf_filename, objcopy_executable):
             section = 1
         elif symbols[symbol]["section_index"] == data_section["index"]:
             section = 2
+        offset_to_next = len(symbol + "\0") + 4 + 2 + 2
+        #image += struct.pack("<IHHI", offset_to_next,  visibility, section,symbol_to_index_map[symbol])
+        #image += bytearray(symbol + "\0", "ascii")
+        sym = {}
+        sym["visibility"] = visibility
+        sym["section"] = section
+        sym["size"] = offset_to_next
+        sym["name"] = symbol + "\0"
+        sym["index"] = symbol_to_index_map[symbol]
+        symbol_to_image.append(sym)
 
-        image += struct.pack("<HHI", visibility, section,symbol_to_index_map[symbol])
-        image += bytearray(symbol + "\0", "ascii")
-    
+    for rel in relocation_to_image:
+        relocation_position = relocation_to_image.index(rel)
+        sizeof_relocation = 8
+        sizeof_symbol_table_size = 4
+        offset_to_symbol = (len(relocation_to_image) - relocation_position) * sizeof_relocation + sizeof_symbol_table_size;
+        print ("offset to sym: ", offset_to_symbol) 
+        symbol_offset = 0
+        for i in range(len(symbol_to_image)):
+            if (symbol_to_image[i]["index"] == rel["symbol"]):
+                break 
+            
+            print("symbol_offset: ", symbol_offset)
+            symbol_offset += symbol_to_image[i]["size"]
+        offset_to_symbol += symbol_offset 
+        print ("Adding relocation with index: ", rel["index"], ", and offset to symbol:", hex(offset_to_symbol)) 
+        image += struct.pack("<II", rel["index"], offset_to_symbol)
+
+    print ("Adding size of symbol table: ", len(symbol_to_index_map))
+    image += struct.pack("<I", len(symbol_to_index_map))
+
+    for sym in symbol_to_image:
+        image += struct.pack("<IHH", sym["size"], sym["visibility"], sym["section"])
+        image += bytearray(sym["name"], "ascii")
+        print ("Adding symbol: ", sym["name"], ", with size: ", hex(sym["size"]))
+  
     if (len(image) % 4):
         image += bytearray('\0' * (4 - (len(image) % 4)), "ascii")
 

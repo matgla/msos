@@ -8,9 +8,12 @@ target_sources(msos
         ${CMAKE_CURRENT_SOURCE_DIR}/get_address.s
         )
 
+add_subdirectory(dynamic_linker)
+
 target_link_libraries(msos
     PUBLIC
-        hal
+        # hal
+        msos_dynamic_linker
 )
 
 include (GenerateBinary)

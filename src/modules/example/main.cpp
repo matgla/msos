@@ -1,5 +1,5 @@
 
-void write_to_usart(const char* data);
+ void write_to_usart(const char* data);
 
 
 int object_main()
