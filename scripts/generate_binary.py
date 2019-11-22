@@ -2,7 +2,7 @@
 
 import os
 import argparse
-import struct 
+import struct
 
 from elftools.elf.elffile import ELFFile
 from elftools.elf.sections import SymbolTableSection
@@ -108,39 +108,39 @@ def generate_module(module_name, elf_filename, objcopy_executable):
     rodata_section = sections[".rodata"]
     if rodata_section["address"] != code_section["size"]:
         print(Fore.RED + " .rodata (", hex(rodata_section["address"]), ") section must be placed just after .text(" + hex(code_section["size"]) + ")" + Style.RESET_ALL)
-        return 
+        return
     rodata_data = bytearray(rodata_section["data"])
-   
+
     data_section = sections[".data"]
     if data_section["address"] != rodata_section["address"] + rodata_section["size"]:
         print(Fore.RED + " .data (",  hex(data_section["address"]),  ") section must be placed just after .rodata (",
             hex(rodata_section["address"] + rodata_section["size"]) + ")" + Style.RESET_ALL)
-        return 
+        return
     data_data = data_section["data"]
 
     bss_section = sections[".bss"]
     if (bss_section["address"] != data_section["address"] + data_section["size"]):
         print(Fore.RED + " .bss (", hex(bss_section["address"]), ") section must be placed just after .data(" +
                 hex(data_section["address"] + data_section["size"]) + Style.RESET_ALL)
-        return 
-    
+        return
+
     print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Reading symbols")
     symbols = get_symbols(elf_filename)
 
     print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Changing visibility of wrapped symbols")
     for symbol_name in symbols:
         if symbol_name.endswith("_dl_original"):
-            subprocess.run([objcopy_executable + " -L " + symbol_name + " " + str(elf_filename)], shell=True) 
+            subprocess.run([objcopy_executable + " -L " + symbol_name + " " + str(elf_filename)], shell=True)
     symbols = get_symbols(elf_filename)
     print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Reading relocations")
     relocations = get_relocations(elf_filename)
-    
+
     symbol_map = {}
     print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Processing symbols")
     for name, data in symbols.items():
         if not name or name == "$t" or name == "$d":
-            continue 
-        
+            continue
+
         if data["binding"] == "STB_GLOBAL":
             if data["section_index"] == "SHN_UNDEF":
                 symbol_map[name] = "external"
@@ -148,7 +148,7 @@ def generate_module(module_name, elf_filename, objcopy_executable):
                 symbol_map[name] = "exported"
         else:
             if data["type"] == "STT_FILE":
-                continue 
+                continue
             symbol_map[name] = "internal"
 
     print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "     External symbols: ")
@@ -174,14 +174,14 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         print ("relocation: ", relocation)
         offset = relocation["offset"]
         if relocation["info_type"] == "R_ARM_THM_CALL":
-            continue 
+            continue
         elif relocation["info_type"] == "R_ARM_GOT_BREL":
             symbol_visibility = symbol_map[relocation["symbol_name"]]
             if symbol_visibility == "external":
                 external_relocations.append((relocation["symbol_name"], offset))
             elif symbol_visibility == "exported" or symbol_visibility == "internal":
                 local_relocations.append((relocation["symbol_name"], offset))
-        elif relocation["info_type"] != "R_ARM_ABS32": 
+        elif relocation["info_type"] != "R_ARM_ABS32":
             print (Fore.RED + "Unknown relocation type. Please fix generate_binary.py")
             raise RuntimeError("Script not working for this binary")
     print (Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Local relocations:")
@@ -199,7 +199,7 @@ def generate_module(module_name, elf_filename, objcopy_executable):
     for relocation in local_relocations + external_relocations:
         symbol_name = relocation[0]
         if not symbol_name in relocation_to_index_map:
-            relocation_to_index_map[symbol_name] = index 
+            relocation_to_index_map[symbol_name] = index
             index += 1
             total_relocations += 1
 
@@ -209,7 +209,7 @@ def generate_module(module_name, elf_filename, objcopy_executable):
             offset = relocation["offset"]
             print(relocation["symbol_name"], hex(offset))
             raise RuntimeError("Data relocations not supported yet!")
-    
+
     for relocation in local_relocations + external_relocations:
         offset = relocation[1]
         old = struct.unpack_from("<I", code_data, offset)[0]
@@ -218,7 +218,7 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         struct.pack_into(">I", code_data, offset, new)
 
     print (Fore.YELLOW + "[INF]" + Style.RESET_ALL + " Creating image of module")
-    
+
     # +---+---+---+---+
     # | M | S | D | L |
     # +---+---+---+---+
@@ -235,7 +235,7 @@ def generate_module(module_name, elf_filename, objcopy_executable):
     # | s.siz | l.nam |
     # +---+---+---+---+
     # |     name      |
-    # : aligned to 4  : 
+    # : aligned to 4  :
     # +---+---+---+---+
     # |  relocations  |
     # |   n-rel - 1   |
@@ -248,7 +248,7 @@ def generate_module(module_name, elf_filename, objcopy_executable):
 
     # symbol table
     # +---+---+---+---+
-    # 
+    #
 
     image = bytearray("MSDL", "ascii")
     image += struct.pack("<IIII", len(code_data), len(rodata_data), len(data_data), len(bss_section["data"]))
@@ -256,20 +256,20 @@ def generate_module(module_name, elf_filename, objcopy_executable):
     image += struct.pack("<HH", number_of_lot_relocations, total_relocations)
     name = bytearray(module_name + "\0", "ascii")
     image += name
-    if (len(module_name + "\0") % 4): 
+    if (len(module_name + "\0") % 4):
         image += bytearray("\0" * (4 - (len(module_name + "\0") % 4)), "ascii")
 
     symbol_to_index_map = {}
     symbol_index = 0
     for symbol in filter(lambda elem: elem[0] in relocation_to_index_map or elem[1] == "external" or elem[1] == "exported", symbol_map.items()):
-        symbol_name = symbol[0] 
-        symbol_to_index_map.update({symbol_name: symbol_index}) 
+        symbol_name = symbol[0]
+        symbol_to_index_map.update({symbol_name: symbol_index})
         symbol_index = symbol_index + 1
 
     processed = []
     relocation_to_image = []
     for relocation in local_relocations + external_relocations:
-        symbol, value = relocation 
+        symbol, value = relocation
         if symbol in processed:
             continue
         rel = {}
@@ -278,19 +278,19 @@ def generate_module(module_name, elf_filename, objcopy_executable):
 
         relocation_to_image.append(rel)
         #image += struct.pack("<II", relocation_to_index_map[symbol], symbol_to_index_map[symbol])
-        processed.append(symbol)    
-    
-    #image += struct.pack("<I", len(symbol_to_index_map)) 
+        processed.append(symbol)
+
+    #image += struct.pack("<I", len(symbol_to_index_map))
     symbol_to_image = []
     for symbol in symbol_to_index_map:
         print (symbol)
         if symbol_map[symbol] == "internal":
-            visibility = 0 
+            visibility = 0
         elif symbol_map[symbol] == "exported":
-            visibility = 1 
+            visibility = 1
         elif symbol_map[symbol] == "external":
             visibility = 2
-       
+
         print ("ss: ", symbols[symbol])
         if symbols[symbol]["section_index"] == code_section["index"]:
             section = 0
@@ -298,7 +298,7 @@ def generate_module(module_name, elf_filename, objcopy_executable):
             section = 1
         elif symbols[symbol]["section_index"] == data_section["index"]:
             section = 2
-        offset_to_next = len(symbol + "\0") + 4 + 2 + 2
+        offset_to_next = len(symbol + "\0") + 4 + 2 + 2 + 4
         #image += struct.pack("<IHHI", offset_to_next,  visibility, section,symbol_to_index_map[symbol])
         #image += bytearray(symbol + "\0", "ascii")
         sym = {}
@@ -306,6 +306,7 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         sym["section"] = section
         sym["size"] = offset_to_next
         sym["name"] = symbol + "\0"
+        sym["value"] = symbols[symbol]["value"]
         sym["index"] = symbol_to_index_map[symbol]
         symbol_to_image.append(sym)
 
@@ -314,33 +315,33 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         sizeof_relocation = 8
         sizeof_symbol_table_size = 4
         offset_to_symbol = (len(relocation_to_image) - relocation_position) * sizeof_relocation + sizeof_symbol_table_size;
-        print ("offset to sym: ", offset_to_symbol) 
+        print ("offset to sym: ", offset_to_symbol)
         symbol_offset = 0
         for i in range(len(symbol_to_image)):
             if (symbol_to_image[i]["index"] == rel["symbol"]):
-                break 
-            
+                break
+
             print("symbol_offset: ", symbol_offset)
             symbol_offset += symbol_to_image[i]["size"]
-        offset_to_symbol += symbol_offset 
-        print ("Adding relocation with index: ", rel["index"], ", and offset to symbol:", hex(offset_to_symbol)) 
+        offset_to_symbol += symbol_offset
+        print ("Adding relocation with index: ", rel["index"], ", and offset to symbol:", hex(offset_to_symbol))
         image += struct.pack("<II", rel["index"], offset_to_symbol)
 
     print ("Adding size of symbol table: ", len(symbol_to_index_map))
     image += struct.pack("<I", len(symbol_to_index_map))
 
     for sym in symbol_to_image:
-        image += struct.pack("<IHH", sym["size"], sym["visibility"], sym["section"])
+        image += struct.pack("<IHHI", sym["size"], sym["visibility"], sym["section"], sym["value"])
         image += bytearray(sym["name"], "ascii")
         print ("Adding symbol: ", sym["name"], ", with size: ", hex(sym["size"]))
-  
+
     if (len(image) % 4):
         image += bytearray('\0' * (4 - (len(image) % 4)), "ascii")
 
     image += code_data
-    image += rodata_data 
+    image += rodata_data
     image += data_data
-    with open(module_name + ".bin", "wb") as file: 
+    with open(module_name + ".bin", "wb") as file:
         file.write(image)
 
 parser = argparse.ArgumentParser(description = "Relocable modules and shared libraries generator")
@@ -348,7 +349,7 @@ parser.add_argument("-o", "--output", dest="output_directory", action="store", h
 parser.add_argument("--module_name", dest="module_name", action="store", help="Module name")
 parser.add_argument("-i", "--elf_filename", dest="elf_filename", action="store", help="Path to module ELF file")
 parser.add_argument("--objcopy", dest="objcopy_executable", action="store", help="Path to objcopy executable")
-    
+
 args, rest = parser.parse_known_args()
 
 from pathlib import Path

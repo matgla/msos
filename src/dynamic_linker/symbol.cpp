@@ -27,27 +27,27 @@ std::string_view to_string(const Section s)
     return "Unknown";
 }
 
-const uint32_t Symbol::size() const 
+const uint32_t Symbol::size() const
 {
     return size_;
 }
 
-const SymbolVisibility Symbol::visibility() const 
+const SymbolVisibility Symbol::visibility() const
 {
     return visibility_;
 }
 
-const Section Symbol::section() const 
+const Section Symbol::section() const
 {
     return section_;
 }
 
-const std::string_view Symbol::name() const 
+const std::string_view Symbol::name() const
 {
-    return std::string_view(reinterpret_cast<const char*>(this) + sizeof(uint32_t) + sizeof(SymbolVisibility) + sizeof(Section));
+    return std::string_view(reinterpret_cast<const char*>(this) + sizeof(uint32_t) * 2 + sizeof(SymbolVisibility) + sizeof(Section));
 }
 
-const Symbol* Symbol::next() const 
+const Symbol* Symbol::next() const
 {
     return this + size_;
 }

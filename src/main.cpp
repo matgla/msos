@@ -21,17 +21,22 @@ extern "C"
     int get_address();
 }
 
+
+
+void write_to_usart(const char* data)
+{
+    board::interfaces::Usart1::write(data);
+}
+
 template <typename Writer>
 void process_module(Writer& writer, uint32_t address, uint8_t* memory_buffer)
 {
     writer << "Started processing of module at address: 0x" << hex << address << endl;
-    const msos::dl::Module* module = reinterpret_cast<const msos::dl::Module*>(address);    
-
+    const msos::dl::Module* module = reinterpret_cast<const msos::dl::Module*>(address);
     writer << "Magic cookie: " << module->cookie() << endl;
-
-    writer << "size:" << dec << endl 
-           << "    code: " << module->code_size() << endl 
-           << "  rodata: " << module->rodata_size() << endl 
+    writer << "size:" << dec << endl
+           << "    code: " << module->code_size() << endl
+           << "  rodata: " << module->rodata_size() << endl
            << "    data: " << module->data_size() << endl
            << "     bss: " << module->bss_size() << endl;
 
@@ -55,58 +60,50 @@ void process_module(Writer& writer, uint32_t address, uint8_t* memory_buffer)
 
     for (uint32_t i = 0; i < number_of_symbols; ++i)
     {
-       // uint32_t size = *reinterpret_cast<uint32_t*>(address);
-       // address += 4;
-       // uint16_t visiblity = *reinterpret_cast<uint16_t*>(address);
-       // address += 2;
-       // uint16_t section_index = *reinterpret_cast<uint16_t*>(address);
-       // address += 2;
-       // uint32_t symbol_index = *reinterpret_cast<uint32_t*>(address);
-       // address += 4;
-
-       // std::string_view name(reinterpret_cast<const char*>(address));
-       // address += name.length() + 1;
-       //
         msos::dl::Symbol* sym = reinterpret_cast<msos::dl::Symbol*>(address);
         address += sym->size();
-        writer << "sym address: 0x" << hex << reinterpret_cast<uint32_t>(sym) << endl;
-        writer << sym->name() << " : size: " 
-               << sym->size() << ", visibility: " 
+        writer << sym->name() << " : size: "
+               << sym->size() << ", visibility: "
                << msos::dl::to_string(sym->visibility()) << ", section: "
-               << msos::dl::to_string(sym->section()) << ", symbol: " 
+               << msos::dl::to_string(sym->section()) << ", symbol: "
                << endl;
     }
-    
+
     address = address % 4 ? address + (4 - (address % 4)) : address;
 
     uint32_t code_address = address;
     address += module->code_size();
-    uint32_t rodata_address = address; 
+    uint32_t rodata_address = address;
     address += module->rodata_size();
-    uint32_t data_address = address; 
+    uint32_t data_address = address;
 
-    writer << "Section addresses in primary memory:" << endl 
-        << "    code: 0x" << hex << code_address << endl 
-        << "  rodata: 0x" << hex << rodata_address << endl 
+    memory_buffer[0] = reinterpret_cast<uint32_t>(&memory_buffer[9]);
+    memory_buffer[4] = reinterpret_cast<uint32_t>(&write_to_usart);
+    std::memcpy(&memory_buffer[9], reinterpret_cast<const uint8_t*>(data_address), module->data_size());
+
+
+    writer << "Section addresses in primary memory:" << endl
+        << "    code: 0x" << hex << code_address << endl
+        << "  rodata: 0x" << hex << rodata_address << endl
         << "    data: 0x" << hex << data_address << endl;
-    
+
 }
 
 int main()
 {
 
-    board::board_init();   
+    board::board_init();
     hal::core::Core::initializeClocks();
     using LED = board::gpio::LED_BLUE;
     LED::init(hal::gpio::Output::OutputPushPull, hal::gpio::Speed::Default);
-    using Usart = board::interfaces::Usart1; 
+    using Usart = board::interfaces::Usart1;
     Usart::init(9600);
-    
-    UsartWriter<Usart> writer; 
+
+    UsartWriter<Usart> writer;
     writer << "Hello from MSOS Kernel!" << endl;
     uint32_t address = reinterpret_cast<uint32_t>(&call_me);
     writer << "Address of function: 0x" << hex << address << endl;
-    hal::core::BackupRegisters::init(); 
+    hal::core::BackupRegisters::init();
     hal::core::BackupRegisters::write(1, address >> 16);
     hal::core::BackupRegisters::write(2, address);
 
@@ -116,7 +113,7 @@ int main()
     hal::core::BackupRegisters::reset();
     readed_address = get_address();
     writer << "Readed addres: 0x" << hex << readed_address << endl;
-    writer << "test:" << 0xabcdef12 << endl; 
+    writer << "test:" << 0xabcdef12 << endl;
     std::size_t module_address = 0x08000000;
     module_address += 32 * 1024;
 

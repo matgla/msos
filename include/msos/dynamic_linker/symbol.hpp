@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 
 #include <cstdint>
 #include <string_view>
@@ -38,8 +38,9 @@ private:
     uint32_t size_;
     SymbolVisibility visibility_;
     Section section_;
+    uint32_t value_;
 };
 
 } // namespace dl
-} // namespace msos 
+} // namespace msos
 
