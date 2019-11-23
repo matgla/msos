@@ -1,17 +1,25 @@
-.thumb 
+.thumb
 .syntax unified 
-.arch armv7-m 
+.arch armv7-m
 
-.equ BKP_BASE,  0x40006c00
 
 .global get_address 
-get_address: 
-    ldr r3, =BKP_BASE 
-    ldr r0, [r3, #8]
-    lsl r0, r0, #16 
-    ldr r1, [r3, #12] 
-    orr r0, r1 
-    bx lr 
+.thumb_func
+.align 1
+.type get_address, %function
+get_address:
+    push    {r9, lr}
+    push    {r0, r1}
+    mov     r0, #0x40000000
+    add     r0, #0x6c00
+    ldr     r1, [r0, #8]
+    lsl     r1, r1, #16
+    ldr     r0, [r0, #12]
+    orr     r1, r0 
+    mov     r0, pc
+    bx      r1
+    mov     r9, r0
+    pop     {r0, r1}
+#    bl      _Z11object_mainv_dl_original
+    pop     {r9, pc}
 
- .L3:
-    .word 1073769472 

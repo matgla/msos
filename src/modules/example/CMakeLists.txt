@@ -59,7 +59,7 @@ target_sources(example_module_wrapper
 )
 add_dependencies(example_module_wrapper example_module_wrapper_generator)
 
-target_compile_options(example_module_wrapper PUBLIC ${module_compiler_flags}) 
+target_compile_options(example_module_wrapper PUBLIC ${hal_compilation_flags} -x assembler-with-cpp) 
 target_link_options(example_module_wrapper PUBLIC ${module_linker_flags})
 
 add_executable(example_module_shared)

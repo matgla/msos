@@ -10,22 +10,39 @@
 #include "msos/dynamic_linker/relocation.hpp"
 #include "msos/dynamic_linker/module.hpp"
 
-void call_me()
+
+uint32_t lot_table_address = 0;
+
+uint32_t call_me()
 {
     using Usart = board::interfaces::Usart1;
     Usart::write("I was called :)\n");
+    return lot_table_address;
 }
 
 extern "C"
 {
-    int get_address();
+    void get_address();
+    void test_function()
+    {
+        board::interfaces::Usart1::write("Test Function \n");
+    }
 }
-
 
 
 void write_to_usart(const char* data)
 {
     board::interfaces::Usart1::write(data);
+}
+
+void test_main()
+{
+    write_to_usart("EEEEEHH\n");
+}
+
+void call_external(uint32_t address)
+{
+    reinterpret_cast<void(*)()>(address)();
 }
 
 template <typename Writer>
@@ -57,7 +74,7 @@ void process_module(Writer& writer, uint32_t address, uint8_t* memory_buffer)
     address += 4;
 
     writer << "Number of symbols: " << number_of_symbols << endl;
-
+    msos::dl::Symbol* main_symbol = nullptr;
     for (uint32_t i = 0; i < number_of_symbols; ++i)
     {
         msos::dl::Symbol* sym = reinterpret_cast<msos::dl::Symbol*>(address);
@@ -67,9 +84,14 @@ void process_module(Writer& writer, uint32_t address, uint8_t* memory_buffer)
                << msos::dl::to_string(sym->visibility()) << ", section: "
                << msos::dl::to_string(sym->section()) << ", symbol: "
                << endl;
+        
+        if (i == 1) 
+        {
+             main_symbol = sym;
+        }
     }
 
-    address = address % 4 ? address + (4 - (address % 4)) : address;
+    address = address % 16 ? address + (16 - (address % 16)) : address;
 
     uint32_t code_address = address;
     address += module->code_size();
@@ -77,16 +99,20 @@ void process_module(Writer& writer, uint32_t address, uint8_t* memory_buffer)
     address += module->rodata_size();
     uint32_t data_address = address;
 
-    memory_buffer[0] = reinterpret_cast<uint32_t>(&memory_buffer[9]);
-    memory_buffer[4] = reinterpret_cast<uint32_t>(&write_to_usart);
+    uint32_t* lot = reinterpret_cast<uint32_t*>(memory_buffer);
+    lot[0] = reinterpret_cast<uint32_t>(rodata_address);
+    lot[1] = reinterpret_cast<uint32_t>(&write_to_usart);
+    writer << "Address of function: 0x" << hex << reinterpret_cast<uint32_t>(&write_to_usart) << endl; 
     std::memcpy(&memory_buffer[9], reinterpret_cast<const uint8_t*>(data_address), module->data_size());
-
 
     writer << "Section addresses in primary memory:" << endl
         << "    code: 0x" << hex << code_address << endl
         << "  rodata: 0x" << hex << rodata_address << endl
         << "    data: 0x" << hex << data_address << endl;
-
+    
+    writer << "Symbol " << main_symbol->name() << " has offset 0x" << hex << main_symbol->offset() << endl;
+    lot_table_address = reinterpret_cast<uint32_t>(&memory_buffer[0]);
+    call_external(code_address + main_symbol->offset());
 }
 
 int main()
@@ -107,23 +133,13 @@ int main()
     hal::core::BackupRegisters::write(1, address >> 16);
     hal::core::BackupRegisters::write(2, address);
 
-    uint32_t readed_address = get_address();
-    writer << "Readed addres: 0x" << hex << readed_address << endl;
-    void(*call)()  = reinterpret_cast<void(*)()>(readed_address);
-    hal::core::BackupRegisters::reset();
-    readed_address = get_address();
-    writer << "Readed addres: 0x" << hex << readed_address << endl;
-    writer << "test:" << 0xabcdef12 << endl;
     std::size_t module_address = 0x08000000;
     module_address += 32 * 1024;
 
     uint8_t memory_buffer_[1024];
     process_module(writer, module_address, memory_buffer_);
-
-
     while (true)
     {
-        call();
         LED::setHigh();
         hal::time::sleep(std::chrono::seconds(1));
         LED::setLow();

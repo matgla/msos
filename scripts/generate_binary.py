@@ -208,14 +208,14 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         if relocation["info_type"] == "R_ARM_ABS32":
             offset = relocation["offset"]
             print(relocation["symbol_name"], hex(offset))
-            raise RuntimeError("Data relocations not supported yet!")
+#            raise RuntimeError("Data relocations not supported yet!")
 
     for relocation in local_relocations + external_relocations:
         offset = relocation[1]
         old = struct.unpack_from("<I", code_data, offset)[0]
         new = relocation_to_index_map[relocation[0]] * 4
         print ("Patching relocation for ", relocation[0], " from ", hex(old), " to ", hex(new))
-        struct.pack_into(">I", code_data, offset, new)
+        struct.pack_into("<I", code_data, offset, new)
 
     print (Fore.YELLOW + "[INF]" + Style.RESET_ALL + " Creating image of module")
 
@@ -335,10 +335,12 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         image += bytearray(sym["name"], "ascii")
         print ("Adding symbol: ", sym["name"], ", with size: ", hex(sym["size"]))
 
-    if (len(image) % 4):
-        image += bytearray('\0' * (4 - (len(image) % 4)), "ascii")
-
-    image += code_data
+    if (len(image) % 16):
+        image += bytearray('\0' * (16 - (len(image) % 16)), "ascii")
+    
+    print ("code starts at: ", hex(len(image)))
+    
+    image += code_data 
     image += rodata_data
     image += data_data
     with open(module_name + ".bin", "wb") as file:

@@ -2,15 +2,18 @@
 .syntax unified 
 .arch armv7-m
 
-.equ BKP_BASE, 0x40006c00
-
 {% for original_symbol_name, wrapped_symbol_name in wrapped_symbols.items() %}
 .global {{original_symbol_name}}
 .extern {{wrapped_symbol_name}}
+.thumb_func
+.align 1
+.globl {{original_symbol_name}}
+.type {{original_symbol_name}}, %function
 {{original_symbol_name}}:
     push    {r9, lr}
     push    {r0, r1}
-    ldr     r0, =BKP_BASE
+    mov     r0, #0x40000000
+    add     r0, #0x6c00
     ldr     r1, [r0, #8]
     lsl     r1, r1, #16
     ldr     r0, [r0, #12]

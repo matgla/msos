@@ -52,6 +52,12 @@ const Symbol* Symbol::next() const
     return this + size_;
 }
 
+const uint32_t Symbol::offset() const 
+{
+    return offset_;
+}
+
+
 } // namespace dl
 } // namespace msos
 

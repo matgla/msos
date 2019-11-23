@@ -32,3 +32,4 @@ set_target_properties(
         SUFFIX ".elf"
 )
 
+target_compile_options(msos PUBLIC "-g"  "-Og" "-ggdb3")

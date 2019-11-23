@@ -2,8 +2,9 @@
  void write_to_usart(const char* data);
 
 
-int object_main()
+int main()
 {
-    write_to_usart("Hello from module");
+    write_to_usart("Hello from module\nI am very happy :)\n");
     return 0;
 }
+
