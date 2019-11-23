@@ -49,7 +49,7 @@ const std::string_view Symbol::name() const
 
 const Symbol* Symbol::next() const
 {
-    return this + size_;
+    return reinterpret_cast<const Symbol*>(reinterpret_cast<const uint8_t*>(this) + size());
 }
 
 const uint32_t Symbol::offset() const 

@@ -19,6 +19,7 @@ public:
     {
         return sizeof(uint32_t) * 2;
     }
+    const Relocation* next() const;
 private:
     uint32_t index_;
     uint32_t symbol_offset_;

@@ -1,3 +1,5 @@
+#pragma once 
+
 #include <string_view>
 #include <cstdint>
 #include <eul/utils/string.hpp>

@@ -17,6 +17,11 @@ const Symbol* Relocation::symbol() const
     return reinterpret_cast<const Symbol*>(ptr);
 }
 
+const Relocation* Relocation::next() const 
+{
+    return this + 1;
+}
+
 } // namespace dl 
 } // namespace msos
 

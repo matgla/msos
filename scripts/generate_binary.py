@@ -307,6 +307,7 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         sym["size"] = offset_to_next
         sym["name"] = symbol + "\0"
         sym["value"] = symbols[symbol]["value"]
+        print (sym["name"], "value, ", sym["value"])
         sym["index"] = symbol_to_index_map[symbol]
         symbol_to_image.append(sym)
 
