@@ -1,8 +1,10 @@
-#pragma once 
+#pragma once
 
 #include <string_view>
 #include <cstdint>
 #include <eul/utils/string.hpp>
+
+#include <board.hpp>
 
 struct logging_flags
 {
@@ -68,11 +70,11 @@ class UsartWriter
 {
 public:
     using SelfType = UsartWriter<UsartType>;
-  
+
     template <typename T>
-    SelfType& operator<<(const T& t) 
+    SelfType& operator<<(const T& t)
     {
-        write(t); 
+        write(t);
         return *this;
     }
 
@@ -146,7 +148,7 @@ protected:
         }
     }
 
-    int get_base() const 
+    int get_base() const
     {
         switch (flags_.get_base())
         {
@@ -202,7 +204,7 @@ protected:
     }
 
 
-    
+
     logging_flags flags_;
 };
 
@@ -216,4 +218,5 @@ inline int get_aligned_length(const std::string_view& str)
     return name_length;
 }
 
+extern UsartWriter<board::interfaces::Usart1> writer;
 
