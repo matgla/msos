@@ -2,12 +2,12 @@ add_library(msos_dynamic_linker)
 
 set (library_includes ${PROJECT_SOURCE_DIR}/include/msos/dynamic_linker)
 
-target_sources(msos_dynamic_linker 
-    PUBLIC 
+target_sources(msos_dynamic_linker
+    PUBLIC
         ${library_includes}/dynamic_linker.hpp
         ${library_includes}/symbol.hpp
         ${library_includes}/relocation.hpp
-        ${library_includes}/module.hpp 
+        ${library_includes}/module.hpp
         ${library_includes}/environment.hpp
 
     PRIVATE
@@ -23,7 +23,8 @@ target_include_directories(msos_dynamic_linker
 )
 
 target_link_libraries(msos_dynamic_linker
-    PUBLIC 
+    PUBLIC
         hal
+        gsl
 )
 

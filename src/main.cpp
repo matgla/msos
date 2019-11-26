@@ -17,8 +17,7 @@ uint32_t lot_table_address = 0;
 
 uint32_t call_me()
 {
-    using Usart = board::interfaces::Usart1;
-    Usart::write("I was called :)\n");
+    writer << "I was called :), lot address: 0x" << hex << lot_table_address << endl;
     return lot_table_address;
 }
 
@@ -48,14 +47,14 @@ void test_main()
 //    reinterpret_cast<void(*)()>(address)();
 // }
 
-msos::dl::ModuleInfo load_module(msos::dl::DynamicLinker& linker, const uint32_t address)
+msos::dl::LoadedModule* load_module(msos::dl::DynamicLinker& linker, const uint32_t address)
 {
     writer << "Loading module..., env symbol 0x" << hex << reinterpret_cast<uint32_t>(&write_to_usart) << endl;
     msos::dl::Environment<1> environment{
         msos::dl::SymbolAddress{"_Z14write_to_usartPKc", &write_to_usart}
     };
 
-    return linker.load_module(address, environment);
+    return linker.load_module(address, msos::dl::LoadingModeCopyData | msos::dl::LoadingModeCopyRodata, environment);
 }
 
 UsartWriter<board::interfaces::Usart1> writer;
@@ -81,13 +80,11 @@ int main()
     module_address += 32 * 1024;
 
     msos::dl::DynamicLinker dynamic_linker;
-    const auto module_info = load_module(dynamic_linker, module_address);
+    const auto module = load_module(dynamic_linker, module_address);
+    lot_table_address = reinterpret_cast<uint32_t>(module->get_lot().data());
+    writer << "Address of lot: 0x" << hex << lot_table_address << endl;
     writer << "Heap usage: " << dec << hal::memory::get_heap_usage() << "/" << hal::memory::get_heap_size() << " bytes." << endl;
-
-    const uint32_t main_address = module_info.main_address;
-    lot_table_address = module_info.lot_address;
-    writer << "start function has address: 0x" << hex << main_address << endl;
-    call_external(main_address);
+    module->execute();
 
     while (true)
     {

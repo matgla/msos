@@ -2,6 +2,10 @@
 
 #include <string_view>
 #include <list>
+#include <vector>
+#include <optional>
+
+#include <gsl/span>
 
 #include "msos/dynamic_linker/module.hpp"
 #include "msos/dynamic_linker/symbol.hpp"
@@ -12,6 +16,11 @@ namespace msos
 {
 namespace dl
 {
+
+extern "C"
+{
+    int call_external(uint32_t address);
+}
 
 class Module;
 
@@ -26,13 +35,103 @@ class LoadedModuleList
 
 };
 
-class LoadedModuleNode
+constexpr int LoadingModeCopyData = 0x01;
+constexpr int LoadingModeCopyText = 0x02;
+constexpr int LoadingModeCopyRodata = 0x02;
+
+class ModuleData
 {
 public:
+    using SectionMemory = gsl::span<const uint8_t>;
+    using LOTMemory = gsl::span<uint32_t>;
+    ~ModuleData()
+    {
+        if (rodata_)
+
+    }
+    SectionMemory get_data_memory() const
+    SectionMemory get_rodata_memory() const
+    SectionMemory get_text_memory() const
+    LOTMemory get_lot() const
 
 private:
-    const Module* module_header_;
-    ModuleInfo module_info_;
+    Module* module_;
+    std::unique_ptr<uint8_t[]> rodata_;
+    std::unique_ptr<uint8_t[]> data_;
+    std::unique_ptr<uint8_t[]> text_;
+    std::vector<uint32_t> lot_;
+};
+
+class LoadedModule
+{
+public:
+    LoadedModule(bool is_executable, const Module* module, const std::size_t main_address, std::unique_ptr<IModuleData>&& data)
+        : is_executable_(is_executable)
+        , module_(module)
+        , main_address_(main_address)
+        , data_(std::move(data))
+    {
+    }
+
+    const Module* module() const
+    {
+        return module_;
+    }
+
+    const int execute(int argc, char * argv[]) const
+    {
+        // if (is_executable_)
+        // {
+        //     return call_external(main_address_, argc, argv);
+        // }
+        return -1;
+    }
+
+    const int execute() const
+    {
+        if (is_executable_)
+        {
+            return call_external(main_address_);
+        }
+        return -1;
+    }
+
+    const std::vector<uint32_t>& get_lot() const
+    {
+        return lot_table_;
+    }
+
+    std::vector<uint32_t>& get_lot()
+    {
+        return data_.lot_table_;
+    }
+
+    bool operator==(const LoadedModule& m) const
+    {
+        return m.module_ == module_;
+    }
+private:
+    bool is_executable_;
+    const Module* module_;
+    const std::size_t main_address_;
+    std::unique_ptr<IModuleData> data_;
+};
+
+
+class ModuleData : public ModuleDataMemory, ModuleLOTMemory, ModuleRoDataBridge, ModuleTextBridge
+{
+public:
+    ModuleData(const SectionMemory& rodata, const SectionMemory& text)
+        : ModuleRoDataBridge(rodata), ModuleTextBridge(text)
+    {}
+};
+
+class ModuleDataWithTextMemory : public ModuleDataMemory, ModuleLOTMemory, ModuleRoDataBridge, ModuleTextMemory
+{
+public:
+    ModuleData(const SectionMemory& rodata)
+        : ModuleRoDataBridge(rodata)
+    {}
 };
 
 enum class LoadingStatus
@@ -41,18 +140,28 @@ enum class LoadingStatus
     Ok
 };
 
+
 class DynamicLinker
 {
 public:
+    void unload_module(const LoadedModule* module)
+    {
+        auto module_it = std::find(loaded_modules_.begin(), loaded_modules_.end(), *module);
+        if (module_it != loaded_modules_.end())
+        {
+            loaded_modules_.erase(module_it);
+        }
+    }
+
     template <typename Environment>
-    ModuleInfo load_module(const uint32_t module_address, const Environment& environment)
+    LoadedModule* load_module(const uint32_t module_address, const int mode, const Environment& environment)
     {
         writer << "Loading module from: 0x" << hex << module_address << endl;
         const Module* module = reinterpret_cast<const Module*>(module_address);
 
         if (module->cookie() != "MSDL")
         {
-            return {};//;LoadingStatus::ModuleCookieValidationFailed;
+            return nullptr;//;LoadingStatus::ModuleCookieValidationFailed;
         }
 
         const uint32_t relocation_section_address = module_address + module->size();
@@ -75,15 +184,58 @@ public:
         const uint32_t size_of_lot = get_size_of_lot(module, relocation_section_address);
         writer << "Size of LOT: " << dec << size_of_lot << endl;
 
-        uint32_t* lot = new uint32_t[2000];
-        writer << "Address of LOT: 0x" << hex << reinterpret_cast<uint32_t>(lot) << endl;
-        delete[] lot;
-        process_relocations(module, relocation_section_address, lot, code_address, rodata_address, environment);
+        // std::vector<uint32_t> lot = process_relocations(module, relocation_section_address, code_address, rodata_address, environment);
+        // writer << "Address of LOT: 0x" << hex << reinterpret_cast<uint32_t>(lot.data()) << endl;
+
+        uint32_t code_address_in_memory = 0x0;
+        uint32_t rodata_address_in_memory = 0x0;
+
+        std::unique_ptr<IModuleData> data;
+
+        if (mode & LoadingModeCopyText)
+        {
+
+        }
+
+        if (mode & LoadingModeCopyText)
+        {
+
+        }
+
+        if (mode & LoadingModeCopyText)
+        {
+            uint8_t* text = new uint8_t[module->code_size()];
+            std::memcpy(text, reinterpret_cast<const uint8_t*>(code_address), module->code_size());
+            code_address_in_memory = reinterpret_cast<uint32_t>(text);
+        }
+
+        if (mode & LoadingModeCopyRodata)
+        {
+            uint8_t* rodata = new uint8_t[module->rodata_size()];
+            std::memcpy(rodata, reinterpret_cast<const uint8_t*>(rodata_address), module->rodata_size());
+            rodata_address_in_memory = reinterpret_cast<uint32_t>(rodata);
+        }
+
+
+        uint8_t* data = new uint8_t[module->rodata_size()];
+        std::memcpy(rodata, reinterpret_cast<const uint8_t*>(rodata_address), module->rodata_size());
+        rodata_address_in_memory = reinterpret_cast<uint32_t>(rodata);
 
         const auto* main = find_symbol(symbol_section_address, "main");
-        writer << "main function offset: " << main->offset() << ", lot: 0x" << hex << reinterpret_cast<uint32_t>(lot)  << endl;
+        const std::size_t main_function_address = code_address_in_memory + main->offset() - 1;
 
-        return {code_address + main->offset() - 1, reinterpret_cast<uint32_t>(&lot[0])};
+        if (main != nullptr)
+        {
+            loaded_modules_.emplace_back(true, module, main_function_address);
+        }
+        else
+        {
+            loaded_modules_.emplace_back(false, module, main_function_address);
+        }
+
+        process_relocations(module, relocation_section_address, code_address_in_memory, rodata_address_in_memory, environment, loaded_modules_.back());
+
+        return &loaded_modules_.back();
     }
 
     const Symbol* find_symbol(const uint32_t address, const std::string_view& symbol_name)
@@ -128,8 +280,10 @@ private:
     }
 
     template <typename Environment>
-    void process_relocations(const Module* module, uint32_t address, uint32_t* lot, uint32_t code, uint32_t rodata, const Environment& env)
+    void process_relocations(const Module* module, uint32_t address, uint32_t code, uint32_t rodata, const Environment& env, LoadedModule& loaded_module)
     {
+        loaded_module.get_lot().reserve(get_size_of_lot(module, address));
+
         for (int i = 0; i < module->number_of_relocations(); ++i)
         {
             const Relocation* relocation = reinterpret_cast<const Relocation*>(address);
@@ -140,7 +294,7 @@ private:
             {
                 if (symbol->section() == Section::rodata)
                 {
-                    lot[i] = rodata;
+                    loaded_module.get_lot()[i] = rodata;
                 }
                 else if (symbol->section() == Section::code)
                 {
@@ -153,7 +307,7 @@ private:
                 if (env_symbol)
                 {
                     writer << "Symbol found in env at address 0x" << hex << env_symbol->address();
-                    lot[i] = env_symbol->address();
+                    loaded_module.get_lot()[i] = env_symbol->address();
                 }
             }
         }
@@ -190,7 +344,7 @@ private:
     }
 
 private:
-    std::list<LoadedModuleNode> loaded_modules_;
+    std::list<LoadedModule> loaded_modules_;
 };
 
 } // namespace dl
