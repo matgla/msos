@@ -4,7 +4,9 @@ project(msos NONE)
 
 set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-include(cmake/GitModules.cmake)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
+message("!!!!!!!!!! ${CMAKE_MODULE_PATH}")
+include(GitModules)
 
 set (user_boards_path ${PROJECT_SOURCE_DIR}/boards CACHE STRING "Path to boards provided from user" FORCE)
 add_definitions("-DGSL_TERMINATE_ON_CONTRACT_VIOLATION=1 -DGSL_MSVC_USE_STL_NOEXCEPTION_WORKAROUND=1")

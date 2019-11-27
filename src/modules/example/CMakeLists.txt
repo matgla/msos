@@ -5,34 +5,18 @@ target_sources(example_module
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 
-
 set (module_linker_flags "${hal_linker_flags};-T${PROJECT_SOURCE_DIR}/linker_scripts/dynamic_module.ld;-nostartfiles;-nodefaultlibs;-nostdlib;-Wl,--unresolved-symbols=ignore-in-object-files;-Wl,--emit-relocs")
 set (module_compiler_flags
     "${hal_cxx_compilation_flags};-msingle-pic-base;-fno-inline;-fPIE;-mno-pic-data-is-text-relative;-fomit-frame-pointer;-fno-inline;-mlong-calls")
 
-
 target_compile_options(example_module PUBLIC ${module_compiler_flags})
 target_link_options(example_module PUBLIC ${module_linker_flags})
 
+include(ModuleWrapperGenerator)
+
 find_program(VIRTUALENV virtualenv)
 
-if(NOT VIRTUALENV)
-    message(FATAL_ERROR "Could not find `virtualenv` in PATH")
-endif()
-
-set(VIRTUALENV ${VIRTUALENV} -p python3)
-
-add_custom_command(
-    OUTPUT venv
-    COMMAND ${VIRTUALENV} venv
-)
-
-add_custom_command(
-    OUTPUT venv.stamp
-    DEPENDS venv ${PROJECT_SOURCE_DIR}/scripts/requirements.txt
-    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/scripts/requirements.txt requirements.txt
-    COMMAND ./venv/bin/pip install -r requirements.txt --upgrade
-)
+configure_virtual_env()
 
 add_custom_target(
     example_module_wrapper_generator
