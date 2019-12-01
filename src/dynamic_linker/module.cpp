@@ -1,55 +1,68 @@
 #include "msos/dynamic_linker/module.hpp"
 
-#include "msos/usart_printer.hpp"
-
 namespace msos
 {
 namespace dl
 {
 
-const std::string_view Module::cookie() const 
+Module::Module(const ModuleHeader& header)
+    : module_header_(header)
 {
-    return std::string_view(cookie_, 4);
 }
 
-const uint32_t Module::code_size() const 
+const Module::DataSpan& Module::get_text() const 
 {
-    return code_size_;
+    return text_;
 }
 
-const uint32_t Module::rodata_size() const 
+const Module::DataSpan& Module::get_rodata() const 
 {
-    return rodata_size_;
+    return rodata_;
 }
 
-const uint32_t Module::data_size() const 
+const Module::DataSpan& Module::get_data() const 
 {
-    return data_size_;
+    return data_;
 }
 
-const uint32_t Module::bss_size() const 
+const ModuleHeader& Module::get_header() const 
 {
-    return bss_size_;
+    return module_header_;
 }
 
-const uint16_t Module::number_of_relocations() const 
+const std::vector<uint32_t>& Module::get_lot() const 
 {
-    return number_of_relocations_; 
+    return lot_;
 }
 
-const uint16_t Module::total_relocations() const 
+std::vector<uint32_t>& Module::get_lot()
 {
-    return total_relocations_;
+    return lot_;
 }
 
-const std::string_view Module::name() const 
+ModuleData& Module::get_module_data()
 {
-    return std::string_view(reinterpret_cast<const char*>(this) + sizeof(Module));
+    return module_data_;
 }
 
-const uint32_t Module::size() const 
+const ModuleData& Module::get_module_data() const 
 {
-    return sizeof(Module) + get_aligned_length(name());
+    return module_data_;
+}
+
+void Module::set_text(const Module::DataSpan& text)
+{
+    text_ = text;
+}
+
+void Module::set_rodata(const Module::DataSpan& rodata)
+{
+    rodata_ = rodata;
+}
+
+void Module::set_data(const Module::DataSpan& data)
+{
+    data_ = data;
 }
 
 } // namespace dl

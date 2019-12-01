@@ -57,21 +57,20 @@ public:
     const LoadedModule* load_module(const uint32_t module_address, const int mode, const Environment& environment)
     {
         writer << "Loading module from: 0x" << hex << module_address << endl;
-        const ModuleHeader& header = *reinterpret_cast<const ModuleHeader*>(module_address);
+        const ModuleHeader& header = reinterpret_cast<const ModuleHeader&>(module_address);
 
         if (header.cookie() != "MSDL")
         {
             return nullptr;//;LoadingStatus::ModuleCookieValidationFailed;
         }
-    
-        writer << "Module header size: " << dec << header.size() << endl;
+
         const uint32_t relocation_section_address = module_address + header.size();
         writer << "Relocations section: 0x" << hex << relocation_section_address << endl;
         const uint32_t relocation_section_size = get_relocations_size(header, relocation_section_address);
         writer << "Relocation section size: 0x" << relocation_section_size << endl;
         const uint32_t symbol_section_address = relocation_section_address + relocation_section_size;
         writer << "Symbol section: 0x" << hex << symbol_section_address << endl;
-        const uint32_t symbol_section_size = 0;//get_symbols_size(symbol_section_address);
+        const uint32_t symbol_section_size = get_symbols_size(symbol_section_address);
         writer << "Symbol section size: 0x" << hex << symbol_section_size << endl;
 
         const uint32_t not_aligned_code_address = symbol_section_address + symbol_section_size;
@@ -83,47 +82,46 @@ public:
         const uint32_t size_of_lot = get_size_of_lot(header, relocation_section_address);
         writer << "Size of LOT: " << dec << size_of_lot << endl;
 
-        std::unique_ptr<Module> module = std::make_unique<Module>(header);
-        ModuleData& module_data = module->get_module_data();
-
+        Module module(header);
+        ModuleData module_data;
         if (mode & LoadingModeCopyText)
         {
             module_data.allocate_text(header.code_size());
             std::memcpy(module_data.get_text().data(), reinterpret_cast<const uint8_t*>(code_address), header.code_size());
-            module->set_text(module_data.get_text()); 
+            module.set_text(module_data.get_text()); 
         }
         else 
         {
-            module->set_text(gsl::make_span(reinterpret_cast<const uint8_t*>(code_address), header.code_size()));
+            module.set_text(gsl::make_span(reinterpret_cast<const uint8_t*>(code_address), header.code_size()));
         }
 
         if (mode & LoadingModeCopyRodata)
         {
             module_data.allocate_rodata(header.rodata_size());
             std::memcpy(module_data.get_rodata().data(), reinterpret_cast<const uint8_t*>(rodata_address), header.rodata_size());
-            module->set_rodata(module_data.get_rodata()); 
+            module.set_rodata(module_data.get_rodata()); 
         }
         else 
         {
-            module->set_rodata(gsl::make_span(reinterpret_cast<const uint8_t*>(rodata_address), header.rodata_size()));
+            module.set_rodata(gsl::make_span(reinterpret_cast<const uint8_t*>(rodata_address), header.rodata_size()));
         }
 
         module_data.allocate_data(header.data_size());
         std::memset(module_data.get_data().data(), 0, header.data_size());
-        module->set_data(module_data.get_data());
+        module.set_data(module_data.get_data());
         const auto* main = find_symbol(symbol_section_address, "main");
-        const std::size_t main_function_address = reinterpret_cast<uint32_t>(module->get_text().data()) + main->offset() - 1;
+        const std::size_t main_function_address = reinterpret_cast<uint32_t>(module.get_text().data()) + main->offset() - 1;
 
         if (main != nullptr)
         {
-            library_modules_.emplace_back(std::move(module));
+            library_modules_.emplace_back(std::move(module), std::move(module_data));
        
             process_relocations(relocation_section_address, environment, library_modules_.back());
             return &library_modules_.back();
         }
         else
         {
-            executable_modules_.emplace_back(std::move(module), main_function_address);
+            executable_modules_.emplace_back(std::move(module), std::move(module_data), main_function_address);
         
             process_relocations(relocation_section_address, environment, executable_modules_.back());
             return &executable_modules_.back();
@@ -152,11 +150,11 @@ private:
     uint32_t get_size_of_lot(const ModuleHeader& header, uint32_t address)
     {
         uint32_t size_of_lot = 0;
-        const Relocation* relocation = reinterpret_cast<const Relocation*>(address);
+        const Relocation& relocation = reinterpret_cast<const Relocation&>(address);
 
         for (int i = 0; i < header.number_of_relocations(); ++i)
         {
-            const Symbol& symbol = relocation->symbol();
+            const Symbol& symbol = relocation.symbol();
 
             if (symbol.visibility() == SymbolVisibility::internal || symbol.visibility() == SymbolVisibility::exported)
             {
@@ -169,7 +167,7 @@ private:
             {
                 ++size_of_lot;
             }
-            relocation = &relocation->next();
+            relocation = relocation.next();
         }
         return size_of_lot;
     }
@@ -177,8 +175,8 @@ private:
     template <typename Environment>
     void process_relocations(uint32_t address, const Environment& env, LoadedModule& loaded_module)
     {
-        Module& module = loaded_module.get_module();
-        const ModuleHeader& header = module.get_header();
+        const auto& module = loaded_module.get_module();
+        const auto& header = module.get_header();
         auto& lot = module.get_lot();
         const uint32_t rodata = reinterpret_cast<const uint32_t>(module.get_rodata().data());
 
@@ -186,11 +184,11 @@ private:
 
         for (int i = 0; i < header.number_of_relocations(); ++i)
         {
-            const Relocation& relocation = *reinterpret_cast<const Relocation*>(address);
+            const Relocation& relocation = reinterpret_cast<const Relocation&>(address);
             address += relocation.size();
-            const Symbol& symbol = relocation.symbol();
+            const Symbol& symbol = relocation->symbol();
 
-            if (symbol.visibility() == SymbolVisibility::internal || symbol.visibility() == SymbolVisibility::exported)
+            if (symbol.visibility() == SymbolVisibility::internal || symbol->visibility() == SymbolVisibility::exported)
             {
                 if (symbol.section() == Section::rodata)
                 {
@@ -216,13 +214,13 @@ private:
     uint32_t get_relocations_size(const ModuleHeader& header, const uint32_t address)
     {
         uint32_t size = 0;
-        const Relocation* relocation = reinterpret_cast<const Relocation*>(address);
+        const Relocation& relocation = reinterpret_cast<const Relocation&>(address);
 
         for (int i = 0; i < header.number_of_relocations(); ++i)
         {
-            writer << "Relocation: " << relocation->symbol().name() << ", index: " << dec << relocation->index() << endl;
-            size += relocation->size();
-            relocation = &relocation->next();
+            writer << "Relocation: " << relocation.symbol()->name() << ", index: " << dec << relocation.index() << endl;
+            size += relocation.size();
+            relocation = relocation.next();
         }
         return size;
     }
@@ -238,7 +236,7 @@ private:
         {
             writer << "symbol : " << symbol->name() << ", v: " << to_string(symbol->visibility()) << ", section: " << to_string(symbol->section()) << "offset: " << symbol->offset() << endl;
             size += symbol->size();
-            symbol = &symbol->next();
+            symbol = symbol->next();
         }
         return size;
     }

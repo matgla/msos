@@ -47,9 +47,9 @@ const std::string_view Symbol::name() const
     return std::string_view(reinterpret_cast<const char*>(this) + sizeof(uint32_t) * 2 + sizeof(SymbolVisibility) + sizeof(Section));
 }
 
-const Symbol* Symbol::next() const
+const Symbol& Symbol::next() const
 {
-    return reinterpret_cast<const Symbol*>(reinterpret_cast<const uint8_t*>(this) + size());
+    return reinterpret_cast<const Symbol&>(*(reinterpret_cast<const uint8_t*>(this) + size()));
 }
 
 const uint32_t Symbol::offset() const 

@@ -32,7 +32,7 @@ public:
     const SymbolVisibility visibility() const;
     const Section section() const;
     const std::string_view name() const;
-    const Symbol* next() const;
+    const Symbol& next() const;
     const uint32_t offset() const;
 private:
     uint32_t size_;
