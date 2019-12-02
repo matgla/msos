@@ -2,39 +2,27 @@
 
 namespace msos
 {
-namespace dl 
+namespace dl
 {
 
-void ModuleData::allocate_text(const std::size_t size)
+uint8_t* ModuleData::allocate_text(const std::size_t size)
 {
-    text_.reserve(size);
+    text_.reset(new uint8_t[size]);
+    return text_.get();
 }
 
-void ModuleData::allocate_rodata(const std::size_t size)
+uint8_t* ModuleData::allocate_rodata(const std::size_t size)
 {
-    rodata_.reserve(size);
+    rodata_.reset(new uint8_t[size]);
+    return rodata_.get();
 }
 
-void ModuleData::allocate_data(const std::size_t size)
+uint8_t* ModuleData::allocate_data(const std::size_t size)
 {
-    data_.reserve(size);
+    data_.reset(new uint8_t[size]);
+    return data_.get();
 }
 
-ModuleData::DataSpan ModuleData::get_text()
-{
-    return gsl::make_span(text_);
-}
-
-ModuleData::DataSpan ModuleData::get_rodata()
-{
-    return gsl::make_span(rodata_);
-}
-
-ModuleData::DataSpan ModuleData::get_data()
-{
-    return gsl::make_span(data_);
-}
-
-} // namespace dl 
-} // namespace msos 
+} // namespace dl
+} // namespace msos
 

@@ -1,5 +1,7 @@
 #include "msos/dynamic_linker/module.hpp"
 
+#include <gsl/span>
+
 namespace msos
 {
 namespace dl
@@ -10,27 +12,27 @@ Module::Module(const ModuleHeader& header)
 {
 }
 
-const Module::DataSpan& Module::get_text() const 
+Module::DataSpan Module::get_text() const
 {
-    return text_;
+    return gsl::make_span(text_, module_header_.code_size());
 }
 
-const Module::DataSpan& Module::get_rodata() const 
+Module::DataSpan Module::get_rodata() const
 {
-    return rodata_;
+    return gsl::make_span(rodata_, module_header_.rodata_size());
 }
 
-const Module::DataSpan& Module::get_data() const 
+Module::DataSpan Module::get_data() const
 {
-    return data_;
+    return gsl::make_span(rodata_, module_header_.data_size());
 }
 
-const ModuleHeader& Module::get_header() const 
+const ModuleHeader& Module::get_header() const
 {
     return module_header_;
 }
 
-const std::vector<uint32_t>& Module::get_lot() const 
+const std::vector<uint32_t>& Module::get_lot() const
 {
     return lot_;
 }
@@ -45,26 +47,41 @@ ModuleData& Module::get_module_data()
     return module_data_;
 }
 
-const ModuleData& Module::get_module_data() const 
+const ModuleData& Module::get_module_data() const
 {
     return module_data_;
 }
 
 void Module::set_text(const Module::DataSpan& text)
 {
-    text_ = text;
+    text_ = text.data();
 }
 
 void Module::set_rodata(const Module::DataSpan& rodata)
 {
-    rodata_ = rodata;
+    rodata_ = rodata.data();
 }
 
 void Module::set_data(const Module::DataSpan& data)
 {
-    data_ = data;
+    data_ = data.data();
+}
+
+void Module::allocate_text()
+{
+    text_ = module_data_.allocate_text(module_header_.code_size());
+}
+
+void Module::allocate_rodata()
+{
+    rodata_ = module_data_.allocate_rodata(module_header_.rodata_size());
+}
+
+void Module::allocate_data()
+{
+    data_ = module_data_.allocate_data(module_header_.data_size());
 }
 
 } // namespace dl
-} // namespace msos 
+} // namespace msos
 

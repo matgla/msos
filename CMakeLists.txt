@@ -16,9 +16,6 @@ fetch_module_via_branch(lib/gsl/gsl ${PROJECT_SOURCE_DIR}/lib/gsl/gsl ${CMAKE_CU
 
 set(CMAKE_EXECUTABLE_SUFFIX "${CMAKE_EXECUTABLE_SUFFIX}")
 
-include (SetCompilationSystem)
-set_compilation_target()
-
 enable_language(ASM C CXX)
 
 add_subdirectory(include/msos/drivers)

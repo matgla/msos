@@ -15,10 +15,11 @@
 
 uint32_t lot_table_address = 0;
 
-uint32_t call_me()
+msos::dl::DynamicLinker dynamic_linker;
+
+uint32_t get_lot_at(uint32_t address)
 {
-    writer << "I was called :), lot address: 0x" << hex << lot_table_address << endl;
-    return lot_table_address;
+    return dynamic_linker.get_lot_for_module_at(address);
 }
 
 extern "C"
@@ -54,7 +55,7 @@ const msos::dl::LoadedModule* load_module(msos::dl::DynamicLinker& linker, const
         msos::dl::SymbolAddress{"_Z14write_to_usartPKc", &write_to_usart}
     };
 
-    return linker.load_module(address, msos::dl::LoadingModeCopyData | msos::dl::LoadingModeCopyRodata, environment);
+    return linker.load_module(address, msos::dl::LoadingModeCopyData, environment);
 }
 
 UsartWriter<board::interfaces::Usart1> writer;
@@ -67,10 +68,10 @@ int main()
     LED::init(hal::gpio::Output::OutputPushPull, hal::gpio::Speed::Default);
     using Usart = board::interfaces::Usart1;
     Usart::init(9600);
-
+    writer << "Sizeof Module: " << dec << sizeof(msos::dl::Module) << ", module data: " << sizeof(msos::dl::ModuleData) << ", loaded module: " << sizeof(msos::dl::LoadedModule) << endl;
     writer << "Hello from MSOS Kernel!" << endl;
     writer << "Heap usage: " << dec << hal::memory::get_heap_usage() << "/" << hal::memory::get_heap_size() << " bytes." << endl;
-    uint32_t address = reinterpret_cast<uint32_t>(&call_me);
+    uint32_t address = reinterpret_cast<uint32_t>(&get_lot_at);
     writer << "Address of function: 0x" << hex << address << endl;
     hal::core::BackupRegisters::init();
     hal::core::BackupRegisters::write(1, address >> 16);
@@ -79,7 +80,6 @@ int main()
     std::size_t module_address = 0x08000000;
     module_address += 32 * 1024;
 
-    msos::dl::DynamicLinker dynamic_linker;
     const auto module = load_module(dynamic_linker, module_address);
     if (module == nullptr)
     {
@@ -88,8 +88,7 @@ int main()
         {
         }
     }
-    lot_table_address = reinterpret_cast<uint32_t>(module->get_module().get_lot().data());
-    writer << "Address of lot: 0x" << hex << lot_table_address << endl;
+    writer << "Successfully loaded module: " << module->get_module().get_header().name() << endl;
     writer << "Heap usage: " << dec << hal::memory::get_heap_usage() << "/" << hal::memory::get_heap_size() << " bytes." << endl;
     module->execute();
 

@@ -13,8 +13,6 @@
 #include "msos/dynamic_linker/relocation.hpp"
 #include "msos/dynamic_linker/module_data.hpp"
 #include "msos/usart_printer.hpp"
-#include "msos/dynamic_linker/executable_module.hpp"
-#include "msos/dynamic_linker/library_module.hpp"
 #include "msos/dynamic_linker/loaded_module.hpp"
 
 namespace msos
@@ -37,19 +35,24 @@ struct ModuleInfo
 
 constexpr int LoadingModeCopyData = 0x01;
 constexpr int LoadingModeCopyText = 0x02;
-constexpr int LoadingModeCopyRodata = 0x02;
+constexpr int LoadingModeCopyRodata = 0x04;
 
 class DynamicLinker
 {
 public:
+    DynamicLinker() : modules_{}
+    {
+        writer << "Modules size: " << modules_.size() << endl;
+    }
+
     void unload_module(const LoadedModule* module)
     {
-        auto module_it = std::find_if(executable_modules_.begin(), executable_modules_.end(), [module](const auto& loaded_module) {
+        auto module_it = std::find_if(modules_.begin(), modules_.end(), [module](const auto& loaded_module) {
             return &loaded_module == module;
         });
-        if (module_it != executable_modules_.end())
+        if (module_it != modules_.end())
         {
-            executable_modules_.erase(module_it);
+            modules_.erase(module_it);
         }
     }
 
@@ -63,15 +66,15 @@ public:
         {
             return nullptr;//;LoadingStatus::ModuleCookieValidationFailed;
         }
-    
-        writer << "Module header size: " << dec << header.size() << endl;
+
+        writer << "Module header " << header.name() << ", size: " << dec << header.size() << endl;
         const uint32_t relocation_section_address = module_address + header.size();
         writer << "Relocations section: 0x" << hex << relocation_section_address << endl;
         const uint32_t relocation_section_size = get_relocations_size(header, relocation_section_address);
         writer << "Relocation section size: 0x" << relocation_section_size << endl;
         const uint32_t symbol_section_address = relocation_section_address + relocation_section_size;
         writer << "Symbol section: 0x" << hex << symbol_section_address << endl;
-        const uint32_t symbol_section_size = 0;//get_symbols_size(symbol_section_address);
+        const uint32_t symbol_section_size = get_symbols_size(symbol_section_address);
         writer << "Symbol section size: 0x" << hex << symbol_section_size << endl;
 
         const uint32_t not_aligned_code_address = symbol_section_address + symbol_section_size;
@@ -83,54 +86,45 @@ public:
         const uint32_t size_of_lot = get_size_of_lot(header, relocation_section_address);
         writer << "Size of LOT: " << dec << size_of_lot << endl;
 
-        std::unique_ptr<Module> module = std::make_unique<Module>(header);
-        ModuleData& module_data = module->get_module_data();
+        const auto* main = find_symbol(symbol_section_address, "main");
+        modules_.emplace_back(header);
+        LoadedModule& loaded_module = modules_.front();
+        writer << "Module address: 0x" << hex << reinterpret_cast<const uint32_t>(&loaded_module) << endl;
+        Module& module = loaded_module.get_module();
+        ModuleData& module_data = module.get_module_data();
 
         if (mode & LoadingModeCopyText)
         {
-            module_data.allocate_text(header.code_size());
-            std::memcpy(module_data.get_text().data(), reinterpret_cast<const uint8_t*>(code_address), header.code_size());
-            module->set_text(module_data.get_text()); 
+            module.allocate_text();
+            std::memcpy(module.get_text().data(), reinterpret_cast<const uint8_t*>(code_address), header.code_size());
         }
-        else 
+        else
         {
-            module->set_text(gsl::make_span(reinterpret_cast<const uint8_t*>(code_address), header.code_size()));
+            module.set_text(gsl::make_span(reinterpret_cast<uint8_t*>(code_address), header.code_size()));
         }
 
         if (mode & LoadingModeCopyRodata)
         {
-            module_data.allocate_rodata(header.rodata_size());
-            std::memcpy(module_data.get_rodata().data(), reinterpret_cast<const uint8_t*>(rodata_address), header.rodata_size());
-            module->set_rodata(module_data.get_rodata()); 
-        }
-        else 
-        {
-            module->set_rodata(gsl::make_span(reinterpret_cast<const uint8_t*>(rodata_address), header.rodata_size()));
-        }
-
-        module_data.allocate_data(header.data_size());
-        std::memset(module_data.get_data().data(), 0, header.data_size());
-        module->set_data(module_data.get_data());
-        const auto* main = find_symbol(symbol_section_address, "main");
-        const std::size_t main_function_address = reinterpret_cast<uint32_t>(module->get_text().data()) + main->offset() - 1;
-
-        if (main != nullptr)
-        {
-            library_modules_.emplace_back(std::move(module));
-       
-            process_relocations(relocation_section_address, environment, library_modules_.back());
-            return &library_modules_.back();
+            module.allocate_rodata();
+            std::memcpy(module.get_rodata().data(), reinterpret_cast<uint8_t*>(rodata_address), header.rodata_size());
         }
         else
         {
-            executable_modules_.emplace_back(std::move(module), main_function_address);
-        
-            process_relocations(relocation_section_address, environment, executable_modules_.back());
-            return &executable_modules_.back();
+            module.set_rodata(gsl::make_span(reinterpret_cast<uint8_t*>(rodata_address), header.rodata_size()));
         }
 
+        module.allocate_data();
+        std::memset(module.get_data().data(), 0, header.data_size());
 
-        return nullptr;
+        if (main)
+        {
+            const std::size_t main_function_address = reinterpret_cast<uint32_t>(module.get_text().data()) + main->offset() - 1;
+            loaded_module.set_start_address(main_function_address);
+        }
+
+        process_relocations(relocation_section_address, environment, loaded_module);
+
+        return &loaded_module;
     }
 
     const Symbol* find_symbol(const uint32_t address, const std::string_view& symbol_name)
@@ -147,6 +141,30 @@ public:
         }
         return nullptr;
     }
+
+    uint32_t get_lot_for_module_at(uint32_t address)
+    {
+        auto* backm = &modules_.front();
+        writer << "Module address: 0x" << hex << reinterpret_cast<const uint32_t>(backm) << endl;
+
+        auto it = modules_.begin();
+        while (it != modules_.end())
+        {
+            const LoadedModule& loaded_module = *it;
+            writer << "Module address: 0x" << hex << reinterpret_cast<const uint32_t>(&loaded_module) << endl;
+            const Module& module = loaded_module.get_module();
+            const uint32_t text_address = reinterpret_cast<uint32_t>(module.get_text().data());
+            writer << module.get_header().name() << " -> Address: 0x" << hex << address << ", text: 0x" << text_address << ", size: 0x" << module.get_header().code_size() << endl;
+            if (address >= text_address && address < text_address + module.get_header().code_size())
+            {
+                return reinterpret_cast<uint32_t>(module.get_lot().data());
+            }
+        }
+
+        return 12345;
+    }
+
+
 private:
 
     uint32_t get_size_of_lot(const ModuleHeader& header, uint32_t address)
@@ -243,9 +261,9 @@ private:
         return size;
     }
 
+
 private:
-    std::list<ExecutableModule> executable_modules_;
-    std::list<LibraryModule> library_modules_;
+    std::list<LoadedModule> modules_;
 };
 
 } // namespace dl

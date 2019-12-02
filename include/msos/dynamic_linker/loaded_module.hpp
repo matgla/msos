@@ -5,26 +5,27 @@
 #include "msos/dynamic_linker/module.hpp"
 #include "msos/dynamic_linker/module_data.hpp"
 
-namespace msos 
+namespace msos
 {
-namespace dl 
+namespace dl
 {
 
-class LoadedModule 
+class LoadedModule
 {
 public:
-    virtual ~LoadedModule() = default;
-    LoadedModule(std::unique_ptr<Module>&& module);
-    
+    LoadedModule(const ModuleHeader& header);
+
     const Module& get_module() const;
     Module& get_module();
 
-    virtual int execute(int argc, char *argv[]) const = 0;
-    virtual int execute() const = 0;
-protected:
-    std::unique_ptr<Module> module_;
+    void set_start_address(const std::size_t start_address);
+    int execute(int argc, char *argv[]) const;
+    int execute() const;
+private:
+    std::size_t start_address_;
+    Module module_;
 };
 
-} // namespace dl 
+} // namespace dl
 } // namespace msos
- 
+

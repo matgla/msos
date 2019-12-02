@@ -44,12 +44,12 @@ const uint16_t ModuleHeader::total_relocations() const
 
 const std::string_view ModuleHeader::name() const
 {
-    return std::string_view(reinterpret_cast<const char*>(this) + sizeof(Module));
+    return std::string_view(reinterpret_cast<const char*>(this) + sizeof(ModuleHeader));
 }
 
 const uint32_t ModuleHeader::size() const
 {
-    return sizeof(Module) + get_aligned_length(name());
+    return sizeof(ModuleHeader) + get_aligned_length(name());
 }
 
 } // namespace dl

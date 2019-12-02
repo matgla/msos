@@ -17,12 +17,12 @@ namespace dl
 class Module
 {
 public:
-    using DataSpan = gsl::span<const uint8_t>;
+    using DataSpan = gsl::span<uint8_t>;
     Module(const ModuleHeader& module_header);
 
-    const DataSpan& get_text() const;
-    const DataSpan& get_rodata() const;
-    const DataSpan& get_data() const;
+    DataSpan get_text() const;
+    DataSpan get_rodata() const;
+    DataSpan get_data() const;
     const ModuleHeader& get_header() const;
     const std::vector<uint32_t>& get_lot() const;
     std::vector<uint32_t>& get_lot();
@@ -33,11 +33,15 @@ public:
     void set_rodata(const DataSpan& rodata);
     void set_data(const DataSpan& data);
 
+    void allocate_text();
+    void allocate_rodata();
+    void allocate_data();
+
 private:
     const ModuleHeader& module_header_;
-    DataSpan text_;
-    DataSpan rodata_;
-    DataSpan data_;
+    uint8_t* text_;
+    uint8_t* rodata_;
+    uint8_t* data_;
     std::vector<uint32_t> lot_;
     ModuleData module_data_;
 };
