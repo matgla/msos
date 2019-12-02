@@ -1,9 +1,8 @@
 #pragma once
 
 #include <string_view>
-#include <list>
-#include <vector>
 #include <optional>
+#include <eul/container/static_vector.hpp>
 
 #include <gsl/span>
 
@@ -52,7 +51,7 @@ public:
         });
         if (module_it != modules_.end())
         {
-            modules_.erase(module_it);
+           //  modules_.erase(module_it);
         }
     }
 
@@ -88,8 +87,8 @@ public:
 
         const auto* main = find_symbol(symbol_section_address, "main");
         modules_.emplace_back(header);
-        LoadedModule& loaded_module = modules_.front();
-        writer << "Module address: 0x" << hex << reinterpret_cast<const uint32_t>(&loaded_module) << endl;
+        LoadedModule& loaded_module = modules_.back();
+        writer << "Module address: 0x" << hex << reinterpret_cast<const uint32_t>(&modules_.front()) << hex << ", 0x" << reinterpret_cast<const uint32_t>(&modules_.back()) << endl;
         Module& module = loaded_module.get_module();
         ModuleData& module_data = module.get_module_data();
 
@@ -147,10 +146,8 @@ public:
         auto* backm = &modules_.front();
         writer << "Module address: 0x" << hex << reinterpret_cast<const uint32_t>(backm) << endl;
 
-        auto it = modules_.begin();
-        while (it != modules_.end())
+        for (const auto& loaded_module : modules_)
         {
-            const LoadedModule& loaded_module = *it;
             writer << "Module address: 0x" << hex << reinterpret_cast<const uint32_t>(&loaded_module) << endl;
             const Module& module = loaded_module.get_module();
             const uint32_t text_address = reinterpret_cast<uint32_t>(module.get_text().data());
@@ -161,7 +158,7 @@ public:
             }
         }
 
-        return 12345;
+        return 0x08008dd0;
     }
 
 
@@ -263,7 +260,7 @@ private:
 
 
 private:
-    std::list<LoadedModule> modules_;
+    eul::container::static_vector<LoadedModule, 10> modules_;
 };
 
 } // namespace dl

@@ -12,19 +12,23 @@ namespace msos
 namespace dl
 {
 
-LoadedModule::LoadedModule(const ModuleHeader& header)
-    : module_(header)
+LoadedModule::LoadedModule()
 {
+}
+
+LoadedModule::LoadedModule(const ModuleHeader& header)
+{
+    module_.emplace(header);
 }
 
 const Module& LoadedModule::get_module() const
 {
-    return module_;
+    return *module_;
 }
 
 Module& LoadedModule::get_module()
 {
-    return module_;
+    return *module_;
 }
 
 void LoadedModule::set_start_address(const std::size_t start_address)

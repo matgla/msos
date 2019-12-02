@@ -23,3 +23,5 @@ add_subdirectory(src)
 
 set(compile_commands_path ${PROJECT_BINARY_DIR})
 configure_file(ycm_extra_conf.py.in ${PROJECT_SOURCE_DIR}/ycm_extra_conf.py @ONLY)
+
+add_subdirectory(test/st/dynamic_linker/host)
