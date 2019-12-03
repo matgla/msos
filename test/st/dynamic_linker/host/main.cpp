@@ -9,7 +9,7 @@ int main()
 
     writer << "[TEST START]" << endl;
 
-    writer << "[TEST KILL]" << endl;
+    writer << "[TEST DONE]" << endl;
 
     return -1;
 }

@@ -1,22 +1,21 @@
 function (configure_virtual_env)
-    find_program(VIRTUALENV virtualenv)
+    find_program (virtualenv_exec virtualenv)
 
-    if(NOT VIRTUALENV)
-        message(FATAL_ERROR "Could not find `virtualenv` in PATH")
+    if(NOT virtualenv_exec)
+        message(FATAL_ERROR "Couldn't find virtualenv")
     endif()
 
-    set(VIRTUALENV ${VIRTUALENV} -p python3)
+    set(virtualenv_exec ${virtualenv_exec} -p python3)
 
     add_custom_command(
-        OUTPUT venv
-        COMMAND ${VIRTUALENV} venv
+        OUTPUT virtualenv_command 
+        COMMAND ${virtualenv_exec} module_generator_env
     )
 
     add_custom_command(
-        OUTPUT venv.stamp
-        DEPENDS venv ${PROJECT_SOURCE_DIR}/scripts/requirements.txt
-        COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/scripts/requirements.txt requirements.txt
-        COMMAND ./venv/bin/pip install -r requirements.txt --upgrade
+        OUTPUT module_generator_env.stamp
+        DEPENDS virtualenv_command ${PROJECT_SOURCE_DIR}/scripts/requirements.txt
+        COMMAND ./module_generator_env/bin/pip install -r ${PROJECT_SOURCE_DIR}/scripts/requirements.txt --upgrade
     )
 endfunction()
 
@@ -24,13 +23,13 @@ function (add_wrapper module_name)
     configure_virtual_env()
     add_custom_target(
         ${module_name}_wrapper_generator
-        DEPENDS ${module_name} venv.stamp
+        DEPENDS ${module_name} module_generator_env.stamp
     )
 
     add_custom_command(
         TARGET ${module_name}_wrapper_generator
         POST_BUILD
-        COMMAND ${CMAKE_CURRENT_BINARY_DIR}/venv/bin/python3 ${PROJECT_SOURCE_DIR}/scripts/generate_wrappers.py
+        COMMAND ${CMAKE_CURRENT_BINARY_DIR}/module_generator_env/bin/python3 ${PROJECT_SOURCE_DIR}/scripts/generate_wrappers.py
         generate_wrapper_code --output ${PROJECT_BINARY_DIR}/${module_name}_wrapper --input
         ${PROJECT_BINARY_DIR}/src/modules/example/CMakeFiles/${module_name}.dir --objcopy=${CMAKE_OBJCOPY}
         --module_name=${module_name}
@@ -39,11 +38,11 @@ function (add_wrapper module_name)
 
     add_library(${module_name}_wrapper OBJECT)
 
-    set_source_files_properties(${PROJECT_BINARY_DIR}/example_module_wrapper/wrapped_symbols.s PROPERTIES GENERATED 1)
+    set_source_files_properties(${PROJECT_BINARY_DIR}/${module_name}_wrapper/wrapped_symbols.s PROPERTIES GENERATED 1)
 
     target_sources(${module_name}_wrapper
         PRIVATE
-        ${PROJECT_BINARY_DIR}/${module_name}_wrapper/wrapped_symbols.s
+        ${PROJECT_BINARY_DIR}/${module_name}_wrapper/wrapped_symbols.s 
     )
     add_dependencies(${module_name}_wrapper ${module_name}_wrapper_generator)
 
@@ -63,7 +62,7 @@ function (add_wrapper module_name)
     add_custom_command(
         TARGET ${module_name}_shared
         POST_BUILD
-        COMMAND ${CMAKE_CURRENT_BINARY_DIR}/venv/bin/python3 ${PROJECT_SOURCE_DIR}/scripts/generate_binary.py
+        COMMAND ${CMAKE_CURRENT_BINARY_DIR}/module_generator_env/bin/python3 ${PROJECT_SOURCE_DIR}/scripts/generate_binary.py
         generate_wrapper_code --elf_filename=$<TARGET_FILE:${module_name}_shared> --module_name=${module_name} --objcopy=${CMAKE_OBJCOPY}
         VERBATIM
     )
@@ -71,6 +70,9 @@ function (add_wrapper module_name)
 endfunction ()
 
 function (add_module_flags_target)
+    if (TARGET module_flags)
+        return() 
+    endif ()
     add_library(module_flags INTERFACE)
     
     target_link_options(module_flags INTERFACE "${hal_linker_flags};-T${PROJECT_SOURCE_DIR}/linker_scripts/dynamic_module.ld;-nostartfiles;-nodefaultlibs;-nostdlib;-Wl,--unresolved-symbols=ignore-in-object-files;-Wl,--emit-relocs")
