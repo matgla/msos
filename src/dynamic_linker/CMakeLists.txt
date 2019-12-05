@@ -1,4 +1,4 @@
-add_library(msos_dynamic_linker)
+add_library(msos_dynamic_linker STATIC)
 
 set (library_includes ${PROJECT_SOURCE_DIR}/include/msos/dynamic_linker)
 
@@ -14,6 +14,7 @@ target_sources(msos_dynamic_linker
         ${library_includes}/symbol.hpp
 
     PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/call_external.s
         ${CMAKE_CURRENT_SOURCE_DIR}/dynamic_linker.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/loaded_module.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/module.cpp

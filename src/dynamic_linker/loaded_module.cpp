@@ -1,5 +1,7 @@
 #include "msos/dynamic_linker/loaded_module.hpp"
 
+#include "msos/usart_printer.hpp"
+
 #include <utility>
 
 extern "C"
@@ -43,6 +45,7 @@ int LoadedModule::execute(int argc, char *argv[]) const
 
 int LoadedModule::execute() const
 {
+    writer << "Executing address: 0x" << hex << start_address_ << endl;
     return call_external(start_address_);
 }
 

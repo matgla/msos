@@ -21,9 +21,6 @@ enable_language(ASM C CXX)
 add_subdirectory(include/msos/drivers)
 add_subdirectory(src)
 
-set(compile_commands_path ${PROJECT_BINARY_DIR})
-configure_file(ycm_extra_conf.py.in ${PROJECT_SOURCE_DIR}/ycm_extra_conf.py @ONLY)
-
 if (NOT DISABLE_TESTS OR DISABLE_ST_TESTS)
     add_subdirectory(test/st)
 endif ()

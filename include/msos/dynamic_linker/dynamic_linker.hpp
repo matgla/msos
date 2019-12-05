@@ -144,7 +144,7 @@ public:
     uint32_t get_lot_for_module_at(uint32_t address)
     {
         auto* backm = &modules_.front();
-        writer << "Module address: 0x" << hex << reinterpret_cast<const uint32_t>(backm) << endl;
+        writer << "Loading LOT address: 0x" << hex << reinterpret_cast<const uint32_t>(backm) << endl;
 
         for (const auto& loaded_module : modules_)
         {
@@ -158,7 +158,7 @@ public:
             }
         }
 
-        return 0x08008dd0;
+        return 0x0; 
     }
 
 
