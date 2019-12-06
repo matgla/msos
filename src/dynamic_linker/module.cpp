@@ -17,14 +17,10 @@ Module::DataSpan Module::get_text() const
     return gsl::make_span(text_, module_header_.code_size());
 }
 
-Module::DataSpan Module::get_rodata() const
-{
-    return gsl::make_span(rodata_, module_header_.rodata_size());
-}
 
 Module::DataSpan Module::get_data() const
 {
-    return gsl::make_span(rodata_, module_header_.data_size());
+    return gsl::make_span(data_, module_header_.data_size());
 }
 
 const ModuleHeader& Module::get_header() const
@@ -32,12 +28,12 @@ const ModuleHeader& Module::get_header() const
     return module_header_;
 }
 
-const std::vector<uint32_t>& Module::get_lot() const
+const std::unique_ptr<uint32_t[]>& Module::get_lot() const
 {
     return lot_;
 }
 
-std::vector<uint32_t>& Module::get_lot()
+std::unique_ptr<uint32_t[]>& Module::get_lot()
 {
     return lot_;
 }
@@ -57,11 +53,6 @@ void Module::set_text(const Module::DataSpan& text)
     text_ = text.data();
 }
 
-void Module::set_rodata(const Module::DataSpan& rodata)
-{
-    rodata_ = rodata.data();
-}
-
 void Module::set_data(const Module::DataSpan& data)
 {
     data_ = data.data();
@@ -70,11 +61,6 @@ void Module::set_data(const Module::DataSpan& data)
 void Module::allocate_text()
 {
     text_ = module_data_.allocate_text(module_header_.code_size());
-}
-
-void Module::allocate_rodata()
-{
-    rodata_ = module_data_.allocate_rodata(module_header_.rodata_size());
 }
 
 void Module::allocate_data()

@@ -21,7 +21,6 @@ std::string_view to_string(const Section s)
     switch (s)
     {
         case Section::code: return "code";
-        case Section::rodata: return "rodata";
         case Section::data: return "data";
     }
     return "Unknown";
@@ -52,7 +51,7 @@ const Symbol& Symbol::next() const
     return reinterpret_cast<const Symbol&>(*(reinterpret_cast<const uint8_t*>(this) + size()));
 }
 
-const uint32_t Symbol::offset() const 
+const uint32_t Symbol::offset() const
 {
     return offset_;
 }

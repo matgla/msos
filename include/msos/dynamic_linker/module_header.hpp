@@ -13,7 +13,6 @@ class ModuleHeader
 public:
     const std::string_view cookie() const;
     const uint32_t code_size() const;
-    const uint32_t rodata_size() const;
     const uint32_t data_size() const;
     const uint32_t bss_size() const;
     const uint16_t number_of_relocations() const;
@@ -23,7 +22,6 @@ public:
 private:
     char cookie_[4];
     uint32_t code_size_;
-    uint32_t rodata_size_;
     uint32_t data_size_;
     uint32_t bss_size_;
     uint16_t number_of_relocations_;

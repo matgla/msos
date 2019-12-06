@@ -34,7 +34,6 @@ struct ModuleInfo
 
 constexpr int LoadingModeCopyData = 0x01;
 constexpr int LoadingModeCopyText = 0x02;
-constexpr int LoadingModeCopyRodata = 0x04;
 
 class DynamicLinker
 {
@@ -80,8 +79,6 @@ public:
         writer << "Not aligned code address: 0x" << not_aligned_code_address << endl;
         const uint32_t code_address = not_aligned_code_address % 16 ? not_aligned_code_address + (16 - (not_aligned_code_address % 16)) : not_aligned_code_address;
         writer << "Code: 0x" << code_address << endl;
-        const uint32_t rodata_address = code_address + header.code_size();
-        writer << "Rodata: 0x" << rodata_address << endl;
         const uint32_t size_of_lot = get_size_of_lot(header, relocation_section_address);
         writer << "Size of LOT: " << dec << size_of_lot << endl;
 
@@ -100,16 +97,6 @@ public:
         else
         {
             module.set_text(gsl::make_span(reinterpret_cast<uint8_t*>(code_address), header.code_size()));
-        }
-
-        if (mode & LoadingModeCopyRodata)
-        {
-            module.allocate_rodata();
-            std::memcpy(module.get_rodata().data(), reinterpret_cast<uint8_t*>(rodata_address), header.rodata_size());
-        }
-        else
-        {
-            module.set_rodata(gsl::make_span(reinterpret_cast<uint8_t*>(rodata_address), header.rodata_size()));
         }
 
         module.allocate_data();
@@ -154,11 +141,11 @@ public:
             writer << module.get_header().name() << " -> Address: 0x" << hex << address << ", text: 0x" << text_address << ", size: 0x" << module.get_header().code_size() << endl;
             if (address >= text_address && address < text_address + module.get_header().code_size())
             {
-                return reinterpret_cast<uint32_t>(module.get_lot().data());
+                return reinterpret_cast<uint32_t>(module.get_lot().get());
             }
         }
 
-        return 0x0; 
+        return 0x0;
     }
 
 
@@ -173,14 +160,7 @@ private:
         {
             const Symbol& symbol = relocation->symbol();
 
-            if (symbol.visibility() == SymbolVisibility::internal || symbol.visibility() == SymbolVisibility::exported)
-            {
-                if (symbol.section() == Section::rodata)
-                {
-                    ++size_of_lot;
-                }
-            }
-            else if (symbol.visibility() == SymbolVisibility::external)
+            if (symbol.visibility() == SymbolVisibility::external || symbol.visibility() == SymbolVisibility::internal)
             {
                 ++size_of_lot;
             }
@@ -195,9 +175,8 @@ private:
         Module& module = loaded_module.get_module();
         const ModuleHeader& header = module.get_header();
         auto& lot = module.get_lot();
-        const uint32_t rodata = reinterpret_cast<const uint32_t>(module.get_rodata().data());
 
-        lot.reserve(get_size_of_lot(header, address));
+        lot.reset(new uint32_t[header.number_of_relocations()]);
 
         for (int i = 0; i < header.number_of_relocations(); ++i)
         {
@@ -207,12 +186,10 @@ private:
 
             if (symbol.visibility() == SymbolVisibility::internal || symbol.visibility() == SymbolVisibility::exported)
             {
-                if (symbol.section() == Section::rodata)
+                if (symbol.section() == Section::code)
                 {
-                    lot[i] = rodata;
-                }
-                else if (symbol.section() == Section::code)
-                {
+                    uint32_t relocated = reinterpret_cast<uint32_t>(loaded_module.get_module().get_text().data()) + symbol.offset();
+                    lot[i] = relocated;
                 }
             }
             else if (symbol.visibility() == SymbolVisibility::external)

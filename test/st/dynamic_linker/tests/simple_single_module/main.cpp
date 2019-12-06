@@ -5,6 +5,6 @@ extern "C"
 
 int main()
 {
-    usart_write("Hello from module");
+    usart_write("Hello from module\n");
 }
 

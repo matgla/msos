@@ -105,16 +105,10 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         print(Fore.RED + " .text section must be placed at address 0" + Style.RESET_ALL)
     code_data = bytearray(code_section["data"])
 
-    rodata_section = sections[".rodata"]
-    if rodata_section["address"] != code_section["size"]:
-        print(Fore.RED + " .rodata (", hex(rodata_section["address"]), ") section must be placed just after .text(" + hex(code_section["size"]) + ")" + Style.RESET_ALL)
-        return
-    rodata_data = bytearray(rodata_section["data"])
-
     data_section = sections[".data"]
-    if data_section["address"] != rodata_section["address"] + rodata_section["size"]:
-        print(Fore.RED + " .data (",  hex(data_section["address"]),  ") section must be placed just after .rodata (",
-            hex(rodata_section["address"] + rodata_section["size"]) + ")" + Style.RESET_ALL)
+    if data_section["address"] != code_section["address"] + code_section["size"]:
+        print(Fore.RED + " .data (",  hex(data_section["address"]),  ") section must be placed just after .text_section (",
+            hex(code_section["address"] + code_section["size"]) + ")" + Style.RESET_ALL)
         return
     data_data = data_section["data"]
 
@@ -224,8 +218,6 @@ def generate_module(module_name, elf_filename, objcopy_executable):
     # +---+---+---+---+
     # |   code size   |
     # +---+---+---+---+
-    # | rodata size   |
-    # +---+---+---+---+
     # |   data size   |
     # +---+---+---+---+
     # |   bss size    |
@@ -251,7 +243,7 @@ def generate_module(module_name, elf_filename, objcopy_executable):
     #
 
     image = bytearray("MSDL", "ascii")
-    image += struct.pack("<IIII", len(code_data), len(rodata_data), len(data_data), len(bss_section["data"]))
+    image += struct.pack("<III", len(code_data), len(data_data), len(bss_section["data"]))
     number_of_lot_relocations = index
     image += struct.pack("<HH", number_of_lot_relocations, total_relocations)
     name = bytearray(module_name + "\0", "ascii")
@@ -294,10 +286,8 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         print ("ss: ", symbols[symbol])
         if symbols[symbol]["section_index"] == code_section["index"]:
             section = 0
-        elif symbols[symbol]["section_index"] == rodata_section["index"]:
-            section = 1
         elif symbols[symbol]["section_index"] == data_section["index"]:
-            section = 2
+            section = 1
         offset_to_next = len(symbol + "\0") + 4 + 2 + 2 + 4
         #image += struct.pack("<IHHI", offset_to_next,  visibility, section,symbol_to_index_map[symbol])
         #image += bytearray(symbol + "\0", "ascii")
@@ -338,11 +328,10 @@ def generate_module(module_name, elf_filename, objcopy_executable):
 
     if (len(image) % 16):
         image += bytearray('\0' * (16 - (len(image) % 16)), "ascii")
-    
+
     print ("code starts at: ", hex(len(image)))
-    
-    image += code_data 
-    image += rodata_data
+
+    image += code_data
     image += data_data
     with open(module_name + ".bin", "wb") as file:
         file.write(image)

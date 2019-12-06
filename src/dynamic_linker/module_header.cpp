@@ -17,11 +17,6 @@ const uint32_t ModuleHeader::code_size() const
     return code_size_;
 }
 
-const uint32_t ModuleHeader::rodata_size() const
-{
-    return rodata_size_;
-}
-
 const uint32_t ModuleHeader::data_size() const
 {
     return data_size_;

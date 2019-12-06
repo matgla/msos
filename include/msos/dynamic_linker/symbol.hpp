@@ -18,8 +18,7 @@ enum class SymbolVisibility : uint16_t
 enum class Section : uint16_t
 {
     code = 0,
-    rodata = 1,
-    data = 2
+    data = 1
 };
 
 std::string_view to_string(const SymbolVisibility v);

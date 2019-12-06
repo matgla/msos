@@ -21,28 +21,24 @@ public:
     Module(const ModuleHeader& module_header);
 
     DataSpan get_text() const;
-    DataSpan get_rodata() const;
     DataSpan get_data() const;
     const ModuleHeader& get_header() const;
-    const std::vector<uint32_t>& get_lot() const;
-    std::vector<uint32_t>& get_lot();
+    const std::unique_ptr<uint32_t[]>& get_lot() const;
+    std::unique_ptr<uint32_t[]>& get_lot();
     ModuleData& get_module_data();
     const ModuleData& get_module_data() const;
 
     void set_text(const DataSpan& text);
-    void set_rodata(const DataSpan& rodata);
     void set_data(const DataSpan& data);
 
     void allocate_text();
-    void allocate_rodata();
     void allocate_data();
 
 private:
     const ModuleHeader& module_header_;
     uint8_t* text_;
-    uint8_t* rodata_;
     uint8_t* data_;
-    std::vector<uint32_t> lot_;
+    std::unique_ptr<uint32_t[]> lot_;
     ModuleData module_data_;
 };
 

@@ -1,3 +1,8 @@
 bin
 ycm_extra_conf.py
 .vscode
+compile_commands.json
+__pycache__/
+*.py[cod]
+*$py.class
+DAC_OUT_PUT*
