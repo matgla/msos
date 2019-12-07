@@ -16,39 +16,40 @@ function (configure_virtual_env)
     endif ()
 
     add_custom_command(
-        OUTPUT module_generator_env.stamp
-        DEPENDS ${VIRTUALENV_FILE} ${PROJECT_SOURCE_DIR}/scripts/requirements.txt
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/module_generator_env.stamp
+        DEPENDS ${PROJECT_SOURCE_DIR}/scripts/requirements.txt
         COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/pip install -r ${PROJECT_SOURCE_DIR}/scripts/requirements.txt --upgrade
+        COMMAND cmake -E touch ${CMAKE_CURRENT_BINARY_DIR}/module_generator_env.stamp
     )
 endfunction()
 
 function (add_wrapper module_name)
     configure_virtual_env()
-    add_custom_target(
-        ${module_name}_wrapper_generator
-        DEPENDS ${module_name} module_generator_env.stamp
-    )
+    find_file (VIRTUALENV_FILE venv.stamp ${PROJECT_BINARY_DIR}/)
+
+    add_custom_command(OUTPUT ${module_name}.stamp
+        COMMAND cmake -E touch ${module_name}.stamp 
+        DEPENDS ${module_name}
+        VERBATIM) 
 
     add_custom_command(
-        TARGET ${module_name}_wrapper_generator
-        POST_BUILD
+        OUTPUT wrapped_symbols.s
         COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/python3 ${PROJECT_SOURCE_DIR}/scripts/generate_wrappers.py
-        generate_wrapper_code --output ${PROJECT_BINARY_DIR}/${module_name}_wrapper --input
+        generate_wrapper_code --output ${CMAKE_CURRENT_BINARY_DIR} --input
         ${CMAKE_CURRENT_BINARY_DIR} --objcopy=${CMAKE_OBJCOPY}
         --module_name=${module_name}
+        PRE_BUILD
+        DEPENDS ${module_name}.stamp ${VIRTUALENV_FILE} ${CMAKE_CURRENT_BINARY_DIR}/module_generator_env.stamp 
         VERBATIM
     )
 
-    add_library(${module_name}_wrapper OBJECT)
-
-    set_source_files_properties(${PROJECT_BINARY_DIR}/${module_name}_wrapper/wrapped_symbols.s PROPERTIES GENERATED 1)
+    add_library(${module_name}_wrapper STATIC)
+    #set_source_files_properties(${PROJECT_BINARY_DIR}/${module_name}_wrapper/wrapped_symbols.s PROPERTIES GENERATED 1)
 
     target_sources(${module_name}_wrapper
         PRIVATE
-        ${PROJECT_BINARY_DIR}/${module_name}_wrapper/wrapped_symbols.s
+        wrapped_symbols.s
     )
-    add_dependencies(${module_name}_wrapper ${module_name}_wrapper_generator)
-
     target_compile_options(${module_name}_wrapper PUBLIC -x assembler-with-cpp)
     target_link_libraries(${module_name}_wrapper PUBLIC module_flags)
 
