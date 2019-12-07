@@ -6,6 +6,7 @@
 #include <msos/dynamic_linker/environment.hpp>
 #include <hal/core/backupRegisters.hpp>
 #include <hal/core/core.hpp>
+
 msos::dl::DynamicLinker dynamic_linker;
 
 extern "C"
