@@ -7,3 +7,6 @@
 [submodule "lib/gsl/gsl"]
 	path = lib/gsl/gsl
 	url = https://github.com/microsoft/GSL.git
+[submodule "site/themes/kraiklyn"]
+	path = site/themes/kraiklyn
+	url = https://github.com/jsnjack/kraiklyn.git
