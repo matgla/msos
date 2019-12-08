@@ -210,7 +210,7 @@ protected:
 
 inline int get_aligned_length(const std::string_view& str)
 {
-    uint32_t name_length = str.length();
+    uint32_t name_length = str.length() + 1;
     if (name_length % 4)
     {
         name_length = name_length + 4 - (name_length % 4);

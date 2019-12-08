@@ -248,8 +248,9 @@ def generate_module(module_name, elf_filename, objcopy_executable):
     image += struct.pack("<HH", number_of_lot_relocations, total_relocations)
     name = bytearray(module_name + "\0", "ascii")
     image += name
-    if (len(module_name + "\0") % 4):
-        image += bytearray("\0" * (4 - (len(module_name + "\0") % 4)), "ascii")
+    name_length = len(module_name) + 1
+    if (name_length % 4):
+        image += bytearray("\0" * (4 - (name_length % 4)), "ascii")
 
     symbol_to_index_map = {}
     symbol_index = 0
@@ -301,6 +302,7 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         sym["index"] = symbol_to_index_map[symbol]
         symbol_to_image.append(sym)
 
+    print ("Relocation table placed at: ", hex(len(image)))
     for rel in relocation_to_image:
         relocation_position = relocation_to_image.index(rel)
         sizeof_relocation = 8
@@ -319,6 +321,7 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         image += struct.pack("<II", rel["index"], offset_to_symbol)
 
     print ("Adding size of symbol table: ", len(symbol_to_index_map))
+    print ("Symbol section placed at: ", hex(len(image)));
     image += struct.pack("<I", len(symbol_to_index_map))
 
     for sym in symbol_to_image:

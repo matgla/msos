@@ -15,7 +15,7 @@ class BinaryUnderTest:
     def __init__(self, binary_path):
         self.binary_path = binary_path
 
-    def start(self, timeout):
+    def start(self):
         self.executable = pexpect.spawnu("qemu-system-arm -machine " \
                                          "stm32-f103c8 -kernel " + \
                                          self.binary_path + " -serial stdio " \

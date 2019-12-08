@@ -1,1 +1,2 @@
 add_subdirectory(simple_single_module)
+add_subdirectory(module_with_data_relocation)
