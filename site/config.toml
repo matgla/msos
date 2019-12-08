@@ -1,3 +1,4 @@
-baseURL = "http://example.org/"
+baseURL = "https://matgla.github.io/msos/"
 languageCode = "en-us"
-title = "My New Hugo Site"
+title = "MSOS project website"
+theme = "kraiklyn"
