@@ -1,4 +1,5 @@
-baseURL = "https://matgla.github.io/msos/"
+baseURL = "http://example.org/"
 languageCode = "en-us"
-title = "MSOS project website"
+title = "MSOS project webpage"
 theme = "kraiklyn"
+
