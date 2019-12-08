@@ -105,6 +105,8 @@ public:
         if (main)
         {
             const std::size_t main_function_address = reinterpret_cast<uint32_t>(module.get_text().data()) + main->offset() - 1;
+            
+            writer << "Main function found at: 0x" << hex << main_function_address << endl; 
             loaded_module.set_start_address(main_function_address);
         }
 

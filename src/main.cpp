@@ -13,8 +13,6 @@
 #include "msos/dynamic_linker/environment.hpp"
 #include "msos/dynamic_linker/dynamic_linker.hpp"
 
-uint32_t lot_table_address = 0;
-
 msos::dl::DynamicLinker dynamic_linker;
 
 uint32_t get_lot_at(uint32_t address)

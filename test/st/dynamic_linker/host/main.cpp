@@ -12,6 +12,7 @@ msos::dl::DynamicLinker dynamic_linker;
 extern "C"
 {
 void usart_write(const char* data);
+
 }
 
 void usart_write(const char* data)
@@ -58,9 +59,12 @@ int main()
         }
     }
 
+
     module->execute(); 
 
     writer << "[TEST DONE]" << endl;
 
-    return -1;
+    while(true)
+    {
+    }
 }

@@ -1,6 +1,6 @@
-add_library(example_module OBJECT)
+add_library(example_module_library OBJECT)
 
-target_sources(example_module
+target_sources(example_module_library
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
@@ -8,7 +8,7 @@ target_sources(example_module
 include(ModuleWrapperGenerator)
 
 add_module_flags_target()
-target_link_libraries(example_module PUBLIC module_flags)
+target_link_libraries(example_module_library PUBLIC module_flags)
 
-add_wrapper(example_module)
+add_module(example_module example_module_library)
 

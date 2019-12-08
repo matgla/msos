@@ -39,8 +39,8 @@ add_custom_command(
 
 add_custom_target(run_st
     COMMAND 
-    ${CMAKE_CURRENT_BINARY_DIR}/system_tests_env/bin/py.test ${PROJECT_SOURCE_DIR}/test/st -s 
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/system_tests_env.stamp host_resize generate_config_file
+    PYTHONPATH=${PYTHONPATH}:${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/system_tests_env/bin/py.test ${PROJECT_SOURCE_DIR}/test/st -s 
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/system_tests_env.stamp ${run_st_deps} generate_config_file
     VERBATIM
 )
 

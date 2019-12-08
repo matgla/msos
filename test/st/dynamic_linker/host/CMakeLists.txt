@@ -30,10 +30,10 @@ if (NOT qemu_img)
     message(FATAL_ERROR "qemu-img executable not found!")
 endif ()
 
-add_custom_target(
-    host_resize 
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/host_generate_bin.stamp 
+add_custom_command(
+    TARGET host 
     COMMAND ${qemu_img} resize ${CMAKE_CURRENT_BINARY_DIR}/host.bin 32K
+    POST_BUILD
     VERBATIM
 )
 

@@ -112,8 +112,9 @@ def wrap_symbols(symbol_names, filename, objcopy_executable):
         symbols_to_generate.update({symbol_name: wrapped_symbol})
         if symbol.endswith("_dl_original"):
             continue
-
-        subprocess.run([objcopy_executable + " --redefine-sym " + symbol + "=" + symbol + "_dl_original " + str(filename)], shell=True)
+        command = objcopy_executable + " --redefine-sym " + symbol + "=" + symbol + "_dl_original " + str(filename)
+        print ("Execute: ", command)
+        subprocess.run([command], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     return symbols_to_generate
 
 def generate_wrapper_file(symbols_to_generate, output_directory):
@@ -168,6 +169,8 @@ def main():
     print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + " STEP 2. Wrapping symbols in files")
     file_number = 1
     for file in files:
+        if (str(file).endswith("wrapped_symbols.s.o")):
+            continue
         print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "   [" + str(file_number) + "/" + str(len(files)) + "] " + str(file))
         symbols = get_symbols(file)
 
