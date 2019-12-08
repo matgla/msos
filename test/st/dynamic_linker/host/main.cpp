@@ -1,4 +1,5 @@
 #include <board.hpp>
+#include <cstring>
 
 #include <msos/usart_printer.hpp>
 
@@ -43,8 +44,9 @@ int main()
     std::size_t module_address = 0x08000000;
     module_address += 32 * 1024;
 
-    msos::dl::Environment<1> env{
-        msos::dl::SymbolAddress{"usart_write", &usart_write}
+    msos::dl::Environment<2> env{
+        msos::dl::SymbolAddress{"usart_write", &usart_write},
+        msos::dl::SymbolAddress{"strlen", &strlen}
     };
     writer << "[TEST START]" << endl;
     

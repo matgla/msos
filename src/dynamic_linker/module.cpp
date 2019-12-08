@@ -2,6 +2,8 @@
 
 #include <gsl/span>
 
+#include "msos/usart_printer.hpp"
+
 namespace msos
 {
 namespace dl
@@ -65,6 +67,7 @@ void Module::allocate_text()
 
 void Module::allocate_data()
 {
+    writer << "Allocation of data with size: 0x" << hex << module_header_.data_size() << endl;
     data_ = module_data_.allocate_data(module_header_.data_size());
 }
 

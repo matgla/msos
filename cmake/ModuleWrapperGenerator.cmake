@@ -40,7 +40,7 @@ function (add_module module_name module_library)
             ${CMAKE_CURRENT_BINARY_DIR}/wrapped_symbols.s
     )
 
-    target_compile_options(${module_name}_wrapper PUBLIC -x assembler-with-cpp)
+#target_compile_options(${module_name}_wrapper PUBLIC -x assembler-with-cpp)
     target_link_libraries(${module_name}_wrapper 
         PUBLIC 
             $<TARGET_OBJECTS:${module_library}>
@@ -61,7 +61,8 @@ function (add_module module_name module_library)
         TARGET ${module_name}
         POST_BUILD
         COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/python3 ${PROJECT_SOURCE_DIR}/scripts/generate_binary.py
-        generate_wrapper_code --elf_filename=$<TARGET_FILE:${module_name}> --module_name=${module_name} --objcopy=${CMAKE_OBJCOPY}
+        generate_wrapper_code --elf_filename=$<TARGET_FILE:${module_name}> --module_name=${module_name}
+        --objcopy=${CMAKE_OBJCOPY} --as_executable
         COMMAND cmake -E touch ${CMAKE_CURRENT_BINARY_DIR}/${module_name}_generate_bin.stamp
         DEPENDS 
         VERBATIM
@@ -75,9 +76,11 @@ function (add_module_flags_target)
     endif ()
     add_library(module_flags INTERFACE)
 
-    target_link_options(module_flags INTERFACE "${hal_linker_flags};-T${PROJECT_SOURCE_DIR}/linker_scripts/dynamic_module.ld;-nostartfiles;-nodefaultlibs;-nostdlib;-Wl,--unresolved-symbols=ignore-in-object-files;-Wl,--emit-relocs")
+    target_link_options(module_flags INTERFACE
+        "${hal_linker_flags};-T${PROJECT_SOURCE_DIR}/linker_scripts/dynamic_module.ld;-nostartfiles;-nodefaultlibs;-nostdlib;-Wl,--unresolved-symbols=ignore-in-object-files;-Wl,--emit-relocs;-fvisibility=hidden")
 
-    target_compile_options(module_flags INTERFACE "${hal_cxx_compilation_flags};-msingle-pic-base;-fno-inline;-fPIE;-mno-pic-data-is-text-relative;-fomit-frame-pointer;-fno-inline;-mlong-calls")
+    target_compile_options(module_flags INTERFACE
+        "${hal_cxx_compilation_flags};-fno-function-sections;-fno-data-sections;-fno-section-anchors;-msingle-pic-base;-fno-inline;-fPIC;-mno-pic-data-is-text-relative;-fno-inline;-mlong-calls;-fvisibility=hidden")
 
 
 

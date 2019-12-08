@@ -169,6 +169,8 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         offset = relocation["offset"]
         if relocation["info_type"] == "R_ARM_THM_CALL":
             continue
+        elif relocation["info_type"] == "R_ARM_REL32":
+            continue
         elif relocation["info_type"] == "R_ARM_GOT_BREL":
             symbol_visibility = symbol_map[relocation["symbol_name"]]
             if symbol_visibility == "external":
@@ -202,7 +204,7 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         if relocation["info_type"] == "R_ARM_ABS32":
             offset = relocation["offset"]
             print(relocation["symbol_name"], hex(offset))
-#            raise RuntimeError("Data relocations not supported yet!")
+            raise RuntimeError("Data relocations not supported yet!")
 
     for relocation in local_relocations + external_relocations:
         offset = relocation[1]
@@ -344,7 +346,7 @@ parser.add_argument("-o", "--output", dest="output_directory", action="store", h
 parser.add_argument("--module_name", dest="module_name", action="store", help="Module name")
 parser.add_argument("-i", "--elf_filename", dest="elf_filename", action="store", help="Path to module ELF file")
 parser.add_argument("--objcopy", dest="objcopy_executable", action="store", help="Path to objcopy executable")
-
+parser.add_argument("--as_executable", dest="as_executable", action="store_true", help="Generate module as executable")
 args, rest = parser.parse_known_args()
 
 from pathlib import Path

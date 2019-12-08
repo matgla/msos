@@ -110,7 +110,10 @@ public:
             loaded_module.set_start_address(main_function_address);
         }
 
-        process_relocations(relocation_section_address, environment, loaded_module);
+        if (!process_relocations(relocation_section_address, environment, loaded_module))
+        {
+            return nullptr;
+        }
 
         return &loaded_module;
     }
@@ -172,7 +175,7 @@ private:
     }
 
     template <typename Environment>
-    void process_relocations(uint32_t address, const Environment& env, LoadedModule& loaded_module)
+    bool process_relocations(uint32_t address, const Environment& env, LoadedModule& loaded_module)
     {
         Module& module = loaded_module.get_module();
         const ModuleHeader& header = module.get_header();
@@ -192,6 +195,13 @@ private:
                 {
                     uint32_t relocated = reinterpret_cast<uint32_t>(loaded_module.get_module().get_text().data()) + symbol.offset();
                     lot[i] = relocated;
+                    writer << "Symbol " << symbol.name() << ", relocated in table[0x" << hex << i << "], to 0x" << lot[i] << endl;
+                }
+                if (symbol.section() == Section::data)
+                {
+                    uint32_t relocated = reinterpret_cast<uint32_t>(loaded_module.get_module().get_data().data()) + symbol.offset();
+                    lot[i] = relocated;
+                    writer << "Symbol " << symbol.name() << ", relocated in table[0x" << hex << i << "], to 0x" << lot[i] << endl;
                 }
             }
             else if (symbol.visibility() == SymbolVisibility::external)
@@ -203,8 +213,14 @@ private:
                     writer << "Symbol found in env at address 0x" << hex << env_symbol->address();
                     lot[i] = env_symbol->address();
                 }
+                else 
+                {
+                    writer << "Address for symbol: " << symbol.name() << " not found!" << endl;
+                    return false;
+                }
             }
         }
+        return true;
     }
 
     uint32_t get_relocations_size(const ModuleHeader& header, const uint32_t address)
