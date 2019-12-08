@@ -1,0 +1,4 @@
+baseURL = "https://matgla.github.io/msos/"
+languageCode = "en-us"
+title = "MSOS project website"
+theme = "kraiklyn"
