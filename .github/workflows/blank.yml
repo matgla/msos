@@ -33,4 +33,4 @@ jobs:
       with:
         GITHUB_TOKEN: ${{ secrets.GITHUB_PRIVATE_TOKEN }}
         BRANCH: gh-pages
-        FOLDER: site
+        FOLDER: site/public
