@@ -1,5 +1,12 @@
 add_library(test_bss_section_library OBJECT)
 
+target_compile_options(test_bss_section_library
+    PUBLIC 
+    $<$<CONFIG:DEBUG>:-Og -g>
+    $<$<CONFIG:RELEASE>:-Os>
+) 
+
+
 target_sources(test_bss_section_library
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp

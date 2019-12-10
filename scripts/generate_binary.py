@@ -163,9 +163,8 @@ def generate_module(module_name, elf_filename, objcopy_executable):
     print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Processing relocations")
     local_relocations = []
     external_relocations = []
-
+    data_relocation = []
     for relocation in relocations:
-        print ("relocation: ", relocation)
         offset = relocation["offset"]
         if relocation["info_type"] == "R_ARM_THM_CALL":
             continue
@@ -178,8 +177,9 @@ def generate_module(module_name, elf_filename, objcopy_executable):
             elif symbol_visibility == "exported" or symbol_visibility == "internal":
                 local_relocations.append((relocation["symbol_name"], offset))
         elif relocation["info_type"] != "R_ARM_ABS32":
-            print (Fore.RED + "Unknown relocation type. Please fix generate_binary.py")
-            raise RuntimeError("Script not working for this binary")
+           continue
+           # print (Fore.RED + "Unknown relocation type. Please fix generate_binary.py")
+           #  raise RuntimeError("Script not working for this binary")
     print (Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Local relocations:")
     for relocation in local_relocations:
         print ("                      ", relocation[0])
@@ -200,11 +200,21 @@ def generate_module(module_name, elf_filename, objcopy_executable):
             total_relocations += 1
 
     lot_offset = index
+    data_relocations = []
     for relocation in relocations:
         if relocation["info_type"] == "R_ARM_ABS32":
-            offset = relocation["offset"]
-            print(relocation["symbol_name"], hex(offset))
-            raise RuntimeError("Data relocations not supported yet!")
+            offset = (relocation["offset"] - len(code_data)) / 4
+            data_relocations.append((relocation["symbol_name"], offset + lot_offset))
+            symbol_name = relocation["symbol_name"]
+            if not symbol_name in relocation_to_index_map:
+                total_relocations += 1
+                print ("adding ", symbol_name)
+                relocation_to_index_map[symbol_name] = offset + lot_offset
+
+    print (Fore.YELLOW + "[INF]" + Style.RESET_ALL + "     Data relocations:")
+    for relocation in data_relocations:
+        print ("                       ", relocation[0])
+
 
     for relocation in local_relocations + external_relocations:
         offset = relocation[1]

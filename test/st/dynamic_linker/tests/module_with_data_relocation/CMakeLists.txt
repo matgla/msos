@@ -5,6 +5,12 @@ target_sources(module_with_data_lib
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 
+target_compile_options(module_with_data_lib
+    PUBLIC 
+    $<$<CONFIG:DEBUG>:-Og -g>
+    $<$<CONFIG:RELEASE>:-Os>
+) 
+
 target_link_libraries(module_with_data_lib
     PUBLIC
         module_flags

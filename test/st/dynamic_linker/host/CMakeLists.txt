@@ -39,3 +39,9 @@ add_custom_command(
 
 set (HOST_BINARY_FILE "${CMAKE_CURRENT_BINARY_DIR}/host.bin" CACHE INTERNAL "")
 
+target_compile_options(host 
+    PUBLIC 
+    $<$<CONFIG:DEBUG>:-Og -g>
+    $<$<CONFIG:RELEASE>:-Os>
+) 
+
