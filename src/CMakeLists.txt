@@ -8,6 +8,7 @@ target_sources(msos
 )
 
 add_subdirectory(dynamic_linker)
+add_subdirectory(utils)
 
 target_link_libraries(msos
     PUBLIC

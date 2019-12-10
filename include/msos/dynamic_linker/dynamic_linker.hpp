@@ -79,6 +79,8 @@ public:
         writer << "Not aligned code address: 0x" << not_aligned_code_address << endl;
         const uint32_t code_address = not_aligned_code_address % 16 ? not_aligned_code_address + (16 - (not_aligned_code_address % 16)) : not_aligned_code_address;
         writer << "Code: 0x" << code_address << endl;
+        const uint32_t data_address = code_address + header.code_size();
+        writer << "Data: 0x" << data_address << endl;
         const uint32_t size_of_lot = get_size_of_lot(header, relocation_section_address);
         writer << "Size of LOT: " << dec << size_of_lot << endl;
 
@@ -100,13 +102,23 @@ public:
         }
 
         module.allocate_data();
-        std::memset(module.get_data().data(), 0, header.data_size());
+        writer << "Copy data: 0x" << hex << header.data_size() << endl;
+        const uint8_t* dd = reinterpret_cast<const uint8_t*>(data_address);
+        for (int i = 0; i < header.data_size(); ++i)
+        {
+            writer << (int)(dd[i]) << ", ";
+        }
+
+        writer << endl;
+        writer << "Data address: 0x" << hex << reinterpret_cast<uint32_t>(module.get_data().data()) << endl;
+        std::memcpy(module.get_data().data(), reinterpret_cast<const uint8_t*>(data_address), header.data_size());
+        std::memset(module.get_data().data() + header.data_size(), 0, header.bss_size());
 
         if (main)
         {
             const std::size_t main_function_address = reinterpret_cast<uint32_t>(module.get_text().data()) + main->offset() - 1;
-            
-            writer << "Main function found at: 0x" << hex << main_function_address << endl; 
+
+            writer << "Main function found at: 0x" << hex << main_function_address << endl;
             loaded_module.set_start_address(main_function_address);
         }
 
@@ -213,7 +225,7 @@ private:
                     writer << "Symbol found in env at address 0x" << hex << env_symbol->address();
                     lot[i] = env_symbol->address();
                 }
-                else 
+                else
                 {
                     writer << "Address for symbol: " << symbol.name() << " not found!" << endl;
                     return false;

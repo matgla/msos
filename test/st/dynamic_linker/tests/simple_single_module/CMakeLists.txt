@@ -6,8 +6,9 @@ target_sources(simple_module_library
 )
 
 target_link_libraries(simple_module_library
-    PRIVATE 
+    PRIVATE
         module_flags
+        msos_utils
 )
 
 add_module(simple_module simple_module_library)

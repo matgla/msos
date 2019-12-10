@@ -34,12 +34,12 @@ int main()
     board::board_init();
     hal::core::Core::initializeClocks();
     board::interfaces::Usart1::init(9600);
-    
+
     uint32_t address_of_lot_getter = reinterpret_cast<uint32_t>(&get_lot_at);
     hal::core::BackupRegisters::init();
     hal::core::BackupRegisters::write(1, address_of_lot_getter >> 16);
     hal::core::BackupRegisters::write(2, address_of_lot_getter);
-    writer << "Address of lot getter: 0x" << hex << address_of_lot_getter << endl; 
+    writer << "Address of lot getter: 0x" << hex << address_of_lot_getter << endl;
 
     std::size_t module_address = 0x08000000;
     module_address += 32 * 1024;
@@ -49,8 +49,8 @@ int main()
         msos::dl::SymbolAddress{"strlen", &strlen}
     };
     writer << "[TEST START]" << endl;
-    
-    const msos::dl::LoadedModule* module = dynamic_linker.load_module(module_address, msos::dl::LoadingModeCopyData, env); 
+
+    const msos::dl::LoadedModule* module = dynamic_linker.load_module(module_address, msos::dl::LoadingModeCopyData, env);
 
     if (module == nullptr)
     {
@@ -62,7 +62,7 @@ int main()
     }
 
 
-    module->execute(); 
+    module->execute();
 
     writer << "[TEST DONE]" << endl;
 

@@ -233,6 +233,7 @@ def generate_module(module_name, elf_filename, objcopy_executable):
     # +---+---+---+---+
     # |  relocations  |
     # |   n-rel - 1   |
+
     # :     n-rel     :
     # +---+---+---+---+
     # |  symbol table |
@@ -291,6 +292,11 @@ def generate_module(module_name, elf_filename, objcopy_executable):
             section = 0
         elif symbols[symbol]["section_index"] == data_section["index"]:
             section = 1
+        elif symbols[symbol]["section_index"] == bss_section["index"]:
+            section = 1
+        else:
+            section = 0
+
         offset_to_next = len(symbol + "\0") + 4 + 2 + 2 + 4
         #image += struct.pack("<IHHI", offset_to_next,  visibility, section,symbol_to_index_map[symbol])
         #image += bytearray(symbol + "\0", "ascii")
@@ -309,14 +315,13 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         relocation_position = relocation_to_image.index(rel)
         sizeof_relocation = 8
         sizeof_symbol_table_size = 4
-        offset_to_symbol = (len(relocation_to_image) - relocation_position) * sizeof_relocation + sizeof_symbol_table_size;
+        offset_to_symbol = (len(relocation_to_image) - relocation_position) * sizeof_relocation + sizeof_symbol_table_size
         print ("offset to sym: ", offset_to_symbol)
         symbol_offset = 0
         for i in range(len(symbol_to_image)):
             if (symbol_to_image[i]["index"] == rel["symbol"]):
                 break
 
-            print("symbol_offset: ", symbol_offset)
             symbol_offset += symbol_to_image[i]["size"]
         offset_to_symbol += symbol_offset
         print ("Adding relocation with index: ", rel["index"], ", and offset to symbol:", hex(offset_to_symbol))
@@ -327,9 +332,13 @@ def generate_module(module_name, elf_filename, objcopy_executable):
     image += struct.pack("<I", len(symbol_to_index_map))
 
     for sym in symbol_to_image:
-        image += struct.pack("<IHHI", sym["size"], sym["visibility"], sym["section"], sym["value"])
+        value = sym["value"]
+        if sym["section"] == 1:
+            value = sym["value"] - len(code_data)
+        print ("Adding symbol: ", sym["name"], ", with size: ", hex(sym["size"]), ", offset: ", hex(value))
+
+        image += struct.pack("<IHHI", sym["size"], sym["visibility"], sym["section"], value)
         image += bytearray(sym["name"], "ascii")
-        print ("Adding symbol: ", sym["name"], ", with size: ", hex(sym["size"]))
 
     if (len(image) % 16):
         image += bytearray('\0' * (16 - (len(image) % 16)), "ascii")

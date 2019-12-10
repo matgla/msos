@@ -67,8 +67,8 @@ void Module::allocate_text()
 
 void Module::allocate_data()
 {
-    writer << "Allocation of data with size: 0x" << hex << module_header_.data_size() << endl;
-    data_ = module_data_.allocate_data(module_header_.data_size());
+    writer << "Allocation of data with size data: 0x" << hex << module_header_.data_size() << ", bss: 0x" << module_header_.bss_size() << endl;
+    data_ = module_data_.allocate_data(module_header_.data_size() + module_header_.bss_size());
 }
 
 } // namespace dl

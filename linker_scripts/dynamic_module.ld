@@ -10,13 +10,13 @@ SECTIONS
         . = ALIGN(4);
         *(.text)
         *(.text*)
-        *(.rodata)
-        *(.rodata*)
         *(.glue_7)
         *(.glue_7t)
         *(.eh_frame)
         KEEP(*(.init))
         KEEP(*(.fini))
+        *(.rodata)
+        *(.rodata*)
         . = ALIGN(4);
     } >image
 
