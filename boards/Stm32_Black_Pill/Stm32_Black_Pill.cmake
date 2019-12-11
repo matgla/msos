@@ -1,3 +1,19 @@
+# This file is part of MSOS project. This is simple OS for embedded development devices.
+# Copyright (C) 2019 Mateusz Stadnik
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 function(get_device_info mcu mcu_family arch vendor)
     message(STATUS "Configuration of board: KeychainGamer")
     set(${mcu} "STM32F103C8T6" PARENT_SCOPE)
@@ -16,7 +32,7 @@ function(add_device_hal_library hal_device_library)
     message(STATUS "Configuring STM32_Black_Pill")
     set(${hal_device_library} "nucleo_f103rb_board_library")
     set(hal_device_library ${hal_device_library} PARENT_SCOPE)
-    add_library(${hal_device_library} OBJECT)
+    add_library(${hal_device_library} STATIC)
 
     target_sources(${hal_device_library} PUBLIC
         ${user_boards_path}/Stm32_Black_Pill/board.hpp
