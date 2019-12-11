@@ -10,7 +10,7 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
@@ -21,6 +21,43 @@ extern "C"
 {
     void usart_write(const char* data);
 }
+
+void print()
+{
+    static uint32_t data[] = {1, 2, 3, 4};
+    usart_write("Local data 1: ");
+    int data_2[] = {5, 6, 7, 8};
+    data[3] = 8;
+    char buf[20];
+    for (auto d : data)
+    {
+        msos::utils::itoa(d, buf);
+        usart_write(buf);
+        usart_write(", ");
+    }
+    usart_write("\n");
+
+    usart_write("Local data 2: ");
+    data[0] = -12;
+    for (auto d : data_2)
+    {
+        msos::utils::itoa(d, buf);
+        usart_write(buf);
+        usart_write(", ");
+    }
+    usart_write("\n");
+
+    usart_write("local_data: 0x");
+    msos::utils::itoa(reinterpret_cast<uint32_t>(&data[0]), buf, 16);
+    usart_write(buf);
+    usart_write("\n");
+
+    usart_write("local_data_2: 0x");
+    msos::utils::itoa(reinterpret_cast<uint32_t>(&data_2[0]), buf, 16);
+    usart_write(buf);
+    usart_write("\n");
+}
+
 
 static int data_arr[] = {1, 2, 3, 4};
 
@@ -93,6 +130,8 @@ int main()
         usart_write(", ");
     }
     usart_write("\n");
+
+    print();
 
 }
 

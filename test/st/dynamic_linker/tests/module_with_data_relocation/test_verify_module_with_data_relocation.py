@@ -10,7 +10,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
@@ -23,7 +23,11 @@ def test_use_module_with_data_relocation():
     sut.start()
     sut.expect("Module started", 1)
     sut.expect("Integer: -12345", 1)
-    sut.expect("Constexpr integer: 21234", 1);
-    sut.expect("Global integer: 177177", 1);
+    sut.expect("Constexpr integer: 21234", 1)
+    sut.expect("Global integer: 177177", 1)
+    sut.expect("Local data 1: 1, 2, 3, 8", 1)
+    sut.expect("Local data 2: 5, 6, 7, 8", 1)
+    sut.expect("Global integer: 19", 1)
+    sut.expect("Global integer ptr: 19", 1)
     sut.stop(1)
 

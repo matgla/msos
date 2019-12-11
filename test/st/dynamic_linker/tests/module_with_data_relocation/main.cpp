@@ -80,5 +80,18 @@ int main()
     usart_write("\n");
 
     print();
+
+    int *ptr = &global_integer;
+
+    *ptr = 19;
+    usart_write(global_text);
+    msos::utils::itoa(global_integer, data_buffer);
+    usart_write(data_buffer);
+    usart_write("\n");
+
+    usart_write("Global integer ptr: ");
+    msos::utils::itoa(*ptr, data_buffer);
+    usart_write(data_buffer);
+    usart_write("\n");
 }
 
