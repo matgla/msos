@@ -43,6 +43,8 @@ def get_symbols(elf_filename):
                 data["size"] = symbol["st_size"]
                 data["section_index"] = symbol["st_shndx"]
                 data["visibility"] = symbol["st_other"]["visibility"]
+                #if data["visibility"] == "STV_HIDDEN" and symbol.name != "main" and data["binding"] == "STB_GLOBAL":
+                #    continue
                 symbols[symbol.name] = data
     return symbols
 
@@ -51,7 +53,9 @@ def get_public_functions_from_symbols(symbols):
     for symbol_key in symbols:
         symbol = symbols[symbol_key]
         if symbol["type"] == "STT_FUNC":
-            if symbol["binding"] == "STB_GLOBAL" or symbol["binding"] == "STB_WEAK":
+            if symbol["visibility"] != "STV_HIDDEN" and (symbol["binding"] == "STB_GLOBAL" or symbol["binding"] == "STB_WEAK"):
+                filtered_symbols[symbol_key] = symbol
+            if symbol_key == "main" and (symbol["binding"] == "STB_GLOBAL" or symbol["binding"] == "STB_WEAK"):
                 filtered_symbols[symbol_key] = symbol
 
     return filtered_symbols
@@ -151,7 +155,7 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         if not name or name == "$t" or name == "$d":
             continue
 
-        if data["binding"] == "STB_GLOBAL":
+        if name == "main" or (data["binding"] == "STB_GLOBAL" and data["visibility"] != "STV_HIDDEN"):
             if data["section_index"] == "SHN_UNDEF":
                 symbol_map[name] = "external"
             else:

@@ -18,6 +18,13 @@
 
 #include <msos/usart_printer.hpp>
 
+ImplementationB::ImplementationB(int value, const std::string_view& name)
+    : value_(value)
+    , name_(name)
+{
+}
+
+
 ImplementationB::~ImplementationB()
 {
     UsartWriter writer;
@@ -34,3 +41,4 @@ int ImplementationB::get_value()
 {
     return value_;
 }
+

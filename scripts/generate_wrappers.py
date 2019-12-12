@@ -10,7 +10,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
@@ -52,9 +52,10 @@ def get_public_functions_from_symbols(symbols):
     for symbol_key in symbols:
         symbol = symbols[symbol_key]
         if symbol["type"] == "STT_FUNC":
-            if symbol["binding"] == "STB_GLOBAL" or symbol["binding"] == "STB_WEAK":
+            if symbol["visibility"] != "STV_HIDDEN" and (symbol["binding"] == "STB_GLOBAL" or symbol["binding"] == "STB_WEAK"):
                 filtered_symbols[symbol_key] = symbol
-
+            if symbol_key == "main" and (symbol["binding"] == "STB_GLOBAL" or symbol["binding"] == "STB_WEAK"):
+                filtered_symbols[symbol_key] = symbol
     return filtered_symbols
 
 def get_relocations(elf_filename):

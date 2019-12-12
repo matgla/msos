@@ -35,3 +35,5 @@ int ImplementationA::get_value()
 {
     return 10;
 }
+
+
