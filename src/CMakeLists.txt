@@ -14,38 +14,27 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-set (target_name "msos")
+add_library(msos STATIC)
 
-add_executable(msos)
+add_subdirectory(dynamic_linker)
+add_subdirectory(syscalls)
+add_subdirectory(utils)
+
+set (library_includes ${PROJECT_SOURCE_DIR}/include/msos)
 
 target_sources(msos
     PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+        ${library_includes}/usart_printer.hpp
 )
-
-add_subdirectory(dynamic_linker)
-add_subdirectory(utils)
 
 target_link_libraries(msos
     PUBLIC
-        # hal
         msos_dynamic_linker
+        msos_syscalls
+        hal
 )
-
-include (GenerateBinary)
-generate_binary(${target_name} ${vendor})
 
 target_include_directories(msos
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
 )
-
-add_subdirectory(modules/example)
-
-set_target_properties(
-    msos
-    PROPERTIES
-        SUFFIX ".elf"
-)
-
-target_compile_options(msos PUBLIC "-g"  "-Og" "-ggdb3")

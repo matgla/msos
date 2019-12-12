@@ -14,54 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "msos/dynamic_linker/loaded_module.hpp"
-
-#include <utility>
+#include <errno.h>
+#include <string.h>
+#include <cstdint>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
 
 extern "C"
 {
-int call_external(uint32_t address);
+    int _gettimeofday(struct timeval* tv, void* tzvp);
+    void _init();
+    void _exit(int code);
+    int _kill(int pid, int sig);
+    int _getpid(int n);
+    caddr_t _sbrk(int incr);
+    int _write(int file, const char* ptr, int len);
+    int _read(int file, char* ptr, int len);
+    int _isatty(int file);
+    int _lseek(int file, int ptr, int dir);
+    int _close(int file);
+    int _fstat(int file, struct stat* st);
 }
-
-namespace msos
-{
-namespace dl
-{
-
-LoadedModule::LoadedModule()
-{
-}
-
-LoadedModule::LoadedModule(const ModuleHeader& header)
-{
-    module_.emplace(header);
-}
-
-const Module& LoadedModule::get_module() const
-{
-    return *module_;
-}
-
-Module& LoadedModule::get_module()
-{
-    return *module_;
-}
-
-void LoadedModule::set_start_address(const std::size_t start_address)
-{
-    start_address_ = start_address;
-}
-
-int LoadedModule::execute(int argc, char *argv[]) const
-{
-    return -1;
-}
-
-int LoadedModule::execute() const
-{
-    return call_external(start_address_);
-}
-
-} // namespace dl
-} // namespace msos
-

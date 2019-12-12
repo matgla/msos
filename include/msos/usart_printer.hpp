@@ -10,17 +10,17 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #pragma once
 
 #include <string_view>
+#include <type_traits>
 #include <cstdint>
-#include <eul/utils/string.hpp>
 
-#include <board.hpp>
+#include <unistd.h>
 
 struct logging_flags
 {
@@ -81,26 +81,23 @@ struct EndlineTag{};
 
 constexpr EndlineTag endl;
 
-template <typename UsartType>
 class UsartWriter
 {
 public:
-    using SelfType = UsartWriter<UsartType>;
-
     template <typename T>
-    SelfType& operator<<(const T& t)
+    UsartWriter& operator<<(const T& t)
     {
         write(t);
         return *this;
     }
 
-    SelfType& operator<<(const EndlineTag)
+    UsartWriter& operator<<(const EndlineTag)
     {
         write("\n");
         return *this;
     }
 
-    SelfType& operator<<(const logging_flags::base base)
+    UsartWriter& operator<<(const logging_flags::base base)
     {
         flags_.set_base(base);
         return *this;
@@ -115,7 +112,7 @@ public:
 
     void write(const std::string_view& str)
     {
-        UsartType::write(str);
+        ::write(0, str.data(), str.length());
     }
 
     template <typename T, typename std::enable_if_t<
@@ -126,8 +123,8 @@ public:
 
         if (data < 0)
         {
-            const char digit[] = {'-', 0};
-            UsartType::write(digit);
+            const char digit[] = {'-'};
+            ::write(0, digit, 1);
             data *= -1;
         }
 
@@ -153,13 +150,14 @@ protected:
         {
             const char digit[2]  = {"0123456789abcdef"[number%base], 0};
 
-            UsartType::write(digit);
+            ::write(0, digit, 1);
+
             number /= base;
         }
         while (zeros_at_end)
         {
             const char digit[2] = {'0', 0};
-            UsartType::write(digit);
+            ::write(0, digit, 1);
             --zeros_at_end;
         }
     }
@@ -219,8 +217,6 @@ protected:
         return zeros_at_end;
     }
 
-
-
     logging_flags flags_;
 };
 
@@ -233,6 +229,3 @@ inline int get_aligned_length(const std::string_view& str)
     }
     return name_length;
 }
-
-extern UsartWriter<board::interfaces::Usart1> writer;
-

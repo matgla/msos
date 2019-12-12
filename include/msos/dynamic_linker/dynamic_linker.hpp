@@ -17,6 +17,7 @@
 #pragma once
 
 #include <string_view>
+#include <cstring>
 #include <optional>
 #include <eul/container/static_vector.hpp>
 
@@ -56,7 +57,7 @@ class DynamicLinker
 public:
     DynamicLinker() : modules_{}
     {
-        writer << "Modules size: " << modules_.size() << endl;
+        writer_ << "Modules size: " << modules_.size() << endl;
     }
 
     void unload_module(const LoadedModule* module)
@@ -73,7 +74,7 @@ public:
     template <typename Environment>
     const LoadedModule* load_module(const uint32_t module_address, const int mode, const Environment& environment)
     {
-        writer << "Loading module from: 0x" << hex << module_address << endl;
+        writer_ << "Loading module from: 0x" << hex << module_address << endl;
         const ModuleHeader& header = *reinterpret_cast<const ModuleHeader*>(module_address);
 
         if (header.cookie() != "MSDL")
@@ -81,29 +82,29 @@ public:
             return nullptr;//;LoadingStatus::ModuleCookieValidationFailed;
         }
 
-        writer << "Module header " << header.name() << ", size: " << dec << header.size() << endl;
+        writer_ << "Module header " << header.name() << ", size: " << dec << header.size() << endl;
         const uint32_t relocation_section_address = module_address + header.size();
-        writer << "Relocations section: 0x" << hex << relocation_section_address << endl;
+        writer_ << "Relocations section: 0x" << hex << relocation_section_address << endl;
         const uint32_t relocation_section_size = get_relocations_size(header, relocation_section_address);
-        writer << "Relocation section size: 0x" << relocation_section_size << endl;
+        writer_ << "Relocation section size: 0x" << relocation_section_size << endl;
         const uint32_t symbol_section_address = relocation_section_address + relocation_section_size;
-        writer << "Symbol section: 0x" << hex << symbol_section_address << endl;
+        writer_ << "Symbol section: 0x" << hex << symbol_section_address << endl;
         const uint32_t symbol_section_size = get_symbols_size(symbol_section_address);
-        writer << "Symbol section size: 0x" << hex << symbol_section_size << endl;
+        writer_ << "Symbol section size: 0x" << hex << symbol_section_size << endl;
 
         const uint32_t not_aligned_code_address = symbol_section_address + symbol_section_size;
-        writer << "Not aligned code address: 0x" << not_aligned_code_address << endl;
+        writer_ << "Not aligned code address: 0x" << not_aligned_code_address << endl;
         const uint32_t code_address = not_aligned_code_address % 16 ? not_aligned_code_address + (16 - (not_aligned_code_address % 16)) : not_aligned_code_address;
-        writer << "Code: 0x" << code_address << endl;
+        writer_ << "Code: 0x" << code_address << endl;
         const uint32_t data_address = code_address + header.code_size();
-        writer << "Data: 0x" << data_address << endl;
+        writer_ << "Data: 0x" << data_address << endl;
         const uint32_t size_of_lot = get_size_of_lot(header, relocation_section_address);
-        writer << "Size of LOT: " << dec << size_of_lot << endl;
+        writer_ << "Size of LOT: " << dec << size_of_lot << endl;
 
         const auto* main = find_symbol(symbol_section_address, "main");
         modules_.emplace_back(header);
         LoadedModule& loaded_module = modules_.back();
-        writer << "Module address: 0x" << hex << reinterpret_cast<const uint32_t>(&modules_.front()) << hex << ", 0x" << reinterpret_cast<const uint32_t>(&modules_.back()) << endl;
+        writer_ << "Module address: 0x" << hex << reinterpret_cast<const uint32_t>(&modules_.front()) << hex << ", 0x" << reinterpret_cast<const uint32_t>(&modules_.back()) << endl;
         Module& module = loaded_module.get_module();
         ModuleData& module_data = module.get_module_data();
 
@@ -118,15 +119,15 @@ public:
         }
 
         module.allocate_data();
-        writer << "Copy data: 0x" << hex << header.data_size() << endl;
+        writer_ << "Copy data: 0x" << hex << header.data_size() << endl;
         const uint8_t* dd = reinterpret_cast<const uint8_t*>(data_address);
         for (int i = 0; i < header.data_size(); ++i)
         {
-            writer << (int)(dd[i]) << ", ";
+            writer_ << (int)(dd[i]) << ", ";
         }
 
-        writer << endl;
-        writer << "Data address: 0x" << hex << reinterpret_cast<uint32_t>(module.get_data().data()) << endl;
+        writer_ << endl;
+        writer_ << "Data address: 0x" << hex << reinterpret_cast<uint32_t>(module.get_data().data()) << endl;
         std::memcpy(module.get_data().data(), reinterpret_cast<const uint8_t*>(data_address), header.data_size());
         std::memset(module.get_data().data() + header.data_size(), 0, header.bss_size());
 
@@ -134,7 +135,7 @@ public:
         {
             const std::size_t main_function_address = reinterpret_cast<uint32_t>(module.get_text().data()) + main->offset() - 1;
 
-            writer << "Main function found at: 0x" << hex << main_function_address << endl;
+            writer_ << "Main function found at: 0x" << hex << main_function_address << endl;
             loaded_module.set_start_address(main_function_address);
         }
 
@@ -164,14 +165,14 @@ public:
     uint32_t get_lot_for_module_at(uint32_t address)
     {
         auto* backm = &modules_.front();
-        writer << "Loading LOT address: 0x" << hex << reinterpret_cast<const uint32_t>(backm) << endl;
+        writer_ << "Loading LOT address: 0x" << hex << reinterpret_cast<const uint32_t>(backm) << endl;
 
         for (const auto& loaded_module : modules_)
         {
-            writer << "Module address: 0x" << hex << reinterpret_cast<const uint32_t>(&loaded_module) << endl;
+            writer_ << "Module address: 0x" << hex << reinterpret_cast<const uint32_t>(&loaded_module) << endl;
             const Module& module = loaded_module.get_module();
             const uint32_t text_address = reinterpret_cast<uint32_t>(module.get_text().data());
-            writer << module.get_header().name() << " -> Address: 0x" << hex << address << ", text: 0x" << text_address << ", size: 0x" << module.get_header().code_size() << endl;
+            writer_ << module.get_header().name() << " -> Address: 0x" << hex << address << ", text: 0x" << text_address << ", size: 0x" << module.get_header().code_size() << endl;
             if (address >= text_address && address < text_address + module.get_header().code_size())
             {
                 return reinterpret_cast<uint32_t>(module.get_lot().get());
@@ -223,27 +224,27 @@ private:
                 {
                     uint32_t relocated = reinterpret_cast<uint32_t>(loaded_module.get_module().get_text().data()) + symbol.offset();
                     lot[i] = relocated;
-                    writer << "Symbol " << symbol.name() << ", relocated in table[0x" << hex << i << "], to 0x" << lot[i] << endl;
+                    writer_ << "Symbol " << symbol.name() << ", relocated in table[0x" << hex << i << "], to 0x" << lot[i] << endl;
                 }
                 if (symbol.section() == Section::data)
                 {
                     uint32_t relocated = reinterpret_cast<uint32_t>(loaded_module.get_module().get_data().data()) + symbol.offset();
                     lot[i] = relocated;
-                    writer << "Symbol " << symbol.name() << ", relocated in table[0x" << hex << i << "], to 0x" << lot[i] << endl;
+                    writer_ << "Symbol " << symbol.name() << ", relocated in table[0x" << hex << i << "], to 0x" << lot[i] << endl;
                 }
             }
             else if (symbol.visibility() == SymbolVisibility::external)
             {
-                writer << "Searching symbol address for: " << symbol.name() << endl;
+                writer_ << "Searching symbol address for: " << symbol.name() << endl;
                 const auto* env_symbol = env.find_symbol(symbol.name());
                 if (env_symbol)
                 {
-                    writer << "Symbol found in env at address 0x" << hex << env_symbol->address();
+                    writer_ << "Symbol found in env at address 0x" << hex << env_symbol->address();
                     lot[i] = env_symbol->address();
                 }
                 else
                 {
-                    writer << "Address for symbol: " << symbol.name() << " not found!" << endl;
+                    writer_ << "Address for symbol: " << symbol.name() << " not found!" << endl;
                     return false;
                 }
             }
@@ -258,7 +259,7 @@ private:
 
         for (int i = 0; i < header.number_of_relocations(); ++i)
         {
-            writer << "Relocation: " << relocation->symbol().name() << ", index: " << dec << relocation->index() << endl;
+            writer_ << "Relocation: " << relocation->symbol().name() << ", index: " << dec << relocation->index() << endl;
             size += relocation->size();
             relocation = &relocation->next();
         }
@@ -274,7 +275,7 @@ private:
 
         for (uint32_t i = 0; i < number_of_symbols; ++i)
         {
-            writer << "symbol : " << symbol->name() << ", v: " << to_string(symbol->visibility()) << ", section: " << to_string(symbol->section()) << "offset: " << symbol->offset() << endl;
+            writer_ << "symbol : " << symbol->name() << ", v: " << to_string(symbol->visibility()) << ", section: " << to_string(symbol->section()) << "offset: " << symbol->offset() << endl;
             size += symbol->size();
             symbol = &symbol->next();
         }
@@ -284,6 +285,7 @@ private:
 
 private:
     eul::container::static_vector<LoadedModule, 10> modules_;
+    UsartWriter writer_;
 };
 
 } // namespace dl

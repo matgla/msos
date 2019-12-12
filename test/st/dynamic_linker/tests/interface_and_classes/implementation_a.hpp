@@ -13,55 +13,15 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#pragma once
 
-#include "msos/dynamic_linker/loaded_module.hpp"
+#include "i_some_interface.hpp"
 
-#include <utility>
-
-extern "C"
+class ImplementationA : public ISomeInterface
 {
-int call_external(uint32_t address);
-}
+public:
+    ~ImplementationA();
 
-namespace msos
-{
-namespace dl
-{
-
-LoadedModule::LoadedModule()
-{
-}
-
-LoadedModule::LoadedModule(const ModuleHeader& header)
-{
-    module_.emplace(header);
-}
-
-const Module& LoadedModule::get_module() const
-{
-    return *module_;
-}
-
-Module& LoadedModule::get_module()
-{
-    return *module_;
-}
-
-void LoadedModule::set_start_address(const std::size_t start_address)
-{
-    start_address_ = start_address;
-}
-
-int LoadedModule::execute(int argc, char *argv[]) const
-{
-    return -1;
-}
-
-int LoadedModule::execute() const
-{
-    return call_external(start_address_);
-}
-
-} // namespace dl
-} // namespace msos
-
+    int get_value() override;
+    void print() override;
+};

@@ -14,24 +14,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import pytest
+add_library(msos_syscalls STATIC)
 
-import utils
+set (library_includes ${PROJECT_SOURCE_DIR}/include/msos/syscalls)
 
-def test_use_module_with_data_relocation():
-    sut = utils.BinaryUnderTest(utils.find_binary("module_with_data"))
-    sut.start()
-    sut.expect("Module started", 1)
-    sut.expect("Integer: -12345", 1)
-    sut.expect("Constexpr integer: 21234", 1)
-    sut.expect("Global integer: 177177", 1)
-    sut.expect("Local data 1: 1, 2, 3, 8", 1)
-    sut.expect("Local data 2: 5, 6, 7, 8", 1)
-    sut.expect("Global integer: 19", 1)
-    sut.expect("Global integer ptr: 19", 1)
-    sut.expect("Extern 1: 123", 1)
-    sut.expect("Extern 2: 234", 1)
-    sut.expect("Extern 1: 234", 1)
-    sut.expect("Extern 2: 234", 1)
-    sut.stop(1)
+target_sources(msos_syscalls
+    PUBLIC
+        ${library_includes}/syscalls.hpp
+
+        ${CMAKE_CURRENT_SOURCE_DIR}/syscalls.cpp
+)
+
+target_include_directories(msos_syscalls
+    PUBLIC
+        ${PROJECT_SOURCE_DIR}/include
+)
+
+target_link_libraries(msos_syscalls
+    PUBLIC
+        hal
+)
 

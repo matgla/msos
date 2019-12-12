@@ -10,11 +10,11 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once 
+#pragma once
 
 #include <cstdint>
 #include <array>
@@ -22,7 +22,7 @@
 
 namespace msos
 {
-namespace dl 
+namespace dl
 {
 
 class SymbolAddress
@@ -36,12 +36,20 @@ public:
 
     }
 
-    const std::string_view name() const 
+    template <typename T>
+    SymbolAddress(const std::string_view& name, const T* data)
+        : name_(name)
+        , address_(reinterpret_cast<uint32_t>(data))
+    {
+
+    }
+
+    const std::string_view name() const
     {
         return name_;
     }
 
-    const uint32_t address() const 
+    const uint32_t address() const
     {
         return address_;
     }
@@ -50,9 +58,9 @@ private:
     const std::string_view name_;
     const uint32_t address_;
 };
- 
+
 template <std::size_t N>
-class Environment 
+class Environment
 {
 public:
     template <typename... Args>
@@ -60,7 +68,7 @@ public:
     {
     }
 
-    const SymbolAddress* find_symbol(const std::string_view& name) const 
+    const SymbolAddress* find_symbol(const std::string_view& name) const
     {
         for (const auto& symbol : data_)
         {
@@ -76,5 +84,5 @@ private:
 };
 
 } // namespace dl
-} // namespace msos 
+} // namespace msos
 

@@ -23,8 +23,7 @@ target_sources(host
 
 target_link_libraries(host
     PUBLIC
-        hal
-        msos_dynamic_linker
+        msos
 )
 
 include (GenerateBinary)

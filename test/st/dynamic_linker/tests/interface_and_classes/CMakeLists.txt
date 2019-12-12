@@ -14,27 +14,36 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(module_with_data_lib OBJECT)
+add_library(interface_and_classes_lib OBJECT)
 
-target_sources(module_with_data_lib
+target_sources(interface_and_classes_lib
     PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/child_implementation_a.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/i_some_interface.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/implementation_a.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/implementation_b.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/process_test.hpp
+
+        ${CMAKE_CURRENT_SOURCE_DIR}/child_implementation_a.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/implementation_a.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/implementation_b.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/extern_data.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/process_test.cpp
 )
 
-target_compile_options(module_with_data_lib
+target_compile_options(interface_and_classes_lib
     PUBLIC
     $<$<CONFIG:DEBUG>:-Og -g>
     $<$<CONFIG:RELEASE>:-Os>
 )
 
-target_link_libraries(module_with_data_lib
+target_link_libraries(interface_and_classes_lib
     PUBLIC
         module_flags
         msos_utils
 )
 
-add_module(module_with_data module_with_data_lib)
+add_module(interface_and_classes interface_and_classes_lib)
 
 include(TestUtils)
-register_system_test_binary(module_with_data)
+register_system_test_binary(interface_and_classes)

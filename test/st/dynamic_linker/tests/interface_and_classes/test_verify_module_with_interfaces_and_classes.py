@@ -14,17 +14,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(example_module_library OBJECT)
+import pytest
 
-target_sources(example_module_library
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-)
+import utils
 
-include(ModuleWrapperGenerator)
+def test_module_with_classes():
+    sut = utils.BinaryUnderTest(utils.find_binary("interface_and_classes"))
+    sut.start()
 
-add_module_flags_target()
-target_link_libraries(example_module_library PUBLIC module_flags)
-
-add_module(example_module example_module_library)
+    sut.stop(1)
 

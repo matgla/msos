@@ -16,82 +16,74 @@
 
 #include <type_traits>
 
+#include <cstdio>
 #include <cstring>
 #include <cstdint>
 
 #include "msos/utils/string.hpp"
-
-extern "C"
-{
-    void usart_write(const char* data);
-}
+#include "msos/usart_printer.hpp"
 
 int global_integer = 177176;
 
+template <typename T, std::size_t N>
+void print_array(const T(&t)[N])
+{
+    UsartWriter writer;
+
+    for (std::size_t i = 0; i < N - 1; ++i)
+    {
+       writer << t[i] << ", ";
+    }
+    writer << t[N - 1] << endl;
+}
+
 void print()
 {
+    UsartWriter writer;
     static uint32_t data[] = {1, 2, 3, 4};
-    usart_write("Local data 1: ");
     int data_2[] = {5, 6, 7, 8};
     data[3] = 8;
-    char buf[20];
-    for (auto d : data)
-    {
-        msos::utils::itoa(d, buf);
-        usart_write(buf);
-        usart_write(", ");
-    }
-    usart_write("\n");
+    writer << "Local data 1: ";
+    print_array(data);
 
-    usart_write("Local data 2: ");
     data[0] = -12;
-    for (auto d : data_2)
-    {
-        msos::utils::itoa(d, buf);
-        usart_write(buf);
-        usart_write(", ");
-    }
-    usart_write("\n");
+
+    writer << "Local data 2: ";
+    print_array(data_2);
 }
+
+extern int extern_1;
+extern int extern_2;
 
 int main()
 {
+    UsartWriter writer;
     global_integer = 177177;
-    static const char* local_string = "Module started\n";
-    usart_write(local_string);
+    static const char* local_string = "Module started";
+    writer << local_string << endl;
 
     int local_int = -123456;
     constexpr int const_int = 21234;
-    char data_buffer[30];
-    msos::utils::itoa(local_int, data_buffer);
-    static const char* integer_text = "Integer: ";
-    usart_write(integer_text);
-    usart_write(data_buffer);
-    usart_write("\n");
-    static const char* constexpr_text = "Constexpr integer: ";
-    usart_write(constexpr_text);
-    msos::utils::itoa(const_int, data_buffer);
-    usart_write(data_buffer);
-    usart_write("\n");
-    static const char* global_text = "Global integer: ";
-    usart_write(global_text);
-    msos::utils::itoa(global_integer, data_buffer);
-    usart_write(data_buffer);
-    usart_write("\n");
+    const char* integer_text = "Integer: ";
+    writer << integer_text << local_int << endl;
+    writer << "Constexpr integer: " << const_int << endl;
+    writer << "Global integer: " << global_integer << endl;
 
     print();
 
     int *ptr = &global_integer;
 
     *ptr = 19;
-    usart_write(global_text);
-    msos::utils::itoa(global_integer, data_buffer);
-    usart_write(data_buffer);
-    usart_write("\n");
+    writer << "Global integer: " << global_integer << endl;
+    writer << "Global integer ptr: " << *ptr << endl;
+    writer << "Extern 1: " << extern_1 << endl;
+    writer << "Extern 2: " << extern_2 << endl;
+    int* p_extern1 = &extern_1;
+    *p_extern1 = extern_2;
 
-    usart_write("Global integer ptr: ");
-    msos::utils::itoa(*ptr, data_buffer);
-    usart_write(data_buffer);
-    usart_write("\n");
+    writer << "Extern 1: " << extern_1 << endl;
+    writer << "Extern 2: " << extern_2 << endl;
+
+
 }
 

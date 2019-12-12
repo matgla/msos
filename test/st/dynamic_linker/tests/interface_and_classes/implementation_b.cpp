@@ -14,54 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "msos/dynamic_linker/loaded_module.hpp"
+#include "implementation_b.hpp"
 
-#include <utility>
+#include <msos/usart_printer.hpp>
 
-extern "C"
+ImplementationB::~ImplementationB()
 {
-int call_external(uint32_t address);
+    UsartWriter writer;
+    writer << "~ImplementationB()" << endl;
 }
 
-namespace msos
+void ImplementationB::print()
 {
-namespace dl
-{
-
-LoadedModule::LoadedModule()
-{
+    UsartWriter writer;
+    writer << name_ << endl;
 }
 
-LoadedModule::LoadedModule(const ModuleHeader& header)
+int ImplementationB::get_value()
 {
-    module_.emplace(header);
+    return value_;
 }
-
-const Module& LoadedModule::get_module() const
-{
-    return *module_;
-}
-
-Module& LoadedModule::get_module()
-{
-    return *module_;
-}
-
-void LoadedModule::set_start_address(const std::size_t start_address)
-{
-    start_address_ = start_address;
-}
-
-int LoadedModule::execute(int argc, char *argv[]) const
-{
-    return -1;
-}
-
-int LoadedModule::execute() const
-{
-    return call_external(start_address_);
-}
-
-} // namespace dl
-} // namespace msos
-

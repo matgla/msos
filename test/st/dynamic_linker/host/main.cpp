@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include <unistd.h>
 #include <board.hpp>
 #include <cstring>
 
@@ -25,6 +26,7 @@
 #include <hal/core/core.hpp>
 
 msos::dl::DynamicLinker dynamic_linker;
+UsartWriter writer;
 
 extern "C"
 {
@@ -43,7 +45,6 @@ uint32_t get_lot_at(uint32_t address)
     return dynamic_linker.get_lot_for_module_at(address);
 }
 
-UsartWriter<board::interfaces::Usart1> writer;
 
 int main()
 {
@@ -59,10 +60,12 @@ int main()
 
     std::size_t module_address = 0x08000000;
     module_address += 32 * 1024;
-
-    msos::dl::Environment<2> env{
+    int extern_data = 123;
+    msos::dl::Environment<4> env{
         msos::dl::SymbolAddress{"usart_write", &usart_write},
-        msos::dl::SymbolAddress{"strlen", &strlen}
+        msos::dl::SymbolAddress{"strlen", &strlen},
+        msos::dl::SymbolAddress{"write", &write},
+        msos::dl::SymbolAddress{"extern_1", &extern_data}
     };
     writer << "[TEST START]" << endl;
 

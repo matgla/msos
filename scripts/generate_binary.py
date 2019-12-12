@@ -10,7 +10,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
@@ -236,7 +236,6 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         offset = relocation[1]
         old = struct.unpack_from("<I", code_data, offset)[0]
         new = relocation_to_index_map[relocation[0]] * 4
-        print ("Patching relocation for ", relocation[0], " from ", hex(old), " to ", hex(new))
         struct.pack_into("<I", code_data, offset, new)
 
     print (Fore.YELLOW + "[INF]" + Style.RESET_ALL + " Creating image of module")
@@ -305,7 +304,6 @@ def generate_module(module_name, elf_filename, objcopy_executable):
     #image += struct.pack("<I", len(symbol_to_index_map))
     symbol_to_image = []
     for symbol in symbol_to_index_map:
-        print (symbol)
         if symbol_map[symbol] == "internal":
             visibility = 0
         elif symbol_map[symbol] == "exported":
@@ -313,7 +311,6 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         elif symbol_map[symbol] == "external":
             visibility = 2
 
-        print ("ss: ", symbols[symbol])
         if symbols[symbol]["section_index"] == code_section["index"]:
             section = 0
         elif symbols[symbol]["section_index"] == data_section["index"]:
@@ -332,7 +329,6 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         sym["size"] = offset_to_next
         sym["name"] = symbol + "\0"
         sym["value"] = symbols[symbol]["value"]
-        print (sym["name"], "value, ", sym["value"])
         sym["index"] = symbol_to_index_map[symbol]
         symbol_to_image.append(sym)
 
@@ -342,7 +338,6 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         sizeof_relocation = 8
         sizeof_symbol_table_size = 4
         offset_to_symbol = (len(relocation_to_image) - relocation_position) * sizeof_relocation + sizeof_symbol_table_size
-        print ("offset to sym: ", offset_to_symbol)
         symbol_offset = 0
         for i in range(len(symbol_to_image)):
             if (symbol_to_image[i]["index"] == rel["symbol"]):
@@ -350,7 +345,6 @@ def generate_module(module_name, elf_filename, objcopy_executable):
 
             symbol_offset += symbol_to_image[i]["size"]
         offset_to_symbol += symbol_offset
-        print ("Adding relocation with index: ", rel["index"], ", and offset to symbol:", hex(offset_to_symbol))
         image += struct.pack("<II", rel["index"], offset_to_symbol)
 
     print ("Adding size of symbol table: ", len(symbol_to_index_map))
@@ -361,7 +355,6 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         value = sym["value"]
         if sym["section"] == 1:
             value = sym["value"] - len(code_data)
-        print ("Adding symbol: ", sym["name"], ", with size: ", hex(sym["size"]), ", offset: ", hex(value))
 
         image += struct.pack("<IHHI", sym["size"], sym["visibility"], sym["section"], value)
         image += bytearray(sym["name"], "ascii")
