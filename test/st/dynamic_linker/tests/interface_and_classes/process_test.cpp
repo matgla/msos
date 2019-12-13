@@ -30,7 +30,7 @@ void test()
 {
     UsartWriter writer;
     ImplementationA a;
-    ImplementationB b(10, "I_AM_B");
+    ImplementationB b(15, "I_AM_B");
     ChildA a_c;
 
     ISomeInterface* i = &a;
@@ -41,6 +41,7 @@ void test()
     writer << "Interface value: " << i->get_value() << endl;
 
     a.print();
+
     b.print();
     a_c.print();
     i->print();

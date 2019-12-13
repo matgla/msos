@@ -14,14 +14,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import pytest
+#!/usr/bin/python3
 
-import utils
+from colorama import Fore, Style, init
 
-def test_module_with_classes():
-    return
-    # sut = utils.BinaryUnderTest(utils.find_binary("interface_and_classes"))
-    # sut.start()
+def print_debug(text):
+    print(text)
 
-    # sut.stop(1)
+def print_error(text):
+    print(Fore.RED + "[ERR] " + text + Style.RESET_ALL)
+
+def print_step(text):
+    print(Fore.YELLOW + "[INF] " + Style.RESET_ALL + text)
 

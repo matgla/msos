@@ -18,7 +18,6 @@
 
 #include <msos/usart_printer.hpp>
 
-
 ChildA::~ChildA()
 {
     UsartWriter writer;
@@ -30,3 +29,4 @@ void ChildA::print()
     UsartWriter writer;
     writer << "ChildA is printing" << endl;
 }
+

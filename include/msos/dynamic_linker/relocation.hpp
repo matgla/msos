@@ -10,11 +10,11 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once 
+#pragma once
 
 #include <cstdint>
 #include <string_view>
@@ -26,12 +26,12 @@ namespace msos
 namespace dl
 {
 
-class Relocation 
+class Relocation
 {
 public:
     const uint32_t index() const;
     const Symbol& symbol() const;
-    constexpr static std::size_t size() 
+    constexpr static std::size_t size()
     {
         return sizeof(uint32_t) * 2;
     }
@@ -41,6 +41,6 @@ private:
     uint32_t symbol_offset_;
 };
 
-} // namespace dl 
-} // namespace msos 
+} // namespace dl
+} // namespace msos
 

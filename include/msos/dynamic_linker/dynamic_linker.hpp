@@ -85,6 +85,8 @@ public:
         writer_ << "Module header " << header.name() << ", size: " << dec << header.size() << endl;
         const uint32_t relocation_section_address = module_address + header.size();
         writer_ << "Relocations section: 0x" << hex << relocation_section_address << endl;
+        writer_ << "Relocation size: " << dec << header.number_of_relocations() << endl;
+        writer_ << "Total relocations size: " << dec << header.total_relocations() << endl;
         const uint32_t relocation_section_size = get_relocations_size(header, relocation_section_address);
         writer_ << "Relocation section size: 0x" << relocation_section_size << endl;
         const uint32_t symbol_section_address = relocation_section_address + relocation_section_size;
@@ -249,6 +251,38 @@ private:
                 }
             }
         }
+
+        for (int i = header.number_of_relocations(); i < header.total_relocations(); ++i)
+        {
+            writer_ << "Dtaa relocc" << endl;
+            const Relocation& relocation = *reinterpret_cast<const Relocation*>(address);
+            address += relocation.size();
+            const Symbol& symbol = relocation.symbol();
+
+            uint32_t *to_relocate = reinterpret_cast<uint32_t*>(reinterpret_cast<uint32_t>(module.get_data().data())) + i;
+            if (symbol.visibility() == SymbolVisibility::internal || symbol.visibility() == SymbolVisibility::exported)
+            {
+                uint32_t relocated = reinterpret_cast<uint32_t>(module.get_data().data()) + symbol.offset();
+                *to_relocate = relocated;
+                writer_ << "Symbol " << symbol.name() << ", relocated in table[0x" << hex << i << "], to 0x" << *to_relocate << endl;
+            }
+            else if (symbol.visibility() == SymbolVisibility::external)
+            {
+                writer_ << "Searching symbol address for: " << symbol.name() << endl;
+                const auto* env_symbol = env.find_symbol(symbol.name());
+                if (env_symbol)
+                {
+                    writer_ << "Symbol found in env at address 0x" << hex << env_symbol->address();
+                    lot[i] = env_symbol->address();
+                }
+                else
+                {
+                    writer_ << "Address for symbol: " << symbol.name() << " not found!" << endl;
+                    return false;
+                }
+            }
+
+        }
         return true;
     }
 
@@ -257,7 +291,7 @@ private:
         uint32_t size = 0;
         const Relocation* relocation = reinterpret_cast<const Relocation*>(address);
 
-        for (int i = 0; i < header.number_of_relocations(); ++i)
+        for (int i = 0; i < header.total_relocations(); ++i)
         {
             writer_ << "Relocation: " << relocation->symbol().name() << ", index: " << dec << relocation->index() << endl;
             size += relocation->size();

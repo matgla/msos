@@ -79,7 +79,7 @@ int main()
         {
         }
     }
-
+    writer << "Module loaded" << endl;
 
     module->execute();
 

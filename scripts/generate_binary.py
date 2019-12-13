@@ -19,6 +19,7 @@
 import os
 import argparse
 import struct
+import sys
 
 from elftools.elf.elffile import ELFFile
 from elftools.elf.sections import SymbolTableSection
@@ -27,26 +28,8 @@ from elftools.elf.descriptions import describe_reloc_type
 from jinja2 import Template, Environment, FileSystemLoader
 from colorama import Fore, Style, init
 
-def get_symbols(elf_filename):
-    symbols = {}
-    with open(elf_filename, "rb") as elf_file:
-        elf = ELFFile(elf_file)
-        for section in elf.iter_sections():
-            if not isinstance(section, SymbolTableSection):
-                continue
-            for symbol in section.iter_symbols():
-                data = {}
-                data["type"] = symbol["st_info"]["type"]
-                data["binding"] = symbol["st_info"]["bind"]
-                data["name"] = symbol["st_name"]
-                data["value"] = symbol["st_value"]
-                data["size"] = symbol["st_size"]
-                data["section_index"] = symbol["st_shndx"]
-                data["visibility"] = symbol["st_other"]["visibility"]
-                #if data["visibility"] == "STV_HIDDEN" and symbol.name != "main" and data["binding"] == "STB_GLOBAL":
-                #    continue
-                symbols[symbol.name] = data
-    return symbols
+from elf_parser import ElfParser
+from printers import print_error, print_debug
 
 def get_public_functions_from_symbols(symbols):
     filtered_symbols = {}
@@ -88,28 +71,6 @@ def get_relocations(elf_filename):
                 relocations.append(relocation_data)
     return relocations
 
-def get_sections(elf_filename):
-    sections = {}
-    with open(elf_filename, "rb") as elf_file:
-        elf = ELFFile(elf_file)
-        for i, section in enumerate(elf.iter_sections()):
-            section_data = {}
-            section_data["name"] = section.name
-            section_data["address"] = section["sh_addr"]
-            section_data["type"] = section["sh_type"]
-            section_data["flags"] = section["sh_flags"]
-            section_data["offset"] = section["sh_offset"]
-            section_data["size"] = section["sh_size"]
-            section_data["link"] = section["sh_link"]
-            section_data["info"] = section["sh_info"]
-            section_data["addralign"] = section["sh_addralign"]
-            section_data["entsize"] = section["sh_entsize"]
-            section_data["data"] = section.data()
-            section_data["index"] = i
-            sections[section.name] = section_data
-
-    return sections
-
 def get_symbol_names(symbols):
     symbol_names = []
     for key in symbols:
@@ -118,34 +79,37 @@ def get_symbol_names(symbols):
 
 import subprocess
 
+def process_section(elf, section_name, position):
+    sections = elf.get_sections()
+    if not section_name in sections:
+        print_error("Trying to process not existing section: " + section_name)
+        print_error("Available sections are: " + str(sections.keys()))
+        sys.exit(-1)
+    section = sections[section_name]
+    if section["address"] != position:
+        print_error(section_name + " must be placed at address " + str(position))
+        sys.exit(-1)
+    return section
+
 def generate_module(module_name, elf_filename, objcopy_executable):
-    sections = get_sections(elf_filename)
-    code_section = sections[".text"]
-    if code_section["address"] != 0:
-        print(Fore.RED + " .text section must be placed at address 0" + Style.RESET_ALL)
+    elf = ElfParser(elf_filename)
+
+    code_section = process_section(elf, ".text", 0)
     code_data = bytearray(code_section["data"])
 
-    data_section = sections[".data"]
-    if data_section["address"] != code_section["address"] + code_section["size"]:
-        print(Fore.RED + " .data (",  hex(data_section["address"]),  ") section must be placed just after .text_section (",
-            hex(code_section["address"] + code_section["size"]) + ")" + Style.RESET_ALL)
-        return
+    data_section = process_section(elf, ".data", code_section["address"] + code_section["size"])
     data_data = data_section["data"]
 
-    bss_section = sections[".bss"]
-    if (bss_section["address"] != data_section["address"] + data_section["size"]):
-        print(Fore.RED + " .bss (", hex(bss_section["address"]), ") section must be placed just after .data(" +
-                hex(data_section["address"] + data_section["size"]) + Style.RESET_ALL)
-        return
+    bss_section = process_section(elf, ".bss", data_section["address"] + data_section["size"])
 
     print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Reading symbols")
-    symbols = get_symbols(elf_filename)
+    symbols = elf.get_symbols()
 
     print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Changing visibility of wrapped symbols")
     for symbol_name in symbols:
         if symbol_name.endswith("_dl_original"):
             subprocess.run([objcopy_executable + " -L " + symbol_name + " " + str(elf_filename)], shell=True)
-    symbols = get_symbols(elf_filename)
+    symbols = elf.get_symbols()
     print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Reading relocations")
     relocations = get_relocations(elf_filename)
 
@@ -221,15 +185,17 @@ def generate_module(module_name, elf_filename, objcopy_executable):
 
     lot_offset = index
     data_relocations = []
+    data_relocation_to_index_map = {}
     for relocation in relocations:
         if relocation["info_type"] == "R_ARM_ABS32":
-            offset = (relocation["offset"] - len(code_data)) / 4
-            data_relocations.append((relocation["symbol_name"], offset + lot_offset))
+            offset = int((relocation["offset"] - len(code_data)) / 4)
             symbol_name = relocation["symbol_name"]
-            if not symbol_name in relocation_to_index_map:
-                total_relocations += 1
+            if not symbol_name in data_relocation_to_index_map:
+                data_relocations.append((relocation["symbol_name"], offset + lot_offset))
                 print ("adding ", symbol_name)
-                relocation_to_index_map[symbol_name] = offset + lot_offset
+                data_relocation_to_index_map[symbol_name] = offset + lot_offset
+                total_relocations += 1
+
 
     print (Fore.YELLOW + "[INF]" + Style.RESET_ALL + "     Data relocations:")
     for relocation in data_relocations:
@@ -290,6 +256,7 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         symbol_name = symbol[0]
         symbol_to_index_map.update({symbol_name: symbol_index})
         symbol_index = symbol_index + 1
+        print("adding symbol with index: ", symbol_index)
 
     processed = []
     relocation_to_image = []
@@ -304,7 +271,15 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         relocation_to_image.append(rel)
         #image += struct.pack("<II", relocation_to_index_map[symbol], symbol_to_index_map[symbol])
         processed.append(symbol)
+    for relocation in data_relocations:
+        symbol, value = relocation
+        print ("processing relocation of: " + symbol)
+        rel = {}
+        rel["index"] = data_relocation_to_index_map[symbol]
+        rel["symbol"] = symbol_to_index_map[symbol]
 
+        relocation_to_image.append(rel)
+        #image += struct.pack("<II", relocation_to_index_map[symbol], symbol_to_index_map[symbol])
     #image += struct.pack("<I", len(symbol_to_index_map))
     symbol_to_image = []
     for symbol in symbol_to_index_map:
@@ -341,15 +316,16 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         relocation_position = relocation_to_image.index(rel)
         sizeof_relocation = 8
         sizeof_symbol_table_size = 4
-        offset_to_symbol = (len(relocation_to_image) - relocation_position) * sizeof_relocation + sizeof_symbol_table_size
+
+        offset_to_symbol_table = (len(relocation_to_image) - relocation_position) * sizeof_relocation + sizeof_symbol_table_size
         symbol_offset = 0
         for i in range(len(symbol_to_image)):
             if (symbol_to_image[i]["index"] == rel["symbol"]):
                 break
 
             symbol_offset += symbol_to_image[i]["size"]
-        offset_to_symbol += symbol_offset
-        image += struct.pack("<II", rel["index"], offset_to_symbol)
+        print(rel["index"])
+        image += struct.pack("<II", rel["index"], offset_to_symbol_table + symbol_offset)
 
     print ("Adding size of symbol table: ", len(symbol_to_index_map))
     print ("Symbol section placed at: ", hex(len(image)));
