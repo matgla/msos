@@ -18,6 +18,6 @@
 
 int main()
 {
-
     test_processor::test();
 }
+

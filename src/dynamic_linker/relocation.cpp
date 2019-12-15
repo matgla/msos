@@ -33,6 +33,11 @@ const Symbol& Relocation::symbol() const
     return reinterpret_cast<const Symbol&>(*ptr);
 }
 
+uint32_t Relocation::offset() const 
+{
+    return symbol_offset_;
+}
+
 const Relocation& Relocation::next() const
 {
     return *(this + 1);

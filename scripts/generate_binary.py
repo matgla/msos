@@ -21,61 +21,10 @@ import argparse
 import struct
 import sys
 
-from elftools.elf.elffile import ELFFile
-from elftools.elf.sections import SymbolTableSection
-from elftools.elf.relocation import RelocationSection
-from elftools.elf.descriptions import describe_reloc_type
-from jinja2 import Template, Environment, FileSystemLoader
 from colorama import Fore, Style, init
 
 from elf_parser import ElfParser
-from printers import print_error, print_debug
-
-def get_public_functions_from_symbols(symbols):
-    filtered_symbols = {}
-    for symbol_key in symbols:
-        symbol = symbols[symbol_key]
-        if symbol["type"] == "STT_FUNC":
-            if symbol["visibility"] != "STV_HIDDEN" and (symbol["binding"] == "STB_GLOBAL" or symbol["binding"] == "STB_WEAK"):
-                filtered_symbols[symbol_key] = symbol
-            if symbol_key == "main" and (symbol["binding"] == "STB_GLOBAL" or symbol["binding"] == "STB_WEAK"):
-                filtered_symbols[symbol_key] = symbol
-
-    return filtered_symbols
-
-def get_relocations(elf_filename):
-    relocations = []
-    with open(elf_filename, "rb") as elf_file:
-        elf = ELFFile(elf_file)
-        for section in elf.iter_sections():
-            if not isinstance(section, RelocationSection):
-                continue
-            symbols = elf.get_section(section["sh_link"])
-            for relocation in section.iter_relocations():
-                if relocation["r_info_sym"] == 0:
-                    continue
-                relocation_data = {}
-                relocation_data["offset"] = relocation["r_offset"]
-                relocation_data["info"] = relocation["r_info"]
-                relocation_data["info_type"] = describe_reloc_type(relocation["r_info_type"], elf)
-                relocation_data["symbol"] = relocation["r_info_sym"]
-                symbol = symbols.get_symbol(relocation_data["symbol"])
-                if symbol["st_name"] == 0:
-                    symbol_section = elf.get_section(symbol["st_shndx"])
-                    relocation_data["symbol_name"] = symbol_section.name
-                else:
-                    relocation_data["symbol_name"] = symbol.name
-
-                relocation_data["symbol_value"] = symbol["st_value"]
-
-                relocations.append(relocation_data)
-    return relocations
-
-def get_symbol_names(symbols):
-    symbol_names = []
-    for key in symbols:
-        symbol_names.append(key)
-    return symbol_names
+from printers import *
 
 import subprocess
 
@@ -91,124 +40,197 @@ def process_section(elf, section_name, position):
         sys.exit(-1)
     return section
 
+def change_visibility_of_wrapped_symbols(symbols, objcopy_executable, elf_filename):
+    ind_4 = "        "
+    for symbol_name in symbols:
+        if symbol_name.endswith("_dl_original"):
+            print_debug(ind_4 + "-> " + symbol_name)
+            subprocess.run([objcopy_executable + " -L " + symbol_name \
+                            + " " + str(elf_filename)], shell=True)
+
+def process_symbols_visiblity(processed, symbols):
+    for name, data in symbols.items():
+        if not name or name == "$t" or name == "$d":
+            continue
+
+        if data["type"] == "STT_FILE":
+                continue
+
+        is_main = name == "main"
+        is_global_and_visible = data["binding"] == "STB_GLOBAL" and data["visibility"] != "STV_HIDDEN"
+        if not name in processed:
+                processed[name] = {"name": name}
+
+        symbol = processed[name]
+        if name == "main" or is_global_and_visible:
+            if data["section_index"] == "SHN_UNDEF":
+                symbol.update({"localization": "external"})
+            else:
+                symbol.update({"localization": "exported"})
+
+        else:
+            symbol.update({"localization": "internal"})
+
+        processed[name].update(symbol)
+    return processed
+
+def print_symbols_with_localization(processed_symbols, localization):
+    print_debug("      " + localization + " symbols:")
+    for name in processed_symbols:
+        if processed_symbols[name]["localization"] == localization:
+            print_debug("                    " + name)
+    print_debug("------------------------------------------------------")
+
+def print_symbols(processed_symbols):
+    print_symbols_with_localization(processed_symbols, "external")
+    print_symbols_with_localization(processed_symbols, "exported")
+    print_symbols_with_localization(processed_symbols, "internal")
+
+def has_relocation(relocations, name):
+    for (relocation, offset, index) in relocations:
+        if name == relocation:
+            return True
+    return False
+
+def extract_relocations(relocations, symbols, processed_symbols):
+    external_relocations = []
+    exported_relocations = []
+    local_relocations = []
+    index = 0
+    for relocation in relocations:
+        offset = relocation["offset"]
+        if relocation["info_type"] == "R_ARM_THM_CALL":
+            continue
+        elif relocation["info_type"] == "R_ARM_GOT_BREL":
+            symbol_visibility = processed_symbols[relocation["symbol_name"]]["localization"]
+            if symbol_visibility == "external":
+                if not has_relocation(external_relocations, relocation["symbol_name"]):
+                    external_relocations.append((relocation["symbol_name"], offset, index))
+                    index += 1
+            elif symbol_visibility == "exported":
+                if not has_relocation(exported_relocations, relocation["symbol_name"]):
+                    exported_relocations.append((relocation["symbol_name"], offset, index))
+                    index += 1
+            elif symbol_visibility == "internal":
+                symbol_value = relocation["symbol_value"]
+                section = relocation["section_index"]
+                local_relocations.append((symbol_value, offset, index, section))
+                index += 1
+        elif relocation["info_type"] == "R_ARM_ABS32":
+            continue
+        else:
+            print (Fore.RED + "Unknown relocation type. Please fix generate_binary.py")
+            raise RuntimeError("Script not working for this binary")
+    return local_relocations, external_relocations, exported_relocations
+
+def extract_data_relocations(relocations, symbols, code_length, lot_offset, relocation_indexes):
+    data_relocations = []
+    index = lot_offset
+    for relocation in relocations:
+        offset = relocation["offset"]
+        if relocation["info_type"] == "R_ARM_THM_CALL":
+            continue
+        elif relocation["info_type"] == "R_ARM_GOT_BREL":
+            continue
+        elif relocation["info_type"] == "R_ARM_ABS32":
+           offset = relocation["offset"]
+           symbol_name = relocation["symbol_name"]
+           if symbol_name in symbols and \
+                (symbols[symbol_name]["type"] == "STT_OBJECT" or \
+                 symbols[symbol_name]["type"] == "STT_FUNC"):
+               if not symbol_name in data_relocations:
+                   offset = int((offset - code_length)/4)
+                   symbol_value = relocation["symbol_value"]
+                   data_relocations.append((symbol_value, offset))
+
+        else:
+            print (Fore.RED + "Unknown relocation type. Please fix generate_binary.py")
+            raise RuntimeError("Script not working for this binary")
+    return data_relocations, relocation_indexes
+
+def print_relocations(local_relocations, exported_relocations, external_relocations, data_relocations):
+    ind_3 = "      "
+    print_debug(ind_3 + "Local relocations:")
+    row = [Fore.BLUE + "name", "symbol value", "relocation offset", "relocation index" + Style.RESET_ALL]
+    print_debug("{: >25} {: >25} {: >25} {: >22}".format(*row))
+    for relocation in local_relocations:
+        row = ["(N/A)", hex(relocation[0]), hex(relocation[1]), hex(relocation[2])]
+        print_debug("{: >20} {: >20} {: >20} {: >20}".format(*row))
+
+    print_debug(ind_3 + "Exported relocations:")
+    row = [Fore.BLUE + "name", "offset", "relocation index" + Style.RESET_ALL]
+    print_debug("{: >25} {: >20} {: >25}".format(*row))
+    for relocation in exported_relocations:
+        row = [relocation[0], hex(relocation[1]), hex(relocation[2])]
+        print_debug("{: >20} {: >20} {: >20}".format(*row))
+
+    print_debug(ind_3 + "External relocations:")
+    row = [Fore.BLUE + "name", "offset", "relocation index" + Style.RESET_ALL]
+    print_debug("{: >25} {: >20} {: >25}".format(*row))
+    for relocation in external_relocations:
+        row = [relocation[0], hex(relocation[1]), hex(relocation[2])]
+        print_debug("{: >20} {: >20} {: >20}".format(*row))
+
+    print_debug(ind_3 + "Data relocations:")
+    row = [Fore.BLUE + "name", "symbol value", "relocation offset" + Style.RESET_ALL]
+    print_debug("{: >25} {: >25} {: >25}".format(*row))
+    for relocation in data_relocations:
+        row = ["(N/A)", hex(relocation[0]), hex(relocation[1])]
+        print_debug("{: >20} {: >20} {: >20}".format(*row))
+
+# def get_lot_relocation_indexes(relocations):
+#    relocation_to_index_map =  {}
+#    index = 0
+#    for relocation in relocations:
+#        symbol_name = relocation[0]
+#        relocation_to_index_map[symbol_name] = index
+#        index += 1
+#    return relocation_to_index_map
+
+def add_indexes_to_symbols(processed_symbols):
+    symbol_index = 0
+    for symbol in processed_symbols:
+        symbol_data = processed_symbols[symbol]
+        symbol_data["index"] = symbol_index
+        processed_symbols[symbol].update(symbol_data)
+        symbol_index = symbol_index + 1
+    return processed_symbols
+
 def generate_module(module_name, elf_filename, objcopy_executable):
     elf = ElfParser(elf_filename)
 
     code_section = process_section(elf, ".text", 0)
     code_data = bytearray(code_section["data"])
 
-    data_section = process_section(elf, ".data", code_section["address"] + code_section["size"])
+    data_section_address = code_section["address"] + code_section["size"]
+    data_section = process_section(elf, ".data", data_section_address)
     data_data = data_section["data"]
 
-    bss_section = process_section(elf, ".bss", data_section["address"] + data_section["size"])
+    bss_section_address = data_section["address"] + data_section["size"]
+    bss_section = process_section(elf, ".bss", bss_section_address)
 
-    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Reading symbols")
+    ind_3 = "      "
+    print_step(ind_3 + "Reading symbols")
     symbols = elf.get_symbols()
 
-    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Changing visibility of wrapped symbols")
-    for symbol_name in symbols:
-        if symbol_name.endswith("_dl_original"):
-            subprocess.run([objcopy_executable + " -L " + symbol_name + " " + str(elf_filename)], shell=True)
+    print_step(ind_3 + "Changing visibility of wrapped symbols")
+
+    change_visibility_of_wrapped_symbols(symbols, objcopy_executable, elf_filename)
     symbols = elf.get_symbols()
-    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Reading relocations")
-    relocations = get_relocations(elf_filename)
 
-    symbol_map = {}
-    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Processing symbols")
-    for name, data in symbols.items():
-        if not name or name == "$t" or name == "$d":
-            continue
+    processed_symbols = {}
+    print_step(ind_3 + "Processing symbols")
+    process_symbols_visiblity(processed_symbols, symbols)
+    print_symbols(processed_symbols)
 
-        if name == "main" or (data["binding"] == "STB_GLOBAL" and data["visibility"] != "STV_HIDDEN"):
-            if data["section_index"] == "SHN_UNDEF":
-                symbol_map[name] = "external"
-            else:
-                symbol_map[name] = "exported"
-        else:
-            if data["type"] == "STT_FILE":
-                continue
-            symbol_map[name] = "internal"
+    print_step(ind_3 + "Processing relocations")
+    relocations = elf.get_relocations()
+    local_relocations, external_relocations, exported_relocations \
+        = extract_relocations(relocations, symbols, processed_symbols)
 
-    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "     External symbols: ")
-    for name in filter(lambda elem: elem[1] == "external", symbol_map.items()):
-        print("                    ", name[0])
-    print("------------------------------------------------------")
+    #relocation_indexes = get_lot_relocation_indexes(local_relocations + external_relocations)
 
-    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "     Exported symbols: ")
-    for name in filter(lambda elem: elem[1] == "exported", symbol_map.items()):
-        print("                    ", name[0])
-    print("------------------------------------------------------")
-
-    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "     Internal symbols: ")
-    for name in filter(lambda elem: elem[1] == "internal", symbol_map.items()):
-        print("                    ", name[0])
-    print("------------------------------------------------------")
-
-    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Processing relocations")
-    local_relocations = []
-    external_relocations = []
-    data_relocation = []
-    for relocation in relocations:
-        offset = relocation["offset"]
-        if relocation["info_type"] == "R_ARM_THM_CALL":
-            continue
-        elif relocation["info_type"] == "R_ARM_REL32":
-            continue
-        elif relocation["info_type"] == "R_ARM_GOT_BREL":
-            symbol_visibility = symbol_map[relocation["symbol_name"]]
-            if symbol_visibility == "external":
-                external_relocations.append((relocation["symbol_name"], offset))
-            elif symbol_visibility == "exported" or symbol_visibility == "internal":
-                local_relocations.append((relocation["symbol_name"], offset))
-        elif relocation["info_type"] != "R_ARM_ABS32":
-           continue
-           # print (Fore.RED + "Unknown relocation type. Please fix generate_binary.py")
-           #  raise RuntimeError("Script not working for this binary")
-    print (Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Local relocations:")
-    for relocation in local_relocations:
-        print ("                      ", relocation[0])
-
-    print (Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      External relocations:")
-    for relocation in external_relocations:
-        print ("                       ", relocation[0])
-
-
-    relocation_to_index_map = {}
-    index = 0
-    total_relocations = 0
-    for relocation in local_relocations + external_relocations:
-        symbol_name = relocation[0]
-        if not symbol_name in relocation_to_index_map:
-            relocation_to_index_map[symbol_name] = index
-            index += 1
-            total_relocations += 1
-
-    lot_offset = index
-    data_relocations = []
-    data_relocation_to_index_map = {}
-    for relocation in relocations:
-        if relocation["info_type"] == "R_ARM_ABS32":
-            offset = int((relocation["offset"] - len(code_data)) / 4)
-            symbol_name = relocation["symbol_name"]
-            if not symbol_name in data_relocation_to_index_map:
-                data_relocations.append((relocation["symbol_name"], offset + lot_offset))
-                print ("adding ", symbol_name)
-                data_relocation_to_index_map[symbol_name] = offset + lot_offset
-                total_relocations += 1
-
-
-    print (Fore.YELLOW + "[INF]" + Style.RESET_ALL + "     Data relocations:")
-    for relocation in data_relocations:
-        print ("                       ", relocation[0])
-
-
-    for relocation in local_relocations + external_relocations:
-        offset = relocation[1]
-        old = struct.unpack_from("<I", code_data, offset)[0]
-        new = relocation_to_index_map[relocation[0]] * 4
-        struct.pack_into("<I", code_data, offset, new)
-
-    print (Fore.YELLOW + "[INF]" + Style.RESET_ALL + " Creating image of module")
+    print_step(ind_3 + "Creating image of module")
 
     # +---+---+---+---+
     # | M | S | D | L |
@@ -226,6 +248,8 @@ def generate_module(module_name, elf_filename, objcopy_executable):
     # |     name      |
     # : aligned to 4  :
     # +---+---+---+---+
+    # | l.rel. size   |
+    # +---+
     # |  relocations  |
     # |   n-rel - 1   |
 
@@ -240,104 +264,258 @@ def generate_module(module_name, elf_filename, objcopy_executable):
     # +---+---+---+---+
     #
 
+    # pack cookie
     image = bytearray("MSDL", "ascii")
+    # pack section size's
     image += struct.pack("<III", len(code_data), len(data_data), len(bss_section["data"]))
-    number_of_lot_relocations = index
-    image += struct.pack("<HH", number_of_lot_relocations, total_relocations)
+
+    #processed_symbols = add_indexes_to_symbols(processed_symbols)
+
+    symbol_index = 0
+
+    external_symbols = {}
+    for symbol in processed_symbols:
+        if processed_symbols[symbol]["localization"] == "external":
+            if symbols[symbol]["section_index"] == code_section["index"]:
+                section = 0
+            elif symbols[symbol]["section_index"] == data_section["index"]:
+                section = 1
+            elif symbols[symbol]["section_index"] == bss_section["index"]:
+                section = 1
+            else:
+                section = 2
+
+            sym = {}
+            sym["index"] = symbol_index
+            symbol_index += 1
+            sym["section"] = section
+            sym["size"] = len(symbol + "\0") + 2 + 2 + 4
+            sym["value"] = symbols[symbol]["value"]
+            external_symbols.update({symbol: sym})
+
+    exported_symbols  = {}
+    for symbol in processed_symbols:
+        if processed_symbols[symbol]["localization"] == "exported":
+            if symbols[symbol]["section_index"] == code_section["index"]:
+                section = 0
+            elif symbols[symbol]["section_index"] == data_section["index"]:
+                section = 1
+            elif symbols[symbol]["section_index"] == bss_section["index"]:
+                section = 1
+            else:
+                section = 2
+
+            sym = {}
+            sym["index"] = symbol_index
+            symbol_index += 1
+            sym["section"] = section
+            sym["size"] = len(symbol + "\0") + 2 + 2 + 4
+            sym["value"] = symbols[symbol]["value"]
+            exported_symbols.update({symbol: sym})
+
+    number_of_lot_relocations = len(local_relocations) \
+        + len(exported_relocations) + len(external_relocations)
+
+    data_relocations, data_relocation_indexes = extract_data_relocations(\
+        relocations, symbols, len(code_data), \
+        number_of_lot_relocations, {})
+    print_relocations(local_relocations, exported_relocations, external_relocations, data_relocations)
+    print_step(ind_3 + "Patch offsets")
+    for relocation in local_relocations + external_relocations + exported_relocations:
+        offset = relocation[1]
+        old = struct.unpack_from("<I", code_data, offset)[0]
+        new = relocation[2] * 4
+        print ("patching: ", relocation[0], "(", hex(offset), ")", " from: ", hex(old), ", to: ", hex(new))
+        struct.pack_into("<I", code_data, offset, new)
+
+    index = number_of_lot_relocations
+
+    local_relocations_to_image = []
+    for relocation in local_relocations:
+        symbol_value, offset, index, section = relocation
+        rel = {}
+        rel["lot_index"] = index
+        rel["symbol_value"] = symbol_value
+        rel["section"] = section
+        local_relocations_to_image.append(rel)
+
+    processed = []
+    external_relocations_to_image = []
+    for relocation in  external_relocations:
+        symbol, value, index = relocation
+        if symbol in processed:
+            continue
+        rel = {}
+        rel["lot_index"] = index
+        rel["symbol_index"] = external_symbols[symbol]["index"]
+        rel["symbol_name"] = symbol
+        external_relocations_to_image.append(rel)
+        processed.append(symbol)
+
+    processed = []
+    exported_relocations_to_image = []
+    for relocation in exported_relocations:
+        symbol, value, index = relocation
+        if symbol in processed:
+            continue
+        rel = {}
+        rel["lot_index"] = index
+        rel["symbol_index"] = exported_symbols[symbol]["index"]
+        exported_relocations_to_image.append(rel)
+        processed.append(symbol)
+
+    data_relocations_to_image = []
+    for relocation in data_relocations:
+        symbol_value, offset = relocation
+        rel = {}
+        rel["offset"] = offset
+        rel["symbol"] = symbol_value
+
+        data_relocations_to_image.append(rel)
+
+   # processed = []
+   # for relocation in data_relocations:
+   #     #for offset in data_relocations[relocation]:
+   #     rel = {}
+   #     rel["index"] = index
+   #     index += 1
+   #     rel["symbol"] = processed_symbols[relocation]["index"]
+   #     rel["offset"] = offset
+   #     print(relocation," ",  rel)
+   #     relocation_to_image.append(rel)
+
+    total_relocations = len(data_relocations_to_image) \
+        + len(local_relocations_to_image) + len(external_relocations_to_image) \
+        + len(exported_relocations_to_image)
+
+    # pack number of relocations
+    image += struct.pack("<HHHH", len(exported_relocations_to_image), \
+                         len(external_relocations_to_image), \
+        len(local_relocations_to_image), len(data_relocations_to_image))
+
+    print("Symbols size: ", len(external_symbols), len(exported_symbols))
+    image += struct.pack("<HH", len(external_symbols), len(exported_symbols))
+
+    # pack image name
     name = bytearray(module_name + "\0", "ascii")
     image += name
     name_length = len(module_name) + 1
     if (name_length % 4):
         image += bytearray("\0" * (4 - (name_length % 4)), "ascii")
 
-    symbol_to_index_map = {}
-    symbol_index = 0
-    for symbol in filter(lambda elem: elem[0] in relocation_to_index_map or elem[1] == "external" or elem[1] == "exported", symbol_map.items()):
-        symbol_name = symbol[0]
-        symbol_to_index_map.update({symbol_name: symbol_index})
-        symbol_index = symbol_index + 1
-        print("adding symbol with index: ", symbol_index)
-
-    processed = []
-    relocation_to_image = []
-    for relocation in local_relocations + external_relocations:
-        symbol, value = relocation
-        if symbol in processed:
-            continue
-        rel = {}
-        rel["index"] = relocation_to_index_map[symbol]
-        rel["symbol"] = symbol_to_index_map[symbol]
-
-        relocation_to_image.append(rel)
-        #image += struct.pack("<II", relocation_to_index_map[symbol], symbol_to_index_map[symbol])
-        processed.append(symbol)
-    for relocation in data_relocations:
-        symbol, value = relocation
-        print ("processing relocation of: " + symbol)
-        rel = {}
-        rel["index"] = data_relocation_to_index_map[symbol]
-        rel["symbol"] = symbol_to_index_map[symbol]
-
-        relocation_to_image.append(rel)
-        #image += struct.pack("<II", relocation_to_index_map[symbol], symbol_to_index_map[symbol])
-    #image += struct.pack("<I", len(symbol_to_index_map))
     symbol_to_image = []
-    for symbol in symbol_to_index_map:
-        if symbol_map[symbol] == "internal":
-            visibility = 0
-        elif symbol_map[symbol] == "exported":
-            visibility = 1
-        elif symbol_map[symbol] == "external":
-            visibility = 2
 
-        if symbols[symbol]["section_index"] == code_section["index"]:
+    print_step("Relocation table placed at: " + hex(len(image)))
+    row = ["symbol", "index", "offset_to_symbol"]
+    print_step("External relocations")
+    print_step("{: >50} {: >10} {: >10}".format(*row))
+    relocation_position = 0
+
+    for rel in exported_relocations_to_image:
+        sizeof_relocation = 8
+
+        offset_to_symbol_table = (total_relocations - relocation_position) * sizeof_relocation
+        symbol_name = rel["symbol_name"]
+        symbol_offset = 0
+        for symbol in exported_symbols:
+            if symbol == symbol_name:
+                break
+            symbol_offset += exported_symbols[symbol]["size"]
+        offset_to_symbol = offset_to_symbol_table + symbol_offset
+        row = [symbol_name, rel["lot_index"], offset_to_symbol]
+        print_step("{: >50} {: >10} {: >10}".format(*row))
+        image += struct.pack("<II", rel["lot_index"], offset_to_symbol)
+        relocation_position += 1
+
+    exported_symbols_size = 0
+    for symbol in exported_symbols:
+        exported_symbols_size += exported_symbols[symbol]["size"]
+
+    row = ["symbol", "index", "offset_to_symbol"]
+    print_step("Exported relocations")
+    print_step("{: >50} {: >10} {: >10}".format(*row))
+
+    for rel in external_relocations_to_image:
+        sizeof_relocation = 8
+
+        offset_to_symbol_table = (total_relocations - relocation_position) * sizeof_relocation
+        symbol_name = rel["symbol_name"]
+        symbol_offset = exported_symbols_size
+        for symbol in external_symbols:
+            if symbol == symbol_name:
+                break
+            symbol_offset += external_symbols[symbol]["size"]
+        offset_to_symbol = offset_to_symbol_table + symbol_offset
+        row = [symbol_name, rel["lot_index"], hex(offset_to_symbol)]
+        print_step("{: >50} {: >10} {: >10}".format(*row))
+        image += struct.pack("<II", rel["lot_index"], offset_to_symbol)
+        relocation_position += 1
+
+    row = ["index", "offset_to_symbol"]
+    print_step("Local relocations")
+    print_step("{: >10} {: >10}".format(*row))
+
+    for rel in local_relocations_to_image:
+        row = [rel["lot_index"], hex(rel["symbol_value"])]
+        print_step("{: >10} {: >10}".format(*row))
+        if rel["section"] == code_section["index"]:
             section = 0
-        elif symbols[symbol]["section_index"] == data_section["index"]:
-            section = 1
-        elif symbols[symbol]["section_index"] == bss_section["index"]:
+        elif rel["section"] == data_section["index"] or rel["section"] == bss_section["index"]:
             section = 1
         else:
-            section = 0
+            raise "Unsupported section for local relocation"
 
-        offset_to_next = len(symbol + "\0") + 4 + 2 + 2 + 4
-        #image += struct.pack("<IHHI", offset_to_next,  visibility, section,symbol_to_index_map[symbol])
-        #image += bytearray(symbol + "\0", "ascii")
-        sym = {}
-        sym["visibility"] = visibility
-        sym["section"] = section
-        sym["size"] = offset_to_next
-        sym["name"] = symbol + "\0"
-        sym["value"] = symbols[symbol]["value"]
-        sym["index"] = symbol_to_index_map[symbol]
-        symbol_to_image.append(sym)
+        lot_index_and_section = (rel["lot_index"] << 1) & section
+        image += struct.pack("<II", lot_index_and_section, rel["symbol_value"])
+    row = ["offset", "offset_to_symbol"]
+    print_step("Data relocations")
+    print_step("{: >10} {: >10}".format(*row))
 
-    print ("Relocation table placed at: ", hex(len(image)))
-    for rel in relocation_to_image:
-        relocation_position = relocation_to_image.index(rel)
-        sizeof_relocation = 8
-        sizeof_symbol_table_size = 4
+    for rel in data_relocations_to_image:
+        row = [hex(rel["offset"]), hex(rel["symbol"])]
+        print_step("{: >10} {: >10}".format(*row))
+        image += struct.pack("<II", rel["offset"], rel["symbol"])
 
-        offset_to_symbol_table = (len(relocation_to_image) - relocation_position) * sizeof_relocation + sizeof_symbol_table_size
-        symbol_offset = 0
-        for i in range(len(symbol_to_image)):
-            if (symbol_to_image[i]["index"] == rel["symbol"]):
-                break
+    print_step("Symbol section placed at: " + hex(len(image)));
 
-            symbol_offset += symbol_to_image[i]["size"]
-        print(rel["index"])
-        image += struct.pack("<II", rel["index"], offset_to_symbol_table + symbol_offset)
+    print_step("Symbol Table:")
+    row = ["name", "size", "visibility", "section", "value"]
+    print_step("{: >50} {: >10} {: >10} {: >10} {: >15}".format(*row))
 
-    print ("Adding size of symbol table: ", len(symbol_to_index_map))
-    print ("Symbol section placed at: ", hex(len(image)));
-    image += struct.pack("<I", len(symbol_to_index_map))
 
-    for sym in symbol_to_image:
-        value = sym["value"]
-        if sym["section"] == 1:
-            value = sym["value"] - len(code_data)
+    i = 0
+    # for sym in symbol_to_image:
+    #     value = sym["value"]
+    #     if sym["section"] == 1:
+    #         print(sym["name"], " --- offset ")
+    #         value = sym["value"] - len(code_data)
 
-        image += struct.pack("<IHHI", sym["size"], sym["visibility"], sym["section"], value)
-        image += bytearray(sym["name"], "ascii")
+    #     image += struct.pack("<IHHI", sym["size"], sym["visibility"], sym["section"], value)
+    #     image += bytearray(sym["name"], "ascii")
+    #     row = [sym["name"], sym["size"], sym["visibility"], sym["section"], value]
+    #     print_step(str(i) + "{: >45} {: >10} {: >10} {: >10} {: >15}".format(*row))
+    #     i += 1
+
+    for sym in exported_symbols:
+        symbol = exported_symbols[sym]
+        value = symbol["value"]
+        if symbol["section"] == 1:
+            print_debug("This is data relocation, calculating offset")
+            value -= len(code_data)
+
+        image += struct.pack("<HHI", symbol["size"], symbol["section"], value)
+        image += bytearray(sym + "\0", "ascii")
+
+
+    for sym in external_symbols:
+        symbol = external_symbols[sym]
+        value = symbol["value"]
+        if symbol["section"] == 1:
+            print_debug("This is data relocation, calculating offset")
+            value -= len(code_data)
+
+        image += struct.pack("<HHI", symbol["size"], symbol["section"], value)
+        image += bytearray(sym + "\0", "ascii")
 
     if (len(image) % 16):
         image += bytearray('\0' * (16 - (len(image) % 16)), "ascii")
@@ -355,25 +533,37 @@ parser.add_argument("--module_name", dest="module_name", action="store", help="M
 parser.add_argument("-i", "--elf_filename", dest="elf_filename", action="store", help="Path to module ELF file")
 parser.add_argument("--objcopy", dest="objcopy_executable", action="store", help="Path to objcopy executable")
 parser.add_argument("--as_executable", dest="as_executable", action="store_true", help="Generate module as executable")
+parser.add_argument("-v", "--verbose", dest="enable_debugs", action="store_true", help="Additional logs")
+parser.add_argument("--disable_logs", dest="disable_logs", action="store_true", help="Disable logs")
 args, rest = parser.parse_known_args()
 
-from pathlib import Path
+def configure_logs(args):
+    if args.enable_debugs == True:
+        enable_debugs()
+
+    if args.disable_logs == True:
+        disable_prints()
+
+def display_header():
+    print_menu("==========================================")
+    print_menu("=            MODULE_GENERATOR            =")
+    print_menu("==========================================")
+
+def verify_arguments():
+    if not args.elf_filename:
+        print_error("Please provide module ELF file (--elf_filename=<path_to_elf_file>)")
+        sys.exit(-1)
 
 def main():
     init()
+    configure_logs(args)
+    display_header()
 
-    symbols_to_generate = []
+    print_step("STEP 1. Initialization")
+    verify_arguments()
 
-    print(Fore.CYAN + "==========================================")
-    print(Fore.CYAN + "=            MODULE_GENERATOR            =")
-    print(Fore.CYAN + "==========================================")
-    print(Style.RESET_ALL)
-
-    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + " STEP 1. Initialization")
-    if not args.elf_filename:
-        print(Fore.RED + "[ERR] Please provide module ELF file (--elf_filename=<path_to_elf_file>)" + Style.RESET_ALL)
-        return
-    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + " STEP 2. Generating module: ", args.module_name, ", ELF: ", args.elf_filename)
+    print_step("STEP 2. Generating module: " + args.module_name + ", ELF: " + args.elf_filename)
 
     generate_module(args.module_name, args.elf_filename, args.objcopy_executable)
+
 main()

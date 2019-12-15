@@ -22,13 +22,14 @@
 ImplementationA::~ImplementationA()
 {
     UsartWriter writer;
-    writer << "~ImplementationA()" << endl;
+//    writer << "~ImplementationA()" << endl;
 }
 
 void ImplementationA::print()
 {
     UsartWriter writer;
-    writer << "ImplementationA is printing" << endl;
+    const char* data = "ImplementationA is printing";
+    writer << data << endl;
 }
 
 int ImplementationA::get_value()

@@ -14,16 +14,28 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#!/usr/bin/python3
-
 from colorama import Fore, Style, init
 
+enable_debugs = False
+enable_logs = True
+
 def print_debug(text):
-    print(text)
+    if enable_debugs:
+        print(Fore.BLUE + "[DBG] " + Style.RESET_ALL + text)
 
 def print_error(text):
     print(Fore.RED + "[ERR] " + text + Style.RESET_ALL)
 
 def print_step(text):
-    print(Fore.YELLOW + "[INF] " + Style.RESET_ALL + text)
+    if enable_logs:
+        print(Fore.YELLOW + "[INF] " + Style.RESET_ALL + text)
 
+def print_menu(text):
+    if enable_logs:
+        print(Fore.CYAN + text + Style.RESET_ALL)
+
+def enable_debugs():
+    enable_debugs = True
+
+def disable_prints():
+    enable_logs = False

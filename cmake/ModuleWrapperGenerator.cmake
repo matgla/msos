@@ -72,7 +72,7 @@ function (add_module module_name module_library)
             module_flags
     )
     add_dependencies(${module_name} ${module_name}_wrapper)
-
+    add_dependencies(module_flags ${PROJECT_SOURCE_DIR}/scripts/generate_binary.py)
     add_custom_command(
         TARGET ${module_name}
         POST_BUILD
@@ -80,7 +80,7 @@ function (add_module module_name module_library)
         generate_wrapper_code --elf_filename=$<TARGET_FILE:${module_name}> --module_name=${module_name}
         --objcopy=${CMAKE_OBJCOPY} --as_executable
         COMMAND cmake -E touch ${CMAKE_CURRENT_BINARY_DIR}/${module_name}_generate_bin.stamp
-        DEPENDS
+        DEPENDS ${PROJECT_SOURCE_DIR}/scripts/generate_binary.py
         VERBATIM
     )
 

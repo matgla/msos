@@ -47,11 +47,6 @@ const uint32_t Symbol::size() const
     return size_;
 }
 
-const SymbolVisibility Symbol::visibility() const
-{
-    return visibility_;
-}
-
 const Section Symbol::section() const
 {
     return section_;
@@ -59,7 +54,7 @@ const Section Symbol::section() const
 
 const std::string_view Symbol::name() const
 {
-    return std::string_view(reinterpret_cast<const char*>(this) + sizeof(uint32_t) * 2 + sizeof(SymbolVisibility) + sizeof(Section));
+    return std::string_view(reinterpret_cast<const char*>(this) + sizeof(Symbol));
 }
 
 const Symbol& Symbol::next() const

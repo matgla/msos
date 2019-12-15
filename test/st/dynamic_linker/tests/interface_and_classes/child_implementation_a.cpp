@@ -21,7 +21,7 @@
 ChildA::~ChildA()
 {
     UsartWriter writer;
-    writer << "~ChildA()" << endl;
+//    writer << "~ChildA()" << endl;
 }
 
 void ChildA::print()

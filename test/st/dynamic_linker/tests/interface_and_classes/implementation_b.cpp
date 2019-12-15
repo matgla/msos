@@ -27,14 +27,15 @@ ImplementationB::ImplementationB(int value, const std::string_view& name)
 
 ImplementationB::~ImplementationB()
 {
-    UsartWriter writer;
-    writer << "~ImplementationB()" << endl;
+//    UsartWriter writer;
+//    writer << "~ImplementationB()" << endl;
 }
 
 void ImplementationB::print()
 {
     UsartWriter writer;
-    writer << name_ << endl;
+    static const char* name = "I am working! ";
+    writer << name << name_ << endl;
 }
 
 int ImplementationB::get_value()

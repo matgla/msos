@@ -31,8 +31,13 @@ public:
     const uint32_t code_size() const;
     const uint32_t data_size() const;
     const uint32_t bss_size() const;
-    const uint16_t number_of_relocations() const;
-    const uint16_t total_relocations() const;
+    const uint16_t number_of_exported_relocations() const;
+    const uint16_t number_of_external_relocations() const;
+    const uint16_t number_of_local_relocations() const;
+    const uint16_t number_of_data_relocations() const;
+    const uint32_t number_of_relocations() const;
+    const uint16_t number_of_exported_symbols() const;
+    const uint16_t number_of_external_symbols() const;
     const std::string_view name() const;
     const uint32_t size() const;
 private:
@@ -40,8 +45,12 @@ private:
     uint32_t code_size_;
     uint32_t data_size_;
     uint32_t bss_size_;
-    uint16_t number_of_relocations_;
-    uint16_t total_relocations_;
+    uint16_t number_of_exported_relocations_;
+    uint16_t number_of_external_relocations_;
+    uint16_t number_of_local_relocations_;
+    uint16_t number_of_data_relocations_;
+    uint16_t number_of_external_symbols_;
+    uint16_t number_of_exported_symbols_;
 };
 
 } // namespace dl

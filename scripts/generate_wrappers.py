@@ -56,6 +56,8 @@ def get_public_functions_from_symbols(symbols):
                 filtered_symbols[symbol_key] = symbol
             if symbol_key == "main" and (symbol["binding"] == "STB_GLOBAL" or symbol["binding"] == "STB_WEAK"):
                 filtered_symbols[symbol_key] = symbol
+        if symbol_key.endswith("_dl_original"):
+            filtered_symbols[symbol_key] = symbol
     return filtered_symbols
 
 def get_relocations(elf_filename):
@@ -118,6 +120,7 @@ import subprocess
 def wrap_symbols(symbol_names, filename, objcopy_executable):
     symbols_to_generate = {}
     for symbol in symbol_names:
+        print ("Processing: ", symbol)
         symbol_name = symbol
 
         if (symbol_name.endswith("_dl_original")):

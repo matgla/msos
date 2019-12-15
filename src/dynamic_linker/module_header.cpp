@@ -43,14 +43,40 @@ const uint32_t ModuleHeader::bss_size() const
     return bss_size_;
 }
 
-const uint16_t ModuleHeader::number_of_relocations() const
+const uint16_t ModuleHeader::number_of_exported_relocations() const
 {
-    return number_of_relocations_;
+    return number_of_exported_relocations_;
 }
 
-const uint16_t ModuleHeader::total_relocations() const
+const uint16_t ModuleHeader::number_of_external_relocations() const
 {
-    return total_relocations_;
+    return number_of_external_relocations_;
+}
+
+const uint16_t ModuleHeader::number_of_local_relocations() const
+{
+    return number_of_local_relocations_;
+}
+
+const uint16_t ModuleHeader::number_of_data_relocations() const
+{
+    return number_of_data_relocations_;
+}
+
+const uint32_t ModuleHeader::number_of_relocations() const 
+{
+    return number_of_exported_relocations_ + number_of_external_relocations_ +
+        number_of_local_relocations_ + number_of_data_relocations_;
+}
+
+const uint16_t ModuleHeader::number_of_exported_symbols() const 
+{
+    return number_of_exported_symbols_;
+}
+
+const uint16_t ModuleHeader::number_of_external_symbols() const 
+{
+    return number_of_external_symbols_;
 }
 
 const std::string_view ModuleHeader::name() const

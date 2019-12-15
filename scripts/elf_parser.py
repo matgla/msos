@@ -14,8 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#!/usr/bin/python3
-
 from elftools.elf.elffile import ELFFile
 from elftools.elf.sections import SymbolTableSection
 from elftools.elf.relocation import RelocationSection
@@ -65,3 +63,53 @@ class ElfParser:
                 sections[section.name] = section_data
 
         return sections
+
+    def get_relocations(self):
+        relocations = []
+        with open(self.filename, "rb") as elf_file:
+            elf = ELFFile(elf_file)
+            for section in elf.iter_sections():
+                if not isinstance(section, RelocationSection):
+                    continue
+                symbols = elf.get_section(section["sh_link"])
+                for relocation in section.iter_relocations():
+                    if relocation["r_info_sym"] == 0:
+                        continue
+                    relocation_data = {}
+                    relocation_data["offset"] = relocation["r_offset"]
+                    relocation_data["info"] = relocation["r_info"]
+                    relocation_data["info_type"] = describe_reloc_type(relocation["r_info_type"], elf)
+                    relocation_data["symbol"] = relocation["r_info_sym"]
+                    symbol = symbols.get_symbol(relocation_data["symbol"])
+                    if symbol["st_name"] == 0:
+                        symbol_section = elf.get_section(symbol["st_shndx"])
+                        relocation_data["symbol_name"] = symbol_section.name
+                    else:
+                        relocation_data["symbol_name"] = symbol.name
+
+                    relocation_data["symbol_value"] = symbol["st_value"]
+                    relocation_data["section_index"] = symbol["st_shndx"]
+                    relocations.append(relocation_data)
+        return relocations
+
+    def get_public_functions(self):
+        symbols = get_symbols(self)
+        filtered_symbols = {}
+        for symbol_key in symbols:
+            symbol = symbols[symbol_key]
+            if symbol["type"] == "STT_FUNC":
+                if symbol["visibility"] != "STV_HIDDEN" and (symbol["binding"] == "STB_GLOBAL" or symbol["binding"] == "STB_WEAK"):
+                    filtered_symbols[symbol_key] = symbol
+                if symbol_key == "main" and (symbol["binding"] == "STB_GLOBAL" or symbol["binding"] == "STB_WEAK"):
+                    filtered_symbols[symbol_key] = symbol
+
+        return filtered_symbols
+
+    def get_symbol_names(self):
+        symbols = get_symbols(self)
+        symbol_names = []
+        for key in symbols:
+            symbol_names.append(key)
+        return symbol_names
+
+

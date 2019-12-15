@@ -52,6 +52,7 @@ void print()
     print_array(data_2);
 }
 
+
 extern int extern_1;
 extern int extern_2;
 
@@ -81,9 +82,8 @@ int main()
     int* p_extern1 = &extern_1;
     *p_extern1 = extern_2;
 
+
     writer << "Extern 1: " << extern_1 << endl;
     writer << "Extern 2: " << extern_2 << endl;
-
-
 }
 
