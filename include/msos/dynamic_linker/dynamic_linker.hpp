@@ -88,7 +88,7 @@ public:
         writer_ << "Exported relocations: " << dec << header.number_of_exported_relocations() << endl;
         writer_ << "External relocations: " << dec << header.number_of_external_relocations() << endl;
         writer_ << "Local relocations: " << dec << header.number_of_local_relocations() << endl;
-        writer_ << "Data relocations: " << dec << header.number_of_data_relocations() << endl; 
+        writer_ << "Data relocations: " << dec << header.number_of_data_relocations() << endl;
         writer_ << "External symbols: " << dec << header.number_of_external_symbols() << endl;
         writer_ << "Exported symbols: " << dec << header.number_of_exported_symbols() << endl;
         const uint32_t relocation_section_size = get_relocations_size(header, relocation_section_address);
@@ -149,15 +149,21 @@ public:
             writer_ << "Main function found at: 0x" << hex << main_function_address << endl;
             loaded_module.set_start_address(main_function_address);
         }
-        
+
         if (!allocate_lot(loaded_module)) return nullptr;
         if (!process_exported_relocations(relocation_section_address, loaded_module)) return nullptr;
-        
+
         const uint32_t external_relocations_address = relocation_section_address + header.number_of_exported_relocations() * sizeof(Relocation);
         if (!process_external_relocations(external_relocations_address, environment, loaded_module)) return nullptr;
-        
-        const uint32_t local_relocations_address = external_relocations_address + sizeof(Relocation) * header.number_of_external_relocations(); 
+
+        const uint32_t local_relocations_address = external_relocations_address + sizeof(Relocation) * header.number_of_external_relocations();
         if (!process_local_relocations(local_relocations_address, loaded_module))
+        {
+            return nullptr;
+        }
+
+        const uint32_t data_relocations_address = local_relocations_address + sizeof(Relocation) * header.number_of_local_relocations();
+        if (!process_data_relocations(local_relocations_address, loaded_module))
         {
             return nullptr;
         }
@@ -210,7 +216,7 @@ private:
     {
         return header.number_of_external_symbols() + header.number_of_local_relocations();
     }
-   
+
     bool allocate_lot(LoadedModule& loaded_module)
     {
         Module& module = loaded_module.get_module();
@@ -225,7 +231,7 @@ private:
         Module& module = loaded_module.get_module();
         const ModuleHeader& header = module.get_header();
         auto& lot = module.get_lot();
-        
+
         for (int i = 0; i < header.number_of_exported_relocations(); ++i)
         {
             const Relocation& relocation = *reinterpret_cast<const Relocation*>(exported_relocations_address);
@@ -247,14 +253,13 @@ private:
                 writer_ << "Symbol: " << symbol.name() << " relocated in lot["
                     << dec << relocation.index() << "] to 0x" << hex << relocated << endl;
             }
-            else 
+            else
             {
                 writer_ << "Wrong section code" << endl;
                 return false;
             }
         }
         return true;
- 
     }
 
     bool process_local_relocations(uint32_t local_relocations_address, LoadedModule& loaded_module)
@@ -262,39 +267,36 @@ private:
         Module& module = loaded_module.get_module();
         const ModuleHeader& header = module.get_header();
         auto& lot = module.get_lot();
-        
+
         for (int i = 0; i < header.number_of_local_relocations(); ++i)
         {
             const Relocation& relocation = *reinterpret_cast<const Relocation*>(local_relocations_address);
-            writer_ << "Index: " << dec << relocation.index() << ", offset: 0x" << hex << relocation.offset() << endl;
             local_relocations_address += relocation.size();
             uint32_t lot_index = relocation.index() >> 1;
+            writer_ << "Index: " << dec << lot_index << ", offset: 0x" << hex << relocation.offset() << endl;
             uint16_t section_value = relocation.index() & 0x01;
-            Section section = static_cast<Section>(section_value); 
+            Section section = static_cast<Section>(section_value);
             if (section == Section::code)
             {
                 const uint32_t relocated = reinterpret_cast<const uint32_t>(module.get_text().data()) + relocation.offset();
                 lot[lot_index] = relocated;
-                writer_ << "Local relocated in lot[" << dec << relocation.index() << "] to 0x" << hex << relocated << endl;
-                writer_ << "test: " << reinterpret_cast<const char*>(relocated) << endl;
-
+                writer_ << "Local relocated in lot[" << dec << lot_index << "] to 0x" << hex << relocated << endl;
             }
             else if (section == Section::data)
             {
                 const uint32_t relocated = reinterpret_cast<const uint32_t>(module.get_data().data()) + relocation.offset();
-                lot[relocation.index()] = relocated;
+                lot[lot_index] = relocated;
                 writer_ << "Local relocated in lot["
-                    << dec << relocation.index() << "] to 0x" << hex << relocated << endl;
-                writer_ << "test: " << reinterpret_cast<const char*>(relocated) << endl;
+                    << dec << lot_index << "] to 0x" << hex << relocated << endl;
             }
-            else 
+            else
             {
                 writer_ << "Wrong section code" << endl;
                 return false;
             }
         }
         return true;
- 
+
     }
 
 
@@ -304,7 +306,7 @@ private:
         Module& module = loaded_module.get_module();
         const ModuleHeader& header = module.get_header();
         auto& lot = module.get_lot();
-        
+
         for (int i = 0; i < header.number_of_external_relocations(); ++i)
         {
             const Relocation& relocation = *reinterpret_cast<const Relocation*>(external_relocations_address);
@@ -317,11 +319,11 @@ private:
             if (env_symbol)
             {
                 writer_ << "Symbol found in environment at address: 0x" << hex <<
-                    env_symbol->address() << endl; 
+                    env_symbol->address() << endl;
                 lot[relocation.index()] = env_symbol->address();
                 writer_ << "Filled lot[" << dec << relocation.index() << "] to 0x" << hex << env_symbol->address() << endl;
             }
-            else 
+            else
             {
                 writer_ << "Address for symbol " << symbol.name() << " not found!" << endl;
                 return false;
@@ -400,6 +402,26 @@ private:
        //      }
 
        //  }
+        return true;
+    }
+
+    bool process_data_relocations(uint32_t data_relocations_address, LoadedModule& loaded_module)
+    {
+        Module& module = loaded_module.get_module();
+        const ModuleHeader& header = module.get_header();
+        for (int i = 0; i < header.number_of_data_relocations(); ++i)
+        {
+            writer_ << "Data relocation:" << endl;
+            const Relocation& relocation = *reinterpret_cast<const Relocation*>(data_relocations_address);
+            data_relocations_address += relocation.size();
+
+            uint32_t *to_relocate = reinterpret_cast<uint32_t*>(reinterpret_cast<uint32_t>(module.get_data().data())) + relocation.index();
+
+            uint32_t relocated = reinterpret_cast<uint32_t>(module.get_data().data()) + relocation.offset();
+            *to_relocate = relocated;
+            writer_ << "Data relocated on 0x" << hex << reinterpret_cast<uint32_t>(to_relocate) << ", index: " << dec << i << ", to 0x" << hex << relocated << endl;
+
+        }
         return true;
     }
 

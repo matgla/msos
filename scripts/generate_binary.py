@@ -92,6 +92,13 @@ def has_relocation(relocations, name):
             return True
     return False
 
+def get_index_of_relocation(relocations, name):
+    for (relocation, offset, index) in relocations:
+        if name == relocation:
+            return index
+    return -1
+
+
 def extract_relocations(relocations, symbols, processed_symbols):
     external_relocations = []
     exported_relocations = []
@@ -104,17 +111,23 @@ def extract_relocations(relocations, symbols, processed_symbols):
         elif relocation["info_type"] == "R_ARM_GOT_BREL":
             symbol_visibility = processed_symbols[relocation["symbol_name"]]["localization"]
             if symbol_visibility == "external":
+                lot_index = index
                 if not has_relocation(external_relocations, relocation["symbol_name"]):
-                    external_relocations.append((relocation["symbol_name"], offset, index))
                     index += 1
+                else:
+                    lot_index = get_index_of_relocation(external_relocations, relocation["symbol_name"])
+                external_relocations.append((relocation["symbol_name"], offset, lot_index))
             elif symbol_visibility == "exported":
+                lot_index = index
                 if not has_relocation(exported_relocations, relocation["symbol_name"]):
-                    exported_relocations.append((relocation["symbol_name"], offset, index))
                     index += 1
+                else:
+                    lot_index = get_index_of_relocation(external_relocations, relocation["symbol_name"])
+                exported_relocations.append((relocation["symbol_name"], offset, lot_index))
             elif symbol_visibility == "internal":
                 symbol_value = relocation["symbol_value"]
                 section = relocation["section_index"]
-                local_relocations.append((symbol_value, offset, index, section))
+                local_relocations.append((symbol_value, offset, index, section, relocation["symbol_name"]))
                 index += 1
         elif relocation["info_type"] == "R_ARM_ABS32":
             continue
@@ -141,7 +154,7 @@ def extract_data_relocations(relocations, symbols, code_length, lot_offset, relo
                if not symbol_name in data_relocations:
                    offset = int((offset - code_length)/4)
                    symbol_value = relocation["symbol_value"]
-                   data_relocations.append((symbol_value, offset))
+                   data_relocations.append((symbol_value, offset, relocation["symbol_name"]))
 
         else:
             print (Fore.RED + "Unknown relocation type. Please fix generate_binary.py")
@@ -175,7 +188,7 @@ def print_relocations(local_relocations, exported_relocations, external_relocati
     row = [Fore.BLUE + "name", "symbol value", "relocation offset" + Style.RESET_ALL]
     print_debug("{: >25} {: >25} {: >25}".format(*row))
     for relocation in data_relocations:
-        row = ["(N/A)", hex(relocation[0]), hex(relocation[1])]
+        row = [relocation[2], hex(relocation[0]), hex(relocation[1])]
         print_debug("{: >20} {: >20} {: >20}".format(*row))
 
 # def get_lot_relocation_indexes(relocations):
@@ -332,11 +345,12 @@ def generate_module(module_name, elf_filename, objcopy_executable):
 
     local_relocations_to_image = []
     for relocation in local_relocations:
-        symbol_value, offset, index, section = relocation
+        symbol_value, offset, index, section, name = relocation
         rel = {}
         rel["lot_index"] = index
         rel["symbol_value"] = symbol_value
         rel["section"] = section
+        rel["symbol_name"] = name
         local_relocations_to_image.append(rel)
 
     processed = []
@@ -366,11 +380,11 @@ def generate_module(module_name, elf_filename, objcopy_executable):
 
     data_relocations_to_image = []
     for relocation in data_relocations:
-        symbol_value, offset = relocation
+        symbol_value, offset, name = relocation
         rel = {}
         rel["offset"] = offset
         rel["symbol"] = symbol_value
-
+        rel["symbol_name"] = name
         data_relocations_to_image.append(rel)
 
    # processed = []
@@ -451,29 +465,33 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         image += struct.pack("<II", rel["lot_index"], offset_to_symbol)
         relocation_position += 1
 
-    row = ["index", "offset_to_symbol"]
+    row = ["name", "index", "section", "offset_to_symbol"]
     print_step("Local relocations")
-    print_step("{: >10} {: >10}".format(*row))
+    print_step("{: >40} {: >10} {: >10} {: >10}".format(*row))
 
     for rel in local_relocations_to_image:
-        row = [rel["lot_index"], hex(rel["symbol_value"])]
-        print_step("{: >10} {: >10}".format(*row))
+        value = rel["symbol_value"]
         if rel["section"] == code_section["index"]:
             section = 0
+
         elif rel["section"] == data_section["index"] or rel["section"] == bss_section["index"]:
             section = 1
+            value = value - len(code_data)
         else:
             raise "Unsupported section for local relocation"
 
-        lot_index_and_section = (rel["lot_index"] << 1) & section
-        image += struct.pack("<II", lot_index_and_section, rel["symbol_value"])
-    row = ["offset", "offset_to_symbol"]
+        lot_index_and_section = (rel["lot_index"] << 1) | section
+        row = [rel["symbol_name"], rel["lot_index"], section, hex(value)]
+        print_step("{: >40} {: >10} {: >10} {: >10}".format(*row))
+
+        image += struct.pack("<II", lot_index_and_section, value)
+    row = ["name", "offset", "offset_to_symbol"]
     print_step("Data relocations")
-    print_step("{: >10} {: >10}".format(*row))
+    print_step("{: >50} {: >10} {: >10} ".format(*row))
 
     for rel in data_relocations_to_image:
-        row = [hex(rel["offset"]), hex(rel["symbol"])]
-        print_step("{: >10} {: >10}".format(*row))
+        row = [rel["symbol_name"], hex(rel["offset"]), hex(rel["symbol"])]
+        print_step("{: >50} {: >10} {: >10}".format(*row))
         image += struct.pack("<II", rel["offset"], rel["symbol"])
 
     print_step("Symbol section placed at: " + hex(len(image)));
