@@ -134,9 +134,9 @@ def extract_relocations(relocations, symbols, processed_symbols):
         else:
             print (Fore.RED + "Unknown relocation type. Please fix generate_binary.py")
             raise RuntimeError("Script not working for this binary")
-    return local_relocations, external_relocations, exported_relocations
+    return local_relocations, external_relocations, exported_relocations, index
 
-def extract_data_relocations(relocations, symbols, code_length, lot_offset, relocation_indexes):
+def extract_data_relocations(relocations, symbols, code_length, lot_offset):
     data_relocations = []
     index = lot_offset
     for relocation in relocations:
@@ -151,15 +151,14 @@ def extract_data_relocations(relocations, symbols, code_length, lot_offset, relo
            if symbol_name in symbols and \
                 (symbols[symbol_name]["type"] == "STT_OBJECT" or \
                  symbols[symbol_name]["type"] == "STT_FUNC"):
-               if not symbol_name in data_relocations:
-                   offset = int((offset - code_length)/4)
-                   symbol_value = relocation["symbol_value"]
-                   data_relocations.append((symbol_value, offset, relocation["symbol_name"]))
+                offset = int((offset - code_length)/4)
+                symbol_value = relocation["symbol_value"]
+                data_relocations.append((symbol_value, offset + lot_offset, relocation["symbol_name"]))
 
         else:
             print (Fore.RED + "Unknown relocation type. Please fix generate_binary.py")
             raise RuntimeError("Script not working for this binary")
-    return data_relocations, relocation_indexes
+    return data_relocations
 
 def print_relocations(local_relocations, exported_relocations, external_relocations, data_relocations):
     ind_3 = "      "
@@ -238,7 +237,7 @@ def generate_module(module_name, elf_filename, objcopy_executable):
 
     print_step(ind_3 + "Processing relocations")
     relocations = elf.get_relocations()
-    local_relocations, external_relocations, exported_relocations \
+    local_relocations, external_relocations, exported_relocations, number_of_lot_relocations \
         = extract_relocations(relocations, symbols, processed_symbols)
 
     #relocation_indexes = get_lot_relocation_indexes(local_relocations + external_relocations)
@@ -326,12 +325,9 @@ def generate_module(module_name, elf_filename, objcopy_executable):
             sym["value"] = symbols[symbol]["value"]
             exported_symbols.update({symbol: sym})
 
-    number_of_lot_relocations = len(local_relocations) \
-        + len(exported_relocations) + len(external_relocations)
-
-    data_relocations, data_relocation_indexes = extract_data_relocations(\
+    data_relocations = extract_data_relocations(\
         relocations, symbols, len(code_data), \
-        number_of_lot_relocations, {})
+        number_of_lot_relocations)
     print_relocations(local_relocations, exported_relocations, external_relocations, data_relocations)
     print_step(ind_3 + "Patch offsets")
     for relocation in local_relocations + external_relocations + exported_relocations:

@@ -39,13 +39,13 @@ void test()
     writer << "ImplementationA value: " << a.get_value() << endl;
     writer << "ImplementationB value: " << b.get_value() << endl;
     writer << "ChildA value: " << a_c.get_value() << endl;
-    // writer << "Interface value: " << i->get_value() << endl;
+    writer << "Interface value: " << i->get_value() << endl;
     writer << "Printing tests :)" << endl;
     a.print();
 
     b.print();
     a_c.print();
-    // i->print();
+    i->print();
 
     i = &a_c;
     writer << "Interface value: " << i->get_value() << endl;
