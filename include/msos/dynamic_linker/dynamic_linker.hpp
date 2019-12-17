@@ -112,7 +112,7 @@ public:
         const uint32_t size_of_lot = get_size_of_lot(header, relocation_section_address);
         writer_ << "Size of LOT: " << dec << size_of_lot << endl;
 
-        const auto* main = find_symbol(symbol_section_address, header.number_of_external_symbols() + header.number_of_exported_relocations(), "main");
+        const auto* main = find_symbol(symbol_section_address, header.number_of_external_symbols() + header.number_of_exported_symbols(), "main");
         modules_.emplace_back(header);
         LoadedModule& loaded_module = modules_.back();
         writer_ << "Module address: 0x" << hex << reinterpret_cast<const uint32_t>(&modules_.front()) << hex << ", 0x" << reinterpret_cast<const uint32_t>(&modules_.back()) << endl;
@@ -144,7 +144,7 @@ public:
 
         if (main)
         {
-            const std::size_t main_function_address = reinterpret_cast<uint32_t>(module.get_text().data()) + main->offset() - 1;
+            const std::size_t main_function_address = (reinterpret_cast<uint32_t>(module.get_text().data()) + main->offset()) & (~0x01);
 
             writer_ << "Main function found at: 0x" << hex << main_function_address << endl;
             loaded_module.set_start_address(main_function_address);
