@@ -45,6 +45,6 @@ jobs:
       with:
         GITHUB_TOKEN: ${{ secrets.GITHUB_PRIVATE_TOKEN }}
         BRANCH: gh-pages
-        FOLDER docs/build
+        FOLDER: docs/build
         TARGET_FOLDER: docs
 
