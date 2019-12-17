@@ -5,5 +5,5 @@ anchor: "documentation"
 weight: 10
 ---
 
-[Link to documentation](../docs/index.html")
+[Link to documentation](../docs/html/index.html)
 
