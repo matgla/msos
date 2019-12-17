@@ -34,11 +34,10 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_PRIVATE_TOKEN }}
         BRANCH: gh-pages
         FOLDER: site/public
-    - name: Install Sphinx 
-      run: |
-        sudo apt-get install python3-sphinx
     - name: Generate documentation 
       run: | 
+        sudo apt-get install python3-pip
+        pip3 install --user sphinx
         make docs
     - name: Publish docs to gh-pages
       uses: JamesIves/github-pages-deploy-action@releases/v3
