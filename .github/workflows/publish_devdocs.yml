@@ -1,0 +1,25 @@
+name: CI - publish developers documentation
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Generate documentation 
+      run: | 
+        pip3 install --user sphinx
+        make docs
+    - name: Publish docs to gh-pages
+      uses: JamesIves/github-pages-deploy-action@releases/v3
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_PRIVATE_TOKEN }}
+        BRANCH: gh-pages
+        FOLDER: docs/build
+        TARGET_FOLDER: docs
+
