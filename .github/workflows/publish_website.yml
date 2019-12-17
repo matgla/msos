@@ -36,7 +36,6 @@ jobs:
         FOLDER: site/public
     - name: Generate documentation 
       run: | 
-        sudo apt-get install python3-pip
         pip3 install --user sphinx
         make docs
     - name: Publish docs to gh-pages
