@@ -1,4 +1,4 @@
-baseURL = "https://matgla.github.io/msos"
+baseURL = "http://localhost:1313"
 languageCode = "en-us"
 
 title = "MSOS project webpage"

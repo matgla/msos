@@ -10,3 +10,6 @@
 [submodule "site/themes/kraiklyn"]
 	path = site/themes/kraiklyn
 	url = https://github.com/jsnjack/kraiklyn.git
+[submodule "site/themes/ananke"]
+	path = site/themes/ananke
+	url = https://github.com/budparr/gohugo-theme-ananke.git
