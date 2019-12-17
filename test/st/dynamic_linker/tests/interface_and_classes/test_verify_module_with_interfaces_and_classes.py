@@ -19,9 +19,17 @@ import pytest
 import utils
 
 def test_module_with_classes():
-    return
-    # sut = utils.BinaryUnderTest(utils.find_binary("interface_and_classes"))
-    # sut.start()
-
-    # sut.stop(1)
+    sut = utils.BinaryUnderTest(utils.find_binary("interface_and_classes"))
+    sut.start()
+    sut.expect("ImplementationA value: 10", 1)
+    sut.expect("ImplementationB value: 15", 1)
+    sut.expect("ChildA value: 10", 1)
+    sut.expect(r"Printing tests :\)", 1)
+    sut.expect("ImplementationA is printing", 1)
+    sut.expect("I am working! I_AM_B", 1)
+    sut.expect("ChildA is printing", 1)
+    sut.expect("ImplementationA is printing", 1)
+    sut.expect("Interface value: 10", 1)
+    sut.expect("Hello from Module", 1)
+    sut.stop(1)
 
