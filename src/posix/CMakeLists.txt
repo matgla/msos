@@ -14,51 +14,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(msos STATIC)
+add_library(msos_posix)
 
-add_subdirectory(dynamic_linker)
-add_subdirectory(kernel)
-add_subdirectory(syscalls)
-add_subdirectory(utils)
-add_subdirectory(posix)
+set (library_includes ${PROJECT_SOURCE_DIR}/include/msos/posix)
 
-set (library_includes ${PROJECT_SOURCE_DIR}/include/msos)
-
-target_sources(msos
-    PUBLIC
-        ${library_includes}/usart_printer.hpp
-)
-
-target_link_libraries(msos
-    PUBLIC
-        msos_dynamic_linker
-        msos_syscalls
-        hal
-        msos_posix
-)
-
-target_include_directories(msos
-    PUBLIC
-        ${PROJECT_SOURCE_DIR}/include
-)
-
-add_executable(msos_test)
-
-target_sources(msos_test 
+target_sources(msos_posix 
     PUBLIC 
-        ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp 
+        ${CMAKE_CURRENT_SOURCE_DIR}/fork.cpp 
 )
 
-target_link_libraries(msos_test
+target_include_directories(msos_posix 
     PUBLIC 
-        msos 
+        ${library_includes} 
+        ${PROJECT_SOURCE_DIR}/include 
 )
 
-set_target_properties(msos_test 
-    PROPERTIES 
-        SUFFIX ".elf"
+target_link_libraries(msos_posix 
+    PRIVATE 
+        msos_kernel_process 
 )
-
-include (GenerateBinary)
-generate_binary(msos_test ${vendor})
 
