@@ -31,6 +31,10 @@
 #include "msos/dynamic_linker/environment.hpp"
 #include "msos/dynamic_linker/dynamic_linker.hpp"
 
+#include "msos/kernel/process/process.hpp"
+#include "msos/kernel/process/process_manager.hpp" 
+#include "msos/kernel/process/scheduler.hpp"
+
 #include <unistd.h>
 
 msos::dl::DynamicLinker dynamic_linker;
@@ -79,6 +83,30 @@ const msos::dl::LoadedModule* load_module(msos::dl::DynamicLinker& linker, const
 }
 
 
+void kernel_process()
+{
+    printf("Hello from Kernel\n");
+    
+    if (_fork())
+    {
+        writer << "Parent" << endl;
+        int i = 0;
+        while (true) {
+            hal::time::sleep(std::chrono::milliseconds(100));
+            writer << "parent: " << i++ << endl;
+        }
+    }
+    else 
+    {
+        writer << "Child" << endl;
+        int i = 0;
+        while (true) {
+            hal::time::sleep(std::chrono::seconds(1));
+            writer << "child: " << i++ << endl;
+        }
+    }
+}
+
 int main()
 {
     board::board_init();
@@ -88,53 +116,10 @@ int main()
     using Usart = board::interfaces::Usart1;
     Usart::init(9600);
     hal::time::Time::init();
-//     writer << "Sizeof Module: " << dec << sizeof(msos::dl::Module) << ", module data: " << sizeof(msos::dl::ModuleData) << ", loaded module: " << sizeof(msos::dl::LoadedModule) << endl;
-//     writer << "Hello from MSOS Kernel!" << endl;
-//     writer << "Heap usage: " << dec << hal::memory::get_heap_usage() << "/" << hal::memory::get_heap_size() << " bytes." << endl;
-//     uint32_t address = reinterpret_cast<uint32_t>(&get_lot_at);
-//     writer << "Address of function: 0x" << hex << address << endl;
-//     hal::core::BackupRegisters::init();
-//     hal::core::BackupRegisters::write(1, address >> 16);
-//     hal::core::BackupRegisters::write(2, address);
-// 
-//     std::size_t module_address = 0x08000000;
-//     module_address += 32 * 1024;
-// 
-//     const auto module = load_module(dynamic_linker, module_address);
-//     if (module == nullptr)
-//     {
-//         writer << "Module is nullptr" << endl;
-//         while (true)
-//         {
-//         }
-//     }
-//     writer << "Successfully loaded module: " << module->get_module().get_header().name() << endl;
-//     writer << "Heap usage: " << dec << hal::memory::get_heap_usage() << "/" << hal::memory::get_heap_size() << " bytes." << endl;
-//     module->execute();
-// 
-//     while (true)
-//     {
-//         LED::setHigh();
-//         hal::time::sleep(std::chrono::seconds(1));
-//         LED::setLow();
-//         hal::time::sleep(std::chrono::seconds(1));
-//         Usart::write("toggle\n");
-//     }
+    
     writer << "I am starting" << endl;
     
-    if (_fork())
-    {
-        writer << "Parent" << endl;
-        while (true) {}
-    }
-    else 
-    {
-        writer << "Child" << endl;
-        int i = 0;
-        while (true) {
-           // writer << i++ << endl;
-        }
-    }
+    root_process(reinterpret_cast<std::size_t>(&kernel_process));
 
     while (true)
     {

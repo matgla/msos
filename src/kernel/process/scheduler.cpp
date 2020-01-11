@@ -29,39 +29,47 @@ namespace process
 
 Scheduler::Scheduler(ProcessManager& processes)
     : processes_(processes)
-    , current_process_(0)
+    , current_process_(processes_.get_processes().begin())
 {
-    printf("Processes address: %p\n", &processes);
 } 
 
 const Process& Scheduler::current_process() const 
 {
-    return processes_.get_processes()[current_process_]; 
+    return *current_process_; 
 }
 
 Process& Scheduler::current_process()
 {
-    return processes_.get_processes()[current_process_];
+    return *current_process_;
 }
 
-std::size_t* Scheduler::schedule_next()
+const std::size_t* Scheduler::schedule_next()
 {
-    printf("Processes address: %p\n", &processes_);
     if (processes_.get_processes().empty())
     {
-        printf("Processes are empty, returning nullptr\n");
         return nullptr;
     }
-    printf("Before increment: %p\n", processes_.get_processes()[current_process_].current_stack_pointer());   
-    ++current_process_;
-    
-    if (current_process_ > processes_.get_processes().size())
+    if (processes_.get_processes().size() == 1)
     {
-        current_process_ = 0;
+        current_process_ = processes_.get_processes().begin();
+        return current_process_->current_stack_pointer();
     }
     
-    printf("Returing sp: %p\n", processes_.get_processes()[current_process_].current_stack_pointer());
-    return processes_.get_processes()[current_process_].current_stack_pointer(); 
+    if (current_process_ == processes_.get_processes().end())
+    {
+        current_process_ = processes_.get_processes().begin();
+        return current_process_->current_stack_pointer();
+    }
+    else 
+    {
+        ++current_process_;
+        if (current_process_ == processes_.get_processes().end())
+        {
+            current_process_ = processes_.get_processes().begin();
+        }
+    }
+    
+    return current_process_->current_stack_pointer(); 
 }
 
 } // namespace process     

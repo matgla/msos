@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <eul/container/static_vector.hpp>
+#include <vector>
 
 #include "msos/kernel/process/fwd.hpp"
 #include "msos/kernel/process/process.hpp"
@@ -32,11 +32,14 @@ class ProcessManager
 {
 public:
     ProcessManager();
-    using ContainerType = eul::container::static_vector<Process, 10>;
-    Process& create_process(std::size_t* stack_pointer, const std::size_t stack_size);
+    using ContainerType = std::list<Process>;
     Process& create_process(const Process& parent, const std::size_t process_entry, const std::size_t return_address);
+
+    Process& create_process(std::size_t process_entry, std::size_t stack_size);
+
     const ContainerType& get_processes() const;
     ContainerType& get_processes();
+    void print() const;
 private:
     ContainerType processes_;
 };

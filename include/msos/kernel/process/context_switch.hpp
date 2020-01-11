@@ -40,10 +40,12 @@ static __inline__ uint32_t get_lr()
     return lr;
 }
 
-void store_context();
-void load_context();
 void context_switch(std::size_t stack);
 std::size_t* get_psp();
+void load_context(uint32_t sp);
+void load_context_msp(uint32_t sp);
+void store_context();
+void store_context_msp();
 
 }
 

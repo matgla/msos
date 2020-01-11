@@ -35,47 +35,110 @@ Process::Process(const Process& parent, const std::size_t process_entry, const s
     , pid_(pid_counter++)
     , stack_size_(parent.stack_size())
     , stack_(new std::size_t[parent.stack_size()/(sizeof(std::size_t))]())
-    , stack_pointer_(stack_.get())
 {
-    printf("Stack pointer in child: %p\n", stack_pointer_);
-    printf("Process entry: %x\n", process_entry);
-    uint8_t* stack_ptr = reinterpret_cast<uint8_t*>(stack_.get()) + process_entry;
-
+    uint8_t* stack_ptr = reinterpret_cast<uint8_t*>(stack_.get()) + stack_size_ - process_entry * sizeof(uint32_t) - sizeof(HardwareStoredRegisters) - sizeof(SoftwareStoredRegisters);
+    std::size_t required_stack_size = process_entry * sizeof(std::size_t) + sizeof(HardwareStoredRegisters) + sizeof(SoftwareStoredRegisters);
+    if (required_stack_size >= stack_size_)
+    {
+        printf ("Not enough space on stack in child task, required %d bytes.\n", required_stack_size);
+    }
+    
+    std::memcpy(stack_.get(), parent.stack_.get(), parent.stack_size());
     HardwareStoredRegisters* hw_registers = reinterpret_cast<HardwareStoredRegisters*>(stack_ptr + sizeof(SoftwareStoredRegisters));
     hw_registers->r0 = 0;
-    hw_registers->r1 = 0xe;
-    hw_registers->r2 = 0xa;
-    hw_registers->r3 = 0xd;
+    hw_registers->r1 = 1;
+    hw_registers->r2 = 2;
+    hw_registers->r3 = 3;
 
     SoftwareStoredRegisters* sw_registers = reinterpret_cast<SoftwareStoredRegisters*>(stack_ptr);
 
-    std::memcpy(stack_.get(), parent.stack_.get(), parent.stack_size());
-    sw_registers->r4 = 0xf;
-    sw_registers->r5 = 0xa;
-    sw_registers->r6 = 0xc;
-    sw_registers->r7 = 0xe;
-    sw_registers->r8 = 0x8;
-    sw_registers->r9 = 0x9;
-    sw_registers->r10 = 0x10;
-    sw_registers->r11 = 0x11;
-   //uint32_t psp = get_psp();
-    //printf ("Current parent psp: %x, parent stack start: %p\n", psp, parent_.);
-    hw_registers->psr = default_psr_status;
+    sw_registers->r4 = 4;
+    sw_registers->r5 = 5;
+    sw_registers->r6 = 6;
+    sw_registers->r7 = 7;
+    sw_registers->r8 = 8;
+    sw_registers->r9 = 9;
+    sw_registers->r10 = 10;
+    sw_registers->r11 = 11;
+   
+    hw_registers->psr = default_psr_status; 
     hw_registers->lr = 0;
-    printf("Return address: %x\n", return_address);
     hw_registers->pc = return_address;
-    //hw_registers->lr = return_address;
-    sw_registers->lr = return_to_handler_mode_msp;
-    stack_pointer_ = reinterpret_cast<std::size_t*>(stack_ptr);
+    sw_registers->lr = return_to_thread_mode_psp;
+    current_stack_pointer_ = reinterpret_cast<std::size_t*>(stack_ptr);
+}
+
+Process::Process(const Process& process)
+    : state_(process.state_)
+    , pid_(process.pid_)
+    , stack_size_(process.stack_size_)
+{
+    if (process.stack_ != nullptr)
+    {
+        stack_.reset(new std::size_t[process.stack_size()/sizeof(std::size_t)]);
+        std::memcpy(stack_.get(), process.stack_.get(), stack_size_);
+        current_stack_pointer_ = stack_.get() + stack_size_ - process.stack_usage();
+    }
+    else 
+    {
+        current_stack_pointer_ = process.current_stack_pointer_;
+    }
+}
+
+Process::Process(const std::size_t process_entry, const std::size_t stack_size)
+    : state_(State::Ready)
+    , pid_(pid_counter++)
+    , stack_size_(stack_size)
+    , stack_(new std::size_t[stack_size/(sizeof(std::size_t))]())
+{ 
+    uint8_t* stack_ptr = reinterpret_cast<uint8_t*>(stack_.get()) + stack_size_ - sizeof(HardwareStoredRegisters) - sizeof(SoftwareStoredRegisters);
+    std::size_t required_stack_size = sizeof(HardwareStoredRegisters) + sizeof(SoftwareStoredRegisters);
+    if (required_stack_size >= stack_size_)
+    {
+        printf ("Not enough space on stack in child task, required %d bytes.\n", required_stack_size);
+    }
+    
+    HardwareStoredRegisters* hw_registers = reinterpret_cast<HardwareStoredRegisters*>(stack_ptr + sizeof(SoftwareStoredRegisters));
+    hw_registers->r0 = 0;
+    hw_registers->r1 = 1;
+    hw_registers->r2 = 2;
+    hw_registers->r3 = 3;
+
+    SoftwareStoredRegisters* sw_registers = reinterpret_cast<SoftwareStoredRegisters*>(stack_ptr);
+
+    sw_registers->r4 = 4;
+    sw_registers->r5 = 5;
+    sw_registers->r6 = 6;
+    sw_registers->r7 = 7;
+    sw_registers->r8 = 8;
+    sw_registers->r9 = 9;
+    sw_registers->r10 = 10;
+    sw_registers->r11 = 11;
+   
+    //uint32_t psp = get_psp();
+    hw_registers->psr = default_psr_status; 
+    hw_registers->lr = 0;
+    hw_registers->pc = process_entry;
+    sw_registers->lr = return_to_thread_mode_psp;
+    current_stack_pointer_ = reinterpret_cast<std::size_t*>(stack_ptr);
 }
 
 Process::Process(std::size_t* stack_pointer, const std::size_t stack_size)
     : state_(State::Ready)
     , pid_(pid_counter++)
     , stack_size_(stack_size)
-    , stack_pointer_(stack_pointer)
+    , current_stack_pointer_(stack_pointer)
 {
-    printf("Stack pointer %x\n", stack_pointer);
+}
+
+const std::size_t* Process::stack_pointer() const 
+{
+    return stack_.get();
+}
+
+std::size_t Process::stack_usage() const 
+{
+    return reinterpret_cast<const uint8_t*>(stack_.get()) + stack_size_ - reinterpret_cast<const uint8_t*>(current_stack_pointer_);
 }
 
 pid_t Process::pid() const 
@@ -88,20 +151,19 @@ std::size_t Process::stack_size() const
     return stack_size_;
 }
 
-std::size_t* Process::current_stack_pointer()
+const std::size_t* Process::current_stack_pointer()
 {
-    return stack_pointer_;
+    return current_stack_pointer_;
 }
 
 const std::size_t* Process::current_stack_pointer() const 
 {
-    return stack_pointer_;
+    return current_stack_pointer_;
 }
 
-void Process::current_stack_pointer(std::size_t* stack_pointer)
+void Process::current_stack_pointer(const std::size_t* stack_pointer)
 {
-    printf("Changing sp to: %p\n", stack_pointer);
-    stack_pointer_ = stack_pointer;
+    current_stack_pointer_ = stack_pointer;
 }
 
 } // namespace process     

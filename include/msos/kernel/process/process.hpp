@@ -23,6 +23,11 @@
 
 #include <sys/types.h>
 
+extern "C"
+{
+    pid_t root_process(const std::size_t process);
+}
+
 namespace msos
 {
 namespace kernel
@@ -48,12 +53,17 @@ public:
     Process(const Process& parent, const std::size_t process_entry, const std::size_t return_address);
     Process(std::size_t* stack_pointer, const std::size_t stack_size);
 
+    Process(const Process& process);
+    Process(const std::size_t process_entry, const std::size_t stack_size);
+
     pid_t pid() const;
     std::size_t stack_size() const;
-    std::size_t* current_stack_pointer(); 
+    const std::size_t* current_stack_pointer(); 
     const std::size_t* current_stack_pointer() const;
-    void current_stack_pointer(std::size_t* stack_pointer);        
+    const std::size_t* stack_pointer() const;
+    void current_stack_pointer(const std::size_t* stack_pointer);        
     void kill();
+    std::size_t stack_usage() const;
 private: 
     enum class State : uint8_t 
     {
@@ -67,7 +77,7 @@ private:
     pid_t pid_;
     std::size_t stack_size_;
     std::unique_ptr<std::size_t[]> stack_;
-    std::size_t* stack_pointer_;
+    const std::size_t* current_stack_pointer_;
 };
 
 } // namespace process

@@ -49,17 +49,34 @@ static bool was_initialized = false;
 static bool first = true;
 void __attribute__((naked)) PendSV_Handler(void)
 {
-    printf("Context switch\n");
-    if (!first){
-        scheduler->current_process().current_stack_pointer(get_psp() - 9);
+    if (!first)
+    {
+
+        asm volatile inline (
+            "mrs r0, psp \n"
+            "stmdb r0!, {r4 - r11, lr}\n"
+        );
+        
+        std::size_t* stack;
+        asm volatile inline (
+            "mov %0, r0" : "=r" (stack)
+        );
+        scheduler->current_process().current_stack_pointer(stack);
     }
     else 
     {
         first = false;
     }
-    std::size_t* next_sp = scheduler->schedule_next();
-    printf("Next stack pointer %p\n", next_sp);
-    context_switch(reinterpret_cast<std::size_t>(next_sp));
+    
+    asm volatile inline (
+            "mov r0, %0\n" : : "r" (scheduler->schedule_next())
+    );
+    asm volatile inline (
+            "ldmia r0!, {r4 - r11, lr}\n"
+            "msr psp, r0\n"
+            "isb\n"
+            "bx lr\n"
+    );
 }
 
 
@@ -68,42 +85,48 @@ pid_t getpid()
     return scheduler->current_process().pid(); 
 }
 
+pid_t root_process(const std::size_t process)
+{
+    if (processes != nullptr)
+    {
+        delete processes;
+    }
+    if (scheduler != nullptr)
+    {
+        delete scheduler;
+    }
+
+    processes = new msos::kernel::process::ProcessManager();
+    scheduler = new msos::kernel::process::Scheduler(*processes);
+    
+    auto& root_process = processes->create_process(process, 2048);
+    processes->print();
+    scheduler->schedule_next();
+    NVIC_SetPriority(PendSV_IRQn, 0xff); /* Lowest possible priority */
+    NVIC_SetPriority(SysTick_IRQn, 0x00); /* Highest possible priority */
+    hal::time::Time::add_handler([](std::chrono::milliseconds)
+    {
+        volatile static int i = 0;
+        i++;
+        if (i > 100)
+        {
+            SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
+        i = 0;
+        }
+    });
+   //SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
+   return root_process.pid();
+} 
+
 pid_t _fork()
 {
-    if (!processes)
-    {
-        processes = new msos::kernel::process::ProcessManager();
-        scheduler = new msos::kernel::process::Scheduler(*processes);
-    }
-    printf("Creating first process\n");
-    // TODO: move from there 
-    if (!was_initialized)
-    {
-        printf("Stack start: %x\n", &__stack_start);
-        processes->create_process(stack_start, 2048);
-        scheduler->schedule_next();
-        hal::time::Time::add_handler([](std::chrono::milliseconds)
-        {
-            volatile static int i = 0;
-            i++;
-            if (i > 100)
-            {
-                SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
-                i = 0;
-            }
-        });
-        printf("Added handler\n");
-        was_initialized = true;
-    }
-    
-    const auto& parent_process = scheduler->current_process();
-    std::size_t diff = get_sp() - reinterpret_cast<std::size_t>(&__stack_start);
-    printf("Stack diff: %d\n", diff);
+    auto& parent_process = scheduler->current_process();
+    std::size_t diff = (reinterpret_cast<std::size_t>(parent_process.stack_pointer()) + parent_process.stack_size()) - get_sp();
     std::size_t return_address = reinterpret_cast<std::size_t>(__builtin_return_address(0));
-    printf("Created with pc: %x\n", return_address);
     auto& child_process = processes->create_process(parent_process, diff, return_address);
     
     printf("Child proccess forked with PID: %d\n", child_process.pid());
+    processes->print();
     return child_process.pid();
 }
 

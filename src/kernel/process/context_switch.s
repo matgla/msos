@@ -21,29 +21,16 @@
 //    mov r0, pc 
 //    bx lr
 
-.global store_context
-store_context:
-    mrs r0, psp
-    stmdb r0!, {r4 - r11, lr}
-    msr psp, r0 
-    bx lr 
-
-.global load_context 
-load_context:
-    mrs r0, psp 
-    ldmia r0!, {r4 - r11, lr}
-    msr psp, r0 
-    bx lr 
-
 .global context_switch 
 context_switch: 
     mrs r1, psp 
+    stmdb r1!, {r4 - r11, lr} 
     ldmia r0!, {r4 - r11, lr}
     msr psp, r0 
+    isb
     bx lr 
 
 .global get_psp 
 get_psp: 
     mrs r0, psp 
     bx lr 
-

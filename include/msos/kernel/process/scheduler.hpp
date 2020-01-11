@@ -20,6 +20,7 @@
 
 #include "msos/kernel/process/fwd.hpp"
 #include "msos/kernel/process/process.hpp"
+#include "msos/kernel/process/process_manager.hpp"
 
 namespace msos
 {
@@ -35,11 +36,11 @@ public:
 
     const Process& current_process() const;
     Process& current_process();
-    std::size_t* schedule_next();
+    const std::size_t* schedule_next();
 
 private:
     ProcessManager& processes_;
-    std::size_t current_process_;
+    ProcessManager::ContainerType::iterator current_process_;
 };
 
 } // namespace process     

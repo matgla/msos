@@ -17,6 +17,7 @@
 #include <errno.h>
 #include <string.h>
 #include <cstdint>
+#include <cstdio>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -71,6 +72,7 @@ caddr_t _sbrk(int incr)
     if (current_heap_end + incr > (&__heap_end))
     {
         errno = ENOMEM;
+        printf("Heap overflow!\n");
         return NULL;
     }
 
