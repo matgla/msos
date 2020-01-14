@@ -1,0 +1,10 @@
+# Hashes of file build rules.
+eaccc5e2b64f44508d81ccc4f0d79c51 test/CMakeFiles/msos_unit_tests
+ae08b6431b1270c3209d84e29a4ea087 test/CMakeFiles/msos_unit_tests-complete
+97613472c91b22f7f477305020b4281a test/msos_unit_tests-prefix/src/msos_unit_tests-stamp/msos_unit_tests-build
+dd0787b4687c3a93bfe4fb4199d3abf1 test/msos_unit_tests-prefix/src/msos_unit_tests-stamp/msos_unit_tests-configure
+90c34e75df1ab6209e61fb303f8af20e test/msos_unit_tests-prefix/src/msos_unit_tests-stamp/msos_unit_tests-download
+370ce6a7731b950b83b810707b221b88 test/msos_unit_tests-prefix/src/msos_unit_tests-stamp/msos_unit_tests-install
+201bc54a5df6b59c3b145f9614564026 test/msos_unit_tests-prefix/src/msos_unit_tests-stamp/msos_unit_tests-mkdir
+ba982bfcb28ac091be91240f4adefd54 test/msos_unit_tests-prefix/src/msos_unit_tests-stamp/msos_unit_tests-patch
+ad757f07d3ea53b92d1bb323d8a6a92d test/msos_unit_tests-prefix/src/msos_unit_tests-stamp/msos_unit_tests-update

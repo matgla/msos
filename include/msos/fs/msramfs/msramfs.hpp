@@ -16,12 +16,38 @@
 
 #pragma once 
 
+#include <cstdint>
+
 namespace msos 
 {
 namespace fs 
 {
 namespace msramfs 
 {
+
+template <std::size_t BlockSize>
+struct SuperBlock
+{
+    char magic_byte[4] = {'M', 'R', "F", "S"};
+    uint16_t number_of_blocks;
+    uint16_t number_of_inodes;
+
+    constexpr static std::size_t block_size = BlockSize;
+};
+
+template <typename SizeType, std::size_t NumberOfDirectPointers, std::size_t BlockSize>
+struct INode 
+{
+    uint8_t valid;
+    SizeType file_size;
+    SizeType direct_pointers[NumberOfDirectPointers];
+    SizeType indirect_pointer;
+
+    constexpr static i_node_size = sizeof(INode<SizeType>, 4);
+    constexpr static inodes_per_block = BlockSize / i_node_size;
+};
+
+using INode16 = INode<uint16_t>
 
 } // namespace msramfs 
 } // namespace fs

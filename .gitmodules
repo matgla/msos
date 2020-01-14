@@ -13,3 +13,6 @@
 [submodule "site/themes/ananke"]
 	path = site/themes/ananke
 	url = https://github.com/budparr/gohugo-theme-ananke.git
+[submodule "test/ut/lib/googletest"]
+	path = test/ut/lib/googletest
+	url = https://github.com/google/googletest.git

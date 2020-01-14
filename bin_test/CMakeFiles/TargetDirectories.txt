@@ -1,0 +1,5 @@
+/home/mateusz/repos/msos/bin_test/CMakeFiles/rebuild_cache.dir
+/home/mateusz/repos/msos/bin_test/CMakeFiles/edit_cache.dir
+/home/mateusz/repos/msos/bin_test/test/CMakeFiles/rebuild_cache.dir
+/home/mateusz/repos/msos/bin_test/test/CMakeFiles/msos_unit_tests.dir
+/home/mateusz/repos/msos/bin_test/test/CMakeFiles/edit_cache.dir
