@@ -16,3 +16,6 @@
 [submodule "test/ut/lib/googletest"]
 	path = test/ut/lib/googletest
 	url = https://github.com/google/googletest.git
+[submodule "scripts/kconfig"]
+	path = scripts/kconfig
+	url = https://github.com/ulfalizer/Kconfiglib.git
