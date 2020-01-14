@@ -9,3 +9,5 @@ docs:
 	@echo "Generating documentation"
 	cd docs && make html
 
+menuconfig:
+	 scripts/kconfiglib.py $@
