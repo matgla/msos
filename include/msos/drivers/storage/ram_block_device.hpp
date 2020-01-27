@@ -16,40 +16,41 @@
 
 #pragma once 
 
+#include "msos/drivers/storage/block_device.hpp" 
+
 #include <cstdint>
+#include <memory>
 
-namespace msos 
+namespace msos
 {
-namespace fs 
+namespace drivers
 {
-namespace msramfs 
+namespace storage
 {
 
-template <std::size_t BlockSize>
-struct SuperBlock
+class RamBlockDevice : public BlockDevice 
 {
-    char magic_byte[4] = {'M', 'R', "F", "S"};
-    uint16_t number_of_blocks;
-    uint16_t number_of_inodes;
+public:
+    using BlockDevice::BlockDevice; 
 
-    constexpr static std::size_t block_size = BlockSize;
+    int init() override;
+    int deinit() override;  
+
+    std::string_view name() const override;
+
+protected:
+
+    int perform_read(std::size_t address, StreamType& stream) const override;
+    int perform_write(std::size_t address, const StreamType& stream) override;
+    int perform_erase(std::size_t address, std::size_t size) override;
+
+private:
+    bool was_initialized_ = false;
+    uint32_t reference_counter_ = 0;
+    std::unique_ptr<uint8_t[]> memory_;
 };
 
-template <typename SizeType, std::size_t NumberOfDirectPointers, std::size_t BlockSize>
-struct INode 
-{
-    uint8_t valid;
-    SizeType file_size;
-    SizeType direct_pointers[NumberOfDirectPointers];
-    SizeType indirect_pointer;
-
-    constexpr static i_node_size = sizeof(INode<SizeType>, 4);
-    constexpr static inodes_per_block = BlockSize / i_node_size;
-};
-
-using INode16 = INode<uint16_t>
-
-} // namespace msramfs 
-} // namespace fs
+} // namespace storage     
+} // namespace drivers     
 } // namespace msos 
 

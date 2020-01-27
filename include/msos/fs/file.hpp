@@ -1,4 +1,4 @@
-// This file is part of MSOS project. 
+// This file is part of MSOS project.
 // Copyright (C) 2020 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,39 +14,32 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once 
+#pragma once
 
-namespace msos 
-{
-namespace fs 
+#include <cstdint>
+
+#include <unistd.h>
+
+#include <gsl/span.hpp>
+
+namespace msfs
 {
 
-/* 
- * 3 - bits = 0 - 7
- * 5 - bits = 0 - 31
- *
- */
-
-struct INode 
+class File
 {
-    enum class NodeType : uint8_t 
-    {
-        File = 0,
-        SymbolicLink = 1,
-        Directory = 2,
-        CharDevice = 3,
-        BlockDevice = 4,
-        Socket = 5, 
-        FIFO = 6
-    };
-    
-    NodeType type : 3;
-    uint8_t user_id : 5;
-    uint8_t 
-    uint32_t modification_time;
-    uint32_t size;
+public:
+    using DataType = gsl::span<uint8_t>;
+
+    virtual ~File() = default;
+
+    virtual ssize_t read(DataType& data) const = 0;
+    virtual ssize_t write(const DataType& data) = 0;
+    virtual off_t seek(off_t offset, int base) const = 0;
+    virtual int close() = 0;
+    virtual int sync() = 0;
+
+    virtual off_t tell() const;
+    virtual ssize_t size() const;
 };
 
-} // namespace fs
-} // namespace msos
-
+} // namespace msfs

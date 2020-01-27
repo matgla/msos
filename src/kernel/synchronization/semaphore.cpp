@@ -15,8 +15,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "msos/kernel/synchronization/semaphore.hpp" 
+#include "msos/kernel/synchronization/atomic.hpp"
 
 namespace msos
+{
+namespace kernel 
 {
 namespace synchronization
 {
@@ -26,71 +29,28 @@ Semaphore::Semaphore(uint32_t value)
 {
 }
 
-static inline void __dmb()
-{
-    asm volatile inline("dmb");
-}
-
-static inline uint32_t __strex(uint32_t value, void* destination)
-{
-    uint32_t output;
-    asm volatile inline("strex %[result], %[val], [%[dest]]" : [result] "=&r"(output) : [dest] "r"(destination), [val] "r"(value) : "cc", "memory"); 
-    return output;
-}
-
-static inline uint32_t __ldrex(void* from)
-{
-    uint32_t output;
-    asm volatile inline("ldrex %[result], [%[source]]" : [result] "=&r"(output) : [source] "r"(from) : "cc", "memory");
-    return output;
-}
-
 int Semaphore::wait() 
 {
-   
-    bool succeeded = false;
-    
-    int new_value =  __ldrex(&value_);
+    int new_value =  atomic::__ldrex(&value_);
     
     while (--new_value < 0) 
     {
-        new_value = __ldrex(&value_);
+        new_value = atomic::__ldrex(&value_);
     };    
 
-    while (!succeeded)
-    {
-
-        new_value = __ldrex(&value_);
-   
-        __dmb();
-        if (0 == __strex(--new_value, &value_))
-        {
-            succeeded = true; 
-        }
-        __dmb();
-    } 
+    atomic::decrement(value_, 1);
 
     return true;
 }
 
 int Semaphore::post() 
 {
-    int new_value = 0;
-    bool succeeded = false;
-    while (!succeeded)
-    {
-        new_value = __ldrex(&value_);
-        __dmb(); 
-        if (0 == __strex(++new_value, &value_))
-        {
-            succeeded = true;
-        }
-        __dmb(); 
-    }
+    atomic::increment(value_, 1); 
 
     return true;
 }
 
 } // namespace synchronization 
+} // namespace kernel
 } // namespace msos 
 

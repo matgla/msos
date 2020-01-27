@@ -22,6 +22,8 @@
 
 namespace msos
 {
+namespace kernel
+{
 namespace synchronization
 {
 
@@ -37,6 +39,7 @@ private:
     int value_;
 };
 
+} // namespace kernel
 } // namespace synchronization     
 } // namespace msos 
 

@@ -36,12 +36,15 @@
 #include "msos/kernel/process/scheduler.hpp"
 
 #include "msos/kernel/synchronization/semaphore.hpp"
+#include "msos/kernel/synchronization/mutex.hpp"
+
+#include "msos/drivers/storage/ram_block_device.hpp" 
 /*
 #include <unistd.h>
 */
 //msos::dl::DynamicLinker dynamic_linker;
 
-UsartWriter writer;
+hal::UsartWriter writer;
 /*uint32_t get_lot_at(uint32_t address)
 {
     return dynamic_linker.get_lot_for_module_at(address);
@@ -86,7 +89,9 @@ void test_main()
 */
 //static int i = 1;
 
-static msos::synchronization::Semaphore mutex(1);
+static msos::kernel::synchronization::Semaphore mutex(1);
+
+msos::kernel::synchronization::Mutex mutex_;
 
 void kernel_process()
 {
@@ -96,14 +101,14 @@ void kernel_process()
     {
         writer << "Parent" << endl;
         
-        mutex.wait();
+        mutex_.lock();
        
         writer << "parent going to sleep" << endl;
 
         hal::time::sleep(std::chrono::seconds(5));
 
         writer << "Parent Done" << endl;
-        mutex.post();
+        mutex_.unlock();
         while (true) {
             hal::time::sleep(std::chrono::milliseconds(100));
             writer << "Parent" << endl;
@@ -113,19 +118,19 @@ void kernel_process()
     {
 
         writer << "Child" << endl;
-        mutex.wait(); 
+        mutex_.lock(); 
         writer << "Child is going to sleep" << endl;
         hal::time::sleep(std::chrono::seconds(1));
 
         writer << "Child Done" << endl;
-        mutex.post();
+        mutex_.unlock();
         while (true) {
             hal::time::sleep(std::chrono::milliseconds(500));
             writer << "Child" << endl;
         }
     }
 }
-
+#include <cstring>
 int main()
 {
     hal::core::Core::initializeClocks();
@@ -136,11 +141,61 @@ int main()
     hal::time::Time::init();
     
     writer << "I am starting" << endl;
-    hal::time::sleep(std::chrono::milliseconds(500));
-    writer << "GO GO GO" << endl;
-    root_process(reinterpret_cast<std::size_t>(&kernel_process));
+   
+    msos::drivers::storage::RamBlockDevice bd(2048, 1, 1, 1);
 
-    //    mutex.wait();
+    int error = bd.init();
+    if (error)
+    {
+        writer << "Cannot initialize block device" << endl;
+    }
+
+    writer << "Device geometry: " << endl
+        << "Size: " << bd.size() << endl
+        << "Read size: " << bd.read_size() << endl 
+        << "Write size: " << bd.write_size() << endl
+        << "Erase size: " << bd.erase_size() << endl;
+
+    char buffer[24];
+    gsl::span<uint8_t> buffer_span = gsl::make_span(reinterpret_cast<uint8_t*>(buffer), 24);
+
+    std::strncpy(buffer, "Hello", sizeof(buffer));
+    
+    writer << "Erase 24 bytes at 0x0" << endl;
+    error = bd.erase(0x0, 24);
+    if (error)
+    {
+        writer << "Can't erase" << endl;
+    }
+
+    writer << "Write Hello at address 0x4" << endl;
+    error = bd.write(0x04, buffer_span);
+    
+    if (error)
+    {
+        writer << "Can't write to bd" << endl;
+    }
+
+    std::memset(buffer, 0, 24);
+    
+    writer << "Read" << endl;
+    error = bd.read(0x0, buffer_span);
+    if (error)
+    {
+        writer << "Can't read from bd" << endl;
+    }
+
+    for (char byte : buffer)
+    {
+        writer << hex << static_cast<int>(byte) << " : ";
+        writer << byte << endl;
+    }
+
+
+    //hal::time::sleep(std::chrono::milliseconds(500));
+    
+    //root_process(reinterpret_cast<std::size_t>(&kernel_process));
+
     while (true)
     {
     }

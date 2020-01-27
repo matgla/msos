@@ -1,5 +1,5 @@
-# This file is part of MSOS project. This is simple OS for embedded development devices.
-# Copyright (C) 2019 Mateusz Stadnik
+# This file is part of MSOS project.
+# Copyright (C) 2020 Mateusz Stadnik
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -10,25 +10,8 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(simple_module_library OBJECT)
-
-target_sources(simple_module_library
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-)
-
-target_link_libraries(simple_module_library
-    PRIVATE
-        module_flags
-        msos_utils 
-)
-
-add_module(simple_module simple_module_library)
-
-include (TestUtils)
-register_system_test_binary(simple_module)
-
+add_subdirectory(storage)

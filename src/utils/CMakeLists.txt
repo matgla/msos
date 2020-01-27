@@ -27,3 +27,9 @@ target_include_directories(msos_utils
     INTERFACE
         ${PROJECT_SOURCE_DIR}/include
 )
+
+target_link_libraries(msos_utils 
+    INTERFACE 
+        hal_common_utils 
+)
+

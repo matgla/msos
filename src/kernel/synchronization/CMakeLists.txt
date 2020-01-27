@@ -20,9 +20,13 @@ set(library_includes ${PROJECT_SOURCE_DIR}/include/msos/kernel/synchronization)
 
 target_sources(msos_kernel_synchronization
     PUBLIC
+        ${library_includes}/atomic.hpp
         ${library_includes}/semaphore.hpp
+        ${library_includes}/mutex.hpp
+
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/semaphore.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/mutex.cpp
 )
 
 target_link_libraries(msos_kernel_synchronization

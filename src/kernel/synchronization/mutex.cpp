@@ -14,30 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once 
+#include "msos/kernel/synchronization/mutex.hpp"
 
-#include "msos/kernel/synchronization/semaphore.hpp"
-
-namespace msos 
+namespace msos
 {
 namespace kernel 
 {
 namespace synchronization
 {
 
-class Mutex 
+Mutex::Mutex() : semaphore_(1) 
 {
-public:
-    Mutex();
+}
 
-    void lock();
-    void unlock();
+void Mutex::lock() 
+{
+    semaphore_.wait();
+}
 
-private:
-    Semaphore semaphore_;
-};
+void Mutex::unlock()
+{
+    semaphore_.post();
+}
 
-} // namespace synchronization
+} // namespace synchronization     
 } // namespace kernel
 } // namespace msos 
 

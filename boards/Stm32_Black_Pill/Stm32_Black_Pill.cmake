@@ -48,9 +48,7 @@ function(add_device_hal_library hal_device_library)
     target_link_libraries(${hal_device_library}
         PUBLIC
             hal_interface
-            -Wl,--whole-archive
             hal_devices_arm_stm32f103c8t6
-            -Wl,--no-whole-archive
 )
 
 endfunction()

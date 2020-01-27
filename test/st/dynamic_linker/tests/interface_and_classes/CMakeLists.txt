@@ -40,7 +40,7 @@ target_compile_options(interface_and_classes_lib
 target_link_libraries(interface_and_classes_lib
     PUBLIC
         module_flags
-        msos_utils
+        msos_utils 
 )
 
 add_module(interface_and_classes interface_and_classes_lib)

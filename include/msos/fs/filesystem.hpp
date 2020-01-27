@@ -1,4 +1,4 @@
-// This file is part of MSOS project. 
+// This file is part of MSOS project.
 // Copyright (C) 2020 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,33 +14,32 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once 
+#pragma once
 
 #include <string_view>
-#include <eul/function.hpp>
 
-namespace msos
-{
-namespace fs 
+#include "msfs/block_device.hpp"
+
+namespace msfs
 {
 
-class FileSystemType
-{
-public:
-    std::string_view name;
-    
-    eul::function<SuperBlock(),0 > mount;
-    eul::function<int(), 0> umount;
-};
-
-class FileSystemNode
+class FileSystem
 {
 public:
+    virtual ~FileSystem() = default;
 
-private:
-    FileSystem* next_;
+    virtual int mount(BlockDevice& device) = 0;
+    virtual int umount() = 0;
+
+    virtual int create() = 0;
+    virtual int mkdir(const std::string_view path, int mode) = 0;
+
+    virtual int remove(const std::string_view path) = 0;
+    virtual int stat(const std::string_view path) = 0;
+
+protected:
+    static bool mounted_;
 };
 
-} // namespace fs 
-} // namespace msos 
+} // namespace msfs
 

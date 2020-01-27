@@ -14,30 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once 
+#include <iostream>
 
-#include "msos/kernel/synchronization/semaphore.hpp"
-
-namespace msos 
+int main()
 {
-namespace kernel 
-{
-namespace synchronization
-{
-
-class Mutex 
-{
-public:
-    Mutex();
-
-    void lock();
-    void unlock();
-
-private:
-    Semaphore semaphore_;
-};
-
-} // namespace synchronization
-} // namespace kernel
-} // namespace msos 
+    std::cout << "MS Shell" << std::endl
+        << ">";
+}
 
