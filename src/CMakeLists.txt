@@ -31,9 +31,14 @@ target_sources(msos
 
 target_link_libraries(msos
     PUBLIC
-        msos_dynamic_linker
+    #jj        -Wl,--whole-archive 
+        msos_kernel_synchronization
+        #   -Wl,--no-whole-archive
         msos_syscalls
+        msos_dynamic_linker
+        -Wl,--whole-archive
         hal
+        -Wl,--no-whole-archive
         msos_posix
 )
 

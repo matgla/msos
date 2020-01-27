@@ -28,7 +28,6 @@
 extern "C"
 {
     int _gettimeofday(struct timeval* tv, void* tzvp);
-    void _init();
     void _exit(int code);
     int _kill(int pid, int sig);
     int _getpid(int n);
@@ -46,9 +45,6 @@ int _gettimeofday(struct timeval* tv, void* tzvp)
     return 0;
 }
 
-void _init()
-{
-}
 void _exit(int code)
 {
 }

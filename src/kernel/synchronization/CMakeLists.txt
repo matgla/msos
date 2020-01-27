@@ -1,5 +1,5 @@
 # This file is part of MSOS project. This is simple OS for embedded development devices.
-# Copyright (C) 2019 Mateusz Stadnik
+# Copyright (C) 2020 Mateusz Stadnik
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,28 +14,30 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(test_bss_section_library OBJECT)
+add_library(msos_kernel_synchronization)
 
-target_compile_options(test_bss_section_library
+set(library_includes ${PROJECT_SOURCE_DIR}/include/msos/kernel/synchronization)
+
+target_sources(msos_kernel_synchronization
     PUBLIC
-    $<$<CONFIG:DEBUG>:-Og -g>
-    $<$<CONFIG:RELEASE>:-Os>
-)
-
-
-target_sources(test_bss_section_library
+        ${library_includes}/semaphore.hpp
     PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/semaphore.cpp
 )
 
-target_link_libraries(test_bss_section_library
+target_link_libraries(msos_kernel_synchronization
     PUBLIC
-        module_flags
-        msos_utils
+        hal
 )
 
-add_module(test_bss_section test_bss_section_library)
+target_include_directories(msos_kernel_synchronization
+   PUBLIC
+       ${PROJECT_SOURCE_DIR}/include
+)
 
-include (TestUtils)
-register_system_test_binary(test_bss_section)
+target_compile_options(msos_kernel_synchronization PUBLIC
+        $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a -Wcast-align -Wpointer-arith -Wcast-qual -Wno-missing-braces>
+        $<$<CONFIG:DEBUG>:-Og -g>
+        $<$<CONFIG:RELEASE>:-Os>
+    )
 

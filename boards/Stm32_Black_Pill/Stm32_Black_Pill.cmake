@@ -30,7 +30,7 @@ endfunction()
 
 function(add_device_hal_library hal_device_library)
     message(STATUS "Configuring STM32_Black_Pill")
-    set(${hal_device_library} "nucleo_f103rb_board_library")
+    set(${hal_device_library} "black_pill_board_library")
     set(hal_device_library ${hal_device_library} PARENT_SCOPE)
     add_library(${hal_device_library} STATIC)
 
@@ -48,7 +48,9 @@ function(add_device_hal_library hal_device_library)
     target_link_libraries(${hal_device_library}
         PUBLIC
             hal_interface
+            -Wl,--whole-archive
             hal_devices_arm_stm32f103c8t6
+            -Wl,--no-whole-archive
 )
 
 endfunction()

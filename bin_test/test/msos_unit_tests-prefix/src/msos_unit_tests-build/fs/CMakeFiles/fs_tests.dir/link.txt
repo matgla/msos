@@ -1,1 +1,0 @@
-/usr/bin/c++     CMakeFiles/fs_tests.dir/MsRamFsTests.cpp.o  -o fs_tests  ../lib/libgtest.a ../lib/libgmock.a ../lib/libgtest_main.a ../lib/libgtest.a -lpthread 

@@ -57,7 +57,6 @@ class DynamicLinker
 public:
     DynamicLinker() : modules_{}
     {
-        writer_ << "Modules size: " << modules_.size() << endl;
     }
 
     void unload_module(const LoadedModule* module)

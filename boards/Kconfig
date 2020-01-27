@@ -14,28 +14,38 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(test_bss_section_library OBJECT)
+menu "Platform configuration"
 
-target_compile_options(test_bss_section_library
-    PUBLIC
-    $<$<CONFIG:DEBUG>:-Og -g>
-    $<$<CONFIG:RELEASE>:-Os>
-)
+choice
+    prompt "Architecture: "
+    default ARCH_STM32F1
 
+    config X86_64_STUB
+    bool "X86_64 (emulated)"
+    help
+        Enable support for X86_64 compilation, but to be executed in simulated environment.
+        This is not implemented yet.
 
-target_sources(test_bss_section_library
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-)
+    config ARCH_STM32F1
+    bool "STM32F1xx"
+    help
+        Enable support for ST STM32F1xx family.
 
-target_link_libraries(test_bss_section_library
-    PUBLIC
-        module_flags
-        msos_utils
-)
+endchoice
 
-add_module(test_bss_section test_bss_section_library)
+choice
+    prompt "Board Selection: "
 
-include (TestUtils)
-register_system_test_binary(test_bss_section)
+    config STM32_Black_Pill
+        bool "STM32_Black_Pill"
+        depends on ARCH_STM32F1
+    config NUCLEO-F103RB
+        bool "NUCLEO-F103RB"
+        depends on ARCH_STM32F1
+endchoice
 
+if STM32_Black_Pill
+    source "boards/Stm32_Black_Pill/Kconfig"
+endif
+
+endmenu

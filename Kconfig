@@ -16,11 +16,12 @@
 
 mainmenu "MSOS Kernel Configuration"
 
-source "boards/Kconfig"
+source "./boards/Kconfig"
+
+COMPILER_PREFIX := "none"
 
 config CROSS_COMPILE
     string "Cross-compiler tool prefix"
-    default "arm-none-eabi" if ARCH_STM32F1
-    default ""
+    default $(COMPILER_PREFIX) 
     help
         Prefix for cross compiler tool, i.e arm-none-eabi
