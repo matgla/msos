@@ -18,29 +18,29 @@ add_library(msos_fs)
 
 set(library_includes ${PROJECT_SOURCE_DIR}/include/msos/fs)
 
-target_sources(msos_fs 
-    PUBLIC 
+target_sources(msos_fs
+    PUBLIC
         ${library_includes}/block_device.hpp
-    PRIVATE 
-        ${CMAKE_CURRENT_SOURCE_DIR}/block_device.cpp 
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/block_device.cpp
 )
 
-target_include_directories(msos_fs 
-    PUBLIC 
-        ${PROJECT_SOURCE_DIR}/include 
+target_include_directories(msos_fs
+    PUBLIC
+        ${PROJECT_SOURCE_DIR}/include
 )
 
-target_compile_options(msos_fs 
-    PRIVATE 
+target_compile_options(msos_fs
+    PRIVATE
         $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a -Wall -Werror -Wextra -Wpedantic -Wconversion -Wcast-align -Wunused -Wshadow -Wold-style-cast -Wpointer-arith -Wcast-qual -Wno-missing-braces>
         $<$<CONFIG:DEBUG>:-Og -g>
         $<$<CONFIG:RELEASE>:-Os>
 )
 
-target_link_libraries(msos_fs 
-    PUBLIC 
-        gsl 
+target_link_libraries(msos_fs
+    PUBLIC
+        gsl
         eul
 )
-        
+
 

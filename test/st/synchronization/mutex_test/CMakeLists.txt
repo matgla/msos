@@ -1,5 +1,5 @@
 # This file is part of MSOS project. This is simple OS for embedded development devices.
-# Copyright (C) 2019 Mateusz Stadnik
+# Copyright (C) 2020 Mateusz Stadnik
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,6 +14,37 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_subdirectory(host)
-add_subdirectory(tests)
+add_executable(mutex_test)
+
+target_sources(mutex_test
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+)
+
+target_link_libraries(mutex_test
+    PUBLIC
+        msos
+)
+
+include (GenerateBinary)
+generate_binary(mutex_test ${vendor})
+
+target_include_directories(mutex_test
+    PUBLIC
+        ${PROJECT_SOURCE_DIR}/include
+)
+
+set_target_properties(mutex_test
+    PROPERTIES
+        SUFFIX ".elf"
+)
+
+target_compile_options(mutex_test
+    PUBLIC
+    $<$<CONFIG:DEBUG>:-Og -g>
+    $<$<CONFIG:RELEASE>:-Os>
+)
+
+include(TestUtils)
+register_system_test_binary(mutex_test)
 

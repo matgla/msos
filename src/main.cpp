@@ -32,13 +32,13 @@
 #include "msos/dynamic_linker/dynamic_linker.hpp"
 */
 #include "msos/kernel/process/process.hpp"
-#include "msos/kernel/process/process_manager.hpp" 
+#include "msos/kernel/process/process_manager.hpp"
 #include "msos/kernel/process/scheduler.hpp"
 
 #include "msos/kernel/synchronization/semaphore.hpp"
 #include "msos/kernel/synchronization/mutex.hpp"
 
-#include "msos/drivers/storage/ram_block_device.hpp" 
+#include "msos/drivers/storage/ram_block_device.hpp"
 /*
 #include <unistd.h>
 */
@@ -96,13 +96,13 @@ msos::kernel::synchronization::Mutex mutex_;
 void kernel_process()
 {
     printf("Hello from Kernel\n");
-    
+
     if (_fork())
     {
         writer << "Parent" << endl;
-        
+
         mutex_.lock();
-       
+
         writer << "parent going to sleep" << endl;
 
         hal::time::sleep(std::chrono::seconds(5));
@@ -114,11 +114,11 @@ void kernel_process()
             writer << "Parent" << endl;
         }
     }
-    else 
+    else
     {
 
         writer << "Child" << endl;
-        mutex_.lock(); 
+        mutex_.lock();
         writer << "Child is going to sleep" << endl;
         hal::time::sleep(std::chrono::seconds(1));
 
@@ -139,9 +139,9 @@ int main()
     using Usart = board::interfaces::Usart1;
     Usart::init(9600);
     hal::time::Time::init();
-    
+
     writer << "I am starting" << endl;
-   
+
     msos::drivers::storage::RamBlockDevice bd(2048, 1, 1, 1);
 
     int error = bd.init();
@@ -152,7 +152,7 @@ int main()
 
     writer << "Device geometry: " << endl
         << "Size: " << bd.size() << endl
-        << "Read size: " << bd.read_size() << endl 
+        << "Read size: " << bd.read_size() << endl
         << "Write size: " << bd.write_size() << endl
         << "Erase size: " << bd.erase_size() << endl;
 
@@ -160,7 +160,7 @@ int main()
     gsl::span<uint8_t> buffer_span = gsl::make_span(reinterpret_cast<uint8_t*>(buffer), 24);
 
     std::strncpy(buffer, "Hello", sizeof(buffer));
-    
+
     writer << "Erase 24 bytes at 0x0" << endl;
     error = bd.erase(0x0, 24);
     if (error)
@@ -170,14 +170,14 @@ int main()
 
     writer << "Write Hello at address 0x4" << endl;
     error = bd.write(0x04, buffer_span);
-    
+
     if (error)
     {
         writer << "Can't write to bd" << endl;
     }
 
     std::memset(buffer, 0, 24);
-    
+
     writer << "Read" << endl;
     error = bd.read(0x0, buffer_span);
     if (error)
@@ -193,7 +193,7 @@ int main()
 
 
     //hal::time::sleep(std::chrono::milliseconds(500));
-    
+
     //root_process(reinterpret_cast<std::size_t>(&kernel_process));
 
     while (true)

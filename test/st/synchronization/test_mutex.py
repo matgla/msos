@@ -1,5 +1,6 @@
+
 # This file is part of MSOS project. This is simple OS for embedded development devices.
-# Copyright (C) 2019 Mateusz Stadnik
+# Copyright (C) 2020 Mateusz Stadnik
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,6 +15,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_subdirectory(host)
-add_subdirectory(tests)
+import pytest
+
+import utils
+
+def test_mutex_synchronization():
+    sut = utils.BinaryUnderTest(utils.find_binary("mutex_test"))
+    sut.start()
+    # sut.expect(, 1)
+    # sut.expect("ImplementationB value: 15", 1)
+    # sut.expect("ChildA value: 10", 1)
+    # sut.expect(r"Printing tests :\)", 1)
+    # sut.expect("ImplementationA is printing", 1)
+    # sut.expect("I am working! I_AM_B", 1)
+    # sut.expect("ChildA is printing", 1)
+    # sut.expect("ImplementationA is printing", 1)
+    # sut.expect("Interface value: 10", 1)
+    # sut.expect("Hello from Module", 1)
+    sut.stop(1)
 
