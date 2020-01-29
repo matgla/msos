@@ -46,5 +46,5 @@ target_compile_options(mutex_test
 )
 
 include(TestUtils)
-register_system_test_binary(mutex_test)
+register_test_binary(mutex_test)
 

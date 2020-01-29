@@ -32,6 +32,7 @@
 hal::UsartWriter writer;
 
 static msos::kernel::synchronization::Semaphore mutex(1);
+static msos::kernel::synchronization::Mutex stdio_mutex_;
 
 msos::kernel::synchronization::Mutex mutex_;
 
@@ -42,38 +43,40 @@ extern "C"
 
 void kernel_process()
 {
-    printf("Hello from Kernel\n");
-
     if (_fork())
     {
-        writer << "Parent" << endl;
+        writer << "Parent is starting" << endl;
 
         mutex_.lock();
 
-        writer << "parent going to sleep" << endl;
+        writer << "Parent is going to sleep" << endl;
 
-        hal::time::sleep(std::chrono::seconds(200));
+        hal::time::sleep(std::chrono::milliseconds(200));
 
-        writer << "Parent Done" << endl;
+        writer << "Parent finished waiting" << endl;
         mutex_.unlock();
         while (true) {
+            stdio_mutex_.lock();
+            writer << "Parent is working" << endl;
+            stdio_mutex_.unlock();
             hal::time::sleep(std::chrono::milliseconds(100));
-            writer << "Parent" << endl;
         }
     }
     else
     {
 
-        writer << "Child" << endl;
+        writer << "Child is starting" << endl;
         mutex_.lock();
         writer << "Child is going to sleep" << endl;
-        hal::time::sleep(std::chrono::seconds(1));
-
-        writer << "Child Done" << endl;
+        hal::time::sleep(std::chrono::milliseconds(150));
+        writer << "Child finished waiting" << endl;
         mutex_.unlock();
         while (true) {
             hal::time::sleep(std::chrono::milliseconds(100));
-            writer << "Child" << endl;
+            stdio_mutex_.lock();
+            writer << "Child is working" << endl;
+            writer << "[TEST DONE]" << endl;
+            stdio_mutex_.unlock();
         }
     }
 }

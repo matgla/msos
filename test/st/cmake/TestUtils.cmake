@@ -32,6 +32,14 @@ function (register_system_test_binary name)
         message (STATUS "Adding binary for test environment: ${CMAKE_CURRENT_BINARY_DIR}/test_binary.bin")
         set(BINARIES_FOR_ST "${BINARIES_FOR_ST}" "${name}:${CMAKE_CURRENT_BINARY_DIR}/test_binary.bin" CACHE INTERNAL "")
     endif()
+endfunction()
 
+function (register_test_binary name)
 
+    list(FIND BINARIES_FOR_ST "${name}:${CMAKE_CURRENT_BINARY_DIR}/${name}.bin" test_in_list)
+
+    if (${test_in_list} EQUAL -1)
+        message (STATUS "Adding binary for test environment: ${CMAKE_CURRENT_BINARY_DIR}/${name}.bin")
+        set(BINARIES_FOR_ST "${BINARIES_FOR_ST}" "${name}:${CMAKE_CURRENT_BINARY_DIR}/${name}.bin" CACHE INTERNAL "")
+    endif()
 endfunction()
