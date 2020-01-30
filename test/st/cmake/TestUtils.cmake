@@ -10,7 +10,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
@@ -19,9 +19,9 @@ function (register_system_test_binary name)
         ${name}_generate_test_image
         COMMAND cmake -E remove ${CMAKE_CURRENT_BINARY_DIR}/test_binary.bin
         COMMAND cat ${HOST_BINARY_FILE} ${CMAKE_CURRENT_BINARY_DIR}/${name}.bin >
-        ${CMAKE_CURRENT_BINARY_DIR}/test_binary.bin 
-        DEPENDS host ${name} 
-        VERBATIM 
+        ${CMAKE_CURRENT_BINARY_DIR}/test_binary.bin
+        DEPENDS host ${name}
+        VERBATIM
     )
 
     set (run_st_deps "${run_st_deps}" ${name}_generate_test_image CACHE INTERNAL "")
@@ -41,5 +41,6 @@ function (register_test_binary name)
     if (${test_in_list} EQUAL -1)
         message (STATUS "Adding binary for test environment: ${CMAKE_CURRENT_BINARY_DIR}/${name}.bin")
         set(BINARIES_FOR_ST "${BINARIES_FOR_ST}" "${name}:${CMAKE_CURRENT_BINARY_DIR}/${name}.bin" CACHE INTERNAL "")
+        set (run_st_deps "${run_st_deps}" ${name} CACHE INTERNAL "")
     endif()
 endfunction()

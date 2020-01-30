@@ -1,4 +1,4 @@
-// This file is part of MSOS project. 
+// This file is part of MSOS project.
 // Copyright (C) 2020 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,24 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once 
+#pragma once
 
-namespace msos 
+namespace msos
 {
-namespace kernel 
+namespace kernel
 {
-static inline void __dmb() 
+static inline void __dmb()
 {
     asm volatile inline("dmb");
 }
 
-namespace atomic  
+namespace atomic
 {
 
 static inline uint32_t __strex(uint32_t value, const void* destination)
 {
     uint32_t output;
-    asm volatile inline("strex %[result], %[val], [%[dest]]" : [result] "=&r"(output) : [dest] "r"(destination), [val] "r"(value) : "cc", "memory"); 
+    asm volatile inline("strex %[result], %[val], [%[dest]]" : [result] "=&r"(output) : [dest] "r"(destination), [val] "r"(value) : "cc", "memory");
     return output;
 }
 
@@ -47,10 +47,15 @@ template <typename T>
 T increment(const T& source, const T value)
 {
     T new_value;
-    do 
+    uint32_t success = 1;
+    do
     {
+        __dmb();
         new_value = __ldrex(&source) + value;
-    } while (__strex(new_value, &source));
+        __dmb();
+        success = __strex(new_value, &source);
+        __dmb();
+    } while (success);
     __dmb();
     return new_value;
 }
@@ -59,15 +64,20 @@ template <typename T>
 T decrement(const T& source, const T value)
 {
     T new_value;
-    do 
+    uint32_t success = 1;
+    do
     {
+        __dmb();
         new_value = __ldrex(&source) - value;
-    } while (__strex(new_value, &source));
+        __dmb();
+        success = __strex(new_value, &source);
+        __dmb();
+    } while (success);
     __dmb();
     return new_value;
 }
 
-} // namespace atomic  
-} // namespace kernel 
-} // namespace msos 
+} // namespace atomic
+} // namespace kernel
+} // namespace msos
 
