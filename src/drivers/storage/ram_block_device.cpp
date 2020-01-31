@@ -1,4 +1,4 @@
-// This file is part of MSOS project. 
+// This file is part of MSOS project.
 // Copyright (C) 2020 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
 
 #include "msos/drivers/storage/ram_block_device.hpp"
 
-#include <cstring> 
+#include <cstring>
 
 #include <eul/utils/unused.hpp>
 
@@ -31,18 +31,18 @@ namespace storage
 
 int RamBlockDevice::init()
 {
-    uint32_t ref_counter = kernel::atomic::increment<uint32_t>(reference_counter_, 1);
-   
-    if (ref_counter != 1)
-    {
-        return 0;
-    }
+    // uint32_t ref_counter = kernel::atomic::increment<uint32_t>(reference_counter_, 1);
+
+    // if (ref_counter != 1)
+    // {
+    //     return 0;
+    // }
 
     if (!memory_)
     {
         memory_.reset(new uint8_t[size_]);
     }
-    
+
     if (!memory_)
     {
         return -1;
@@ -60,23 +60,23 @@ int RamBlockDevice::deinit()
         return 0;
     }
 
-    uint32_t ref_counter = kernel::atomic::decrement<uint32_t>(reference_counter_, 1); 
+    // uint32_t ref_counter = kernel::atomic::decrement<uint32_t>(reference_counter_, 1);
 
-    if (ref_counter != 0)
-    {
-        return 0;
-    }
-    
+    // if (ref_counter != 0)
+    // {
+    //     return 0;
+    // }
+
     was_initialized_ = false;
     return 0;
 }
 
-std::string_view RamBlockDevice::name() const 
+std::string_view RamBlockDevice::name() const
 {
     return "RAM_BD";
 }
 
-int RamBlockDevice::perform_read(std::size_t address, StreamType& stream) const 
+int RamBlockDevice::perform_read(std::size_t address, StreamType& stream) const
 {
     if (!was_initialized_)
     {
@@ -85,10 +85,10 @@ int RamBlockDevice::perform_read(std::size_t address, StreamType& stream) const
 
     std::memcpy(stream.data(), memory_.get() + address, stream.size());
 
-    return 1;  
+    return 1;
 }
 
-int RamBlockDevice::perform_write(std::size_t address, const StreamType& stream) 
+int RamBlockDevice::perform_write(std::size_t address, const StreamType& stream)
 {
     if (!was_initialized_)
     {
@@ -110,7 +110,7 @@ int RamBlockDevice::perform_erase(std::size_t address, std::size_t size)
     return 0;
 }
 
-} // namespace storage     
-} // namespace drivers     
-} // namespace msos 
+} // namespace storage
+} // namespace drivers
+} // namespace msos
 

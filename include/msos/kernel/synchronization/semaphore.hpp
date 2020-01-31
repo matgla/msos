@@ -1,4 +1,4 @@
-// This file is part of MSOS project. 
+// This file is part of MSOS project.
 // Copyright (C) 2020 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once 
+#pragma once
 
 #include <cstdint>
 
@@ -36,10 +36,10 @@ public:
     int post();
 
 private:
-    int value_;
+    volatile int value_;
 };
 
 } // namespace kernel
-} // namespace synchronization     
-} // namespace msos 
+} // namespace synchronization
+} // namespace msos
 

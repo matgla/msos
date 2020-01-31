@@ -1,4 +1,4 @@
-// This file is part of MSOS project. 
+// This file is part of MSOS project.
 // Copyright (C) 2020 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "msos/kernel/synchronization/semaphore.hpp" 
+#include "msos/kernel/synchronization/semaphore.hpp"
 #include "msos/kernel/synchronization/atomic.hpp"
 
 namespace msos
 {
-namespace kernel 
+namespace kernel
 {
 namespace synchronization
 {
@@ -29,28 +29,36 @@ Semaphore::Semaphore(uint32_t value)
 {
 }
 
-int Semaphore::wait() 
+int Semaphore::wait()
 {
-    int new_value =  atomic::__ldrex(&value_);
-    
-    while (--new_value < 0) 
+    int status = 0;
+    do
     {
-        new_value = atomic::__ldrex(&value_);
-    };    
+        volatile int copy = atomic::__ldrex(&value_);
+        if (copy == 0) continue;
+        --copy;
+        status = atomic::__strex(copy, &value_);
 
-    atomic::decrement(value_, 1);
-
+    } while (status != 0);
+    atomic::__dmb();
     return true;
 }
 
-int Semaphore::post() 
+int Semaphore::post()
 {
-    atomic::increment(value_, 1); 
+    int status = 0;
+    do
+    {
+        volatile int copy = atomic::__ldrex(&value_);
+        ++copy;
+        status = atomic::__strex(copy, &value_);
 
+    } while (status != 0);
+    atomic::__dmb();
     return true;
 }
 
-} // namespace synchronization 
+} // namespace synchronization
 } // namespace kernel
-} // namespace msos 
+} // namespace msos
 

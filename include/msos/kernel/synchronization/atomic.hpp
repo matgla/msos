@@ -20,22 +20,22 @@ namespace msos
 {
 namespace kernel
 {
+namespace atomic
+{
+
 static inline void __dmb()
 {
     asm volatile inline("dmb");
 }
 
-namespace atomic
-{
-
-static inline uint32_t __strex(uint32_t value, const void* destination)
+static inline uint32_t __strex(uint32_t value, volatile int* destination)
 {
     uint32_t output;
     asm volatile inline("strex %[result], %[val], [%[dest]]" : [result] "=&r"(output) : [dest] "r"(destination), [val] "r"(value) : "cc", "memory");
     return output;
 }
 
-static inline uint32_t __ldrex(const void* from)
+static inline uint32_t __ldrex(volatile int* from)
 {
     uint32_t output;
     asm volatile inline("ldrex %[result], [%[source]]" : [result] "=&r"(output) : [source] "r"(from) : "cc", "memory");
@@ -44,34 +44,29 @@ static inline uint32_t __ldrex(const void* from)
 
 
 template <typename T>
-T increment(const T& source, const T value)
+static inline T increment(volatile T& source, const T value)
 {
     T new_value;
     uint32_t success = 1;
     do
     {
-        __dmb();
         new_value = __ldrex(&source) + value;
-        __dmb();
         success = __strex(new_value, &source);
-        __dmb();
     } while (success);
     __dmb();
     return new_value;
 }
 
 template <typename T>
-T decrement(const T& source, const T value)
+static inline T decrement(volatile T& source, const T value)
 {
-    T new_value;
     uint32_t success = 1;
+
+    T new_value;
     do
     {
-        __dmb();
         new_value = __ldrex(&source) - value;
-        __dmb();
         success = __strex(new_value, &source);
-        __dmb();
     } while (success);
     __dmb();
     return new_value;
