@@ -24,9 +24,11 @@
 .global context_switch 
 context_switch: 
     mrs r1, psp 
+    isb
     stmdb r1!, {r4 - r11, lr} 
     ldmia r0!, {r4 - r11, lr}
     msr psp, r0 
+    dsb
     isb
     bx lr 
 

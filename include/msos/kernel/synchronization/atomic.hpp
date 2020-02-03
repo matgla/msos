@@ -28,16 +28,16 @@ static inline void __dmb()
     asm volatile inline("dmb");
 }
 
-static inline uint32_t __strex(uint32_t value, volatile int* destination)
+static inline int __strex(uint32_t value, volatile int* destination)
 {
-    uint32_t output;
+    volatile uint32_t output;
     asm volatile inline("strex %[result], %[val], [%[dest]]" : [result] "=&r"(output) : [dest] "r"(destination), [val] "r"(value) : "cc", "memory");
     return output;
 }
 
-static inline uint32_t __ldrex(volatile int* from)
+static inline int __ldrex(volatile int* from)  
 {
-    uint32_t output;
+    volatile uint32_t output;
     asm volatile inline("ldrex %[result], [%[source]]" : [result] "=&r"(output) : [source] "r"(from) : "cc", "memory");
     return output;
 }
