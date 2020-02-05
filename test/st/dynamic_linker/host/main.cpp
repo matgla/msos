@@ -50,7 +50,7 @@ int main()
 {
     board::board_init();
     hal::core::Core::initializeClocks();
-    board::interfaces::Usart1::init(9600);
+    board::interfaces::Usart1::init(115200);
 
     uint32_t address_of_lot_getter = reinterpret_cast<uint32_t>(&get_lot_at);
     hal::core::BackupRegisters::init();

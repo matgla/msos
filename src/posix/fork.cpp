@@ -43,7 +43,7 @@ std::size_t* stack_start = &__stack_start;
 constexpr std::size_t default_stack_size = 1024;
 
 msos::kernel::process::ProcessManager* processes;
-msos::kernel::process::Scheduler* scheduler;
+// msos::kernel::process::Scheduler* scheduler;
 
 static bool was_initialized = false;
 static bool first = true;
@@ -56,20 +56,20 @@ void __attribute__((naked)) PendSV_Handler(void)
             "mrs r0, psp \n"
             "stmdb r0!, {r4 - r11, lr}\n"
         );
-        
+
         std::size_t* stack;
         asm volatile inline (
             "mov %0, r0" : "=r" (stack)
         );
-        scheduler->current_process().current_stack_pointer(stack);
+        msos::kernel::process::scheduler->current_process().current_stack_pointer(stack);
     }
-    else 
+    else
     {
         first = false;
     }
-    
+
     asm volatile inline (
-            "mov r0, %0\n" : : "r" (scheduler->schedule_next())
+            "mov r0, %0\n" : : "r" (msos::kernel::process::scheduler->schedule_next())
     );
     asm volatile inline (
             "ldmia r0!, {r4 - r11, lr}\n"
@@ -82,7 +82,7 @@ void __attribute__((naked)) PendSV_Handler(void)
 
 pid_t getpid()
 {
-    return scheduler->current_process().pid(); 
+    return msos::kernel::process::scheduler->current_process().pid();
 }
 
 pid_t root_process(const std::size_t process)
@@ -91,17 +91,17 @@ pid_t root_process(const std::size_t process)
     {
         delete processes;
     }
-    if (scheduler != nullptr)
+    if (msos::kernel::process::scheduler != nullptr)
     {
-        delete scheduler;
+        delete msos::kernel::process::scheduler;
     }
 
     processes = new msos::kernel::process::ProcessManager();
-    scheduler = new msos::kernel::process::Scheduler(*processes);
-    
+    msos::kernel::process::scheduler = new msos::kernel::process::Scheduler(*processes);
+
     auto& root_process = processes->create_process(process, 2048);
     processes->print();
-    scheduler->schedule_next();
+    msos::kernel::process::scheduler->schedule_next();
     NVIC_SetPriority(PendSV_IRQn, 0xff); /* Lowest possible priority */
     NVIC_SetPriority(SysTick_IRQn, 0x00); /* Highest possible priority */
     hal::time::Time::add_handler([](std::chrono::milliseconds)
@@ -116,15 +116,15 @@ pid_t root_process(const std::size_t process)
     });
    //SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
    return root_process.pid();
-} 
+}
 
 pid_t _fork()
 {
-    auto& parent_process = scheduler->current_process();
+    auto& parent_process = msos::kernel::process::scheduler->current_process();
     std::size_t diff = (reinterpret_cast<std::size_t>(parent_process.stack_pointer()) + parent_process.stack_size()) - get_sp();
     std::size_t return_address = reinterpret_cast<std::size_t>(__builtin_return_address(0));
     auto& child_process = processes->create_process(parent_process, diff, return_address);
-    
+
     printf("Child proccess forked with PID: %d\n", child_process.pid());
     processes->print();
     return child_process.pid();

@@ -17,7 +17,29 @@
 #include "msos/kernel/synchronization/semaphore.hpp"
 #include "msos/kernel/synchronization/atomic.hpp"
 
+#include "msos/kernel/process/scheduler.hpp"
+
 #include <cstdio>
+
+#include <stm32f10x.h>
+
+extern "C"
+{
+
+void block()
+{
+    printf("Block\n");
+    msos::kernel::process::scheduler->current_process().block();
+    SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
+}
+
+void unblock()
+{
+    msos::kernel::process::scheduler->unblock_all();
+    SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
+}
+
+}
 
 namespace msos
 {
@@ -33,29 +55,19 @@ Semaphore::Semaphore(uint32_t value)
 
 int Semaphore::wait()
 {
-    asm volatile inline 
-        ("wait_loop:\n\t"
-         "ldrex r1, [%[from]]\n\t"
-         "cmp r1, #0\n\t"
-         "beq wait_loop\n\t"
-         "sub r1, #1\n\t"
-         "strex r2, r1, [%[from]]\n\t"
-         "cmp r2, #0\n\t"
-         "bne wait_loop\n\t"
-         "dmb\n\t" 
-         : 
-         : [from] "r" (&value_)
-         );
+    printf("wait\n");
+    asm volatile inline("wait_loop:\n\t"
+        "ldrex r1, [%[from]]\n\t"
+        "cmp r1, #0\n\t"
+        "beq block\n\t"
+        "sub r1, #1\n\t"
+        "strex r2, r1, [%[from]]\n\t"
+        "cmp r2, #0\n\t"
+        "bne wait_loop\n\t"
+        "dmb\n\t"
+        :
+        : [from] "r" (&value_));
 
-   // printf("after wait %d\n", value_);
-   /* volatile int copy = 0;
-    do
-    {
-        copy = atomic::__ldrex(&value_);
-        if (copy == 0) continue;
-        --copy;
-    } while (atomic::__strex(copy, &value_) != 0);
-    atomic::__dmb(); */
     return true;
 }
 
@@ -73,13 +85,6 @@ int Semaphore::post()
         : [from] "r" (&value_)
         );
 
-    /*volatile int copy = 0;
-    do
-    {
-        copy = atomic::__ldrex(&value_);
-        ++copy;
-    } while (atomic::__strex(copy, &value_) != 0);
-    atomic::__dmb();*/
     return true;
 }
 

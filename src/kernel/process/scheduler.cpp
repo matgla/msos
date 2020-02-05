@@ -1,4 +1,4 @@
-// This file is part of MSOS project. 
+// This file is part of MSOS project.
 // Copyright (C) 2019 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
@@ -27,20 +27,29 @@ namespace kernel
 namespace process
 {
 
+// static Process* current_process;
+
+
 Scheduler::Scheduler(ProcessManager& processes)
     : processes_(processes)
     , current_process_(processes_.get_processes().begin())
 {
-} 
+}
 
-const Process& Scheduler::current_process() const 
+const Process& Scheduler::current_process() const
 {
-    return *current_process_; 
+    return *current_process_;
 }
 
 Process& Scheduler::current_process()
 {
     return *current_process_;
+}
+
+ProcessManager::ContainerType::iterator Scheduler::get_next()
+{
+    return std::next(current_process_) == processes_.get_processes().end() ?
+        processes_.get_processes().begin() : std::next(current_process_);
 }
 
 const std::size_t* Scheduler::schedule_next()
@@ -49,30 +58,34 @@ const std::size_t* Scheduler::schedule_next()
     {
         return nullptr;
     }
-    if (processes_.get_processes().size() == 1)
+
+    auto next = get_next();
+    if (next->get_state() == Process::State::Running)
     {
-        current_process_ = processes_.get_processes().begin();
         return current_process_->current_stack_pointer();
     }
-    
-    if (current_process_ == processes_.get_processes().end())
+
+    if (next->get_state() == Process::State::Ready)
     {
-        current_process_ = processes_.get_processes().begin();
+        if (current_process_->get_state() == Process::State::Blocked)
+        printf("Current is: %d\n", current_process_->pid());
+        printf("Ready is: %d\n", next->pid());
+        current_process_ = next;
         return current_process_->current_stack_pointer();
     }
-    else 
-    {
-        ++current_process_;
-        if (current_process_ == processes_.get_processes().end())
-        {
-            current_process_ = processes_.get_processes().begin();
-        }
-    }
-    
-    return current_process_->current_stack_pointer(); 
+
+    return nullptr;
 }
 
-} // namespace process     
-} // namespace kernel     
-} // namespace msos 
+void Scheduler::unblock_all()
+{
+    for (auto& process : processes_.get_processes())
+    {
+        process.unblock();
+    }
+}
+
+} // namespace process
+} // namespace kernel
+} // namespace msos
 

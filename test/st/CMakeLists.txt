@@ -47,6 +47,7 @@ add_custom_target(generate_config_file)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+add_subdirectory(drivers)
 add_subdirectory(dynamic_linker)
 add_subdirectory(synchronization)
 

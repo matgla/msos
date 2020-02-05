@@ -1,4 +1,4 @@
-// This file is part of MSOS project. 
+// This file is part of MSOS project.
 // Copyright (C) 2019 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once 
+#pragma once
 
 #include <list>
 
@@ -37,13 +37,18 @@ public:
     const Process& current_process() const;
     Process& current_process();
     const std::size_t* schedule_next();
+    void unblock_all();
 
 private:
+    ProcessManager::ContainerType::iterator get_next();
+
     ProcessManager& processes_;
     ProcessManager::ContainerType::iterator current_process_;
 };
 
-} // namespace process     
-} // namespace kernel     
-} // namespace msos 
+static Scheduler* scheduler;
+
+} // namespace process
+} // namespace kernel
+} // namespace msos
 

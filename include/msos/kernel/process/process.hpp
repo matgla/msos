@@ -32,7 +32,7 @@ namespace msos
 {
 namespace kernel
 {
-namespace process 
+namespace process
 {
 
 /* TODO: This shouldn't be placed directly in kernel, but in some abstraction */
@@ -46,9 +46,18 @@ constexpr uint32_t return_to_thread_mode_with_fp_msp  = 0xffffffe9;
 constexpr uint32_t return_to_thread_mode_with_fp_psp  = 0xffffffed;
 
 
-class Process 
+class Process
 {
 public:
+    enum class State : uint8_t
+    {
+        Ready,
+        Blocked,
+        Running,
+        Killed
+    };
+
+
     Process() = default;
     Process(const Process& parent, const std::size_t process_entry, const std::size_t return_address);
     Process(std::size_t* stack_pointer, const std::size_t stack_size);
@@ -58,20 +67,17 @@ public:
 
     pid_t pid() const;
     std::size_t stack_size() const;
-    const std::size_t* current_stack_pointer(); 
+    const std::size_t* current_stack_pointer();
     const std::size_t* current_stack_pointer() const;
     const std::size_t* stack_pointer() const;
-    void current_stack_pointer(const std::size_t* stack_pointer);        
+    void current_stack_pointer(const std::size_t* stack_pointer);
     void kill();
     std::size_t stack_usage() const;
-private: 
-    enum class State : uint8_t 
-    {
-        Ready,
-        Blocked, 
-        Running,
-        Killed
-    };
+
+    void block();
+    void unblock();
+    State get_state() const;
+private:
 
     State state_;
     pid_t pid_;

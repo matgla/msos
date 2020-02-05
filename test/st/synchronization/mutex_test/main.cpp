@@ -31,7 +31,6 @@
 
 hal::UsartWriter writer;
 
-static msos::kernel::synchronization::Semaphore mutex(1);
 static msos::kernel::synchronization::Semaphore stdio_mutex_(1);
 
 msos::kernel::synchronization::Mutex mutex_;
@@ -52,52 +51,41 @@ void kernel_process()
         writer << "Parent is going to sleep" << endl;
 
         hal::time::sleep(std::chrono::milliseconds(200));
-        int i = 0;
         writer << "Parent finished waiting" << endl;
         mutex_.unlock();
         while (true) {
-            // writer << "PL" << endl;
             stdio_mutex_.wait();
-            writer << "P" << endl;
+            writer << "Parent is working" << endl;
             stdio_mutex_.post();
-            // writer << "PU" << endl;
-            hal::time::sleep(std::chrono::microseconds(15000));
-            //hal::time::sleep(std::chrono::milliseconds(100));
-            // writer << "PE" << endl;
+            hal::time::sleep(std::chrono::milliseconds(100));
         }
-        writer << i << endl;
     }
     else
     {
-
         writer << "Child is starting" << endl;
         mutex_.lock();
         writer << "Child is going to sleep" << endl;
         hal::time::sleep(std::chrono::milliseconds(150));
         writer << "Child finished waiting" << endl;
-        int i = 0;
 
         mutex_.unlock();
         while (true) {
-            // writer << "CS" << endl;
-            hal::time::sleep(std::chrono::microseconds(1222));
-
+            hal::time::sleep(std::chrono::milliseconds(150));
             stdio_mutex_.wait();
-            writer << "C" << endl;
+            writer << "Child is working" << endl;
+            writer << "[TEST DONE]" << endl;
             stdio_mutex_.post();
-            writer << "CU" << endl;
         }
-        writer << i << endl;
     }
 }
-#include <cstring>
+
 int main()
 {
     hal::core::Core::initializeClocks();
     using LED = board::gpio::LED_BLUE;
     LED::init(hal::gpio::Output::OutputPushPull, hal::gpio::Speed::Default);
     using Usart = board::interfaces::Usart1;
-    Usart::init(9600);
+    Usart::init(115200);
     hal::time::Time::init();
 
     writer << "[TEST START]" << endl;

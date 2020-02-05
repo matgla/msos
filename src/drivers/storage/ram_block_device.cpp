@@ -31,12 +31,12 @@ namespace storage
 
 int RamBlockDevice::init()
 {
-    // uint32_t ref_counter = kernel::atomic::increment<uint32_t>(reference_counter_, 1);
+    uint32_t ref_counter = kernel::atomic::increment<uint32_t>(reference_counter_, 1);
 
-    // if (ref_counter != 1)
-    // {
-    //     return 0;
-    // }
+    if (ref_counter != 1)
+    {
+        return 0;
+    }
 
     if (!memory_)
     {
@@ -60,12 +60,12 @@ int RamBlockDevice::deinit()
         return 0;
     }
 
-    // uint32_t ref_counter = kernel::atomic::decrement<uint32_t>(reference_counter_, 1);
+    uint32_t ref_counter = kernel::atomic::decrement<uint32_t>(reference_counter_, 1);
 
-    // if (ref_counter != 0)
-    // {
-    //     return 0;
-    // }
+    if (ref_counter != 0)
+    {
+        return 0;
+    }
 
     was_initialized_ = false;
     return 0;
