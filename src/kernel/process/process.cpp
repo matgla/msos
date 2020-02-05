@@ -168,6 +168,7 @@ void Process::current_stack_pointer(const std::size_t* stack_pointer)
 
 void Process::block()
 {
+    printf("State set to blocked %d\n", pid_);
     state_ = State::Blocked;
 }
 
