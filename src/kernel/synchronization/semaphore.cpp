@@ -56,7 +56,6 @@ Semaphore::Semaphore(uint32_t value)
 
 int Semaphore::wait()
 {
-    printf("wait\n");
     asm volatile inline("wait_loop:\n\t"
         "ldrex r1, [%[from]]\n\t"
         "cmp r1, #0\n\t"
@@ -81,7 +80,9 @@ int Semaphore::post()
         "strex r2, r1, [%[from]]\n\t"
         "cmp r2, #0\n\t"
         "bne post_loop\n\t"
+        "cmp r0, #1\n\t"
         "dmb\n\t"
+        "bge unblock\n\t"
         :
         : [from] "r" (&value_)
         );

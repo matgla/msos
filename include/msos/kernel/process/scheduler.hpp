@@ -46,7 +46,7 @@ private:
     ProcessManager::ContainerType::iterator current_process_;
 };
 
-static Scheduler* scheduler;
+extern Scheduler* scheduler;
 
 } // namespace process
 } // namespace kernel

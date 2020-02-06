@@ -43,7 +43,19 @@ std::size_t* stack_start = &__stack_start;
 constexpr std::size_t default_stack_size = 1024;
 
 msos::kernel::process::ProcessManager* processes;
-// msos::kernel::process::Scheduler* scheduler;
+
+namespace msos
+{
+namespace kernel 
+{
+namespace process 
+{
+
+Scheduler* scheduler;
+}
+}
+}
+
 
 static bool was_initialized = false;
 static bool first = true;

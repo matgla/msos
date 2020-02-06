@@ -16,6 +16,8 @@
 
 #include <cstring>
 
+#include "msos/usart_printer.hpp"
+
 #include "msos/kernel/process/process.hpp"
 #include "msos/kernel/process/registers.hpp"
 
@@ -29,7 +31,6 @@ namespace process
 constexpr uint32_t default_psr_status = 0x01000000;
 
 static pid_t pid_counter = 1;
-
 Process::Process(const Process& parent, const std::size_t process_entry, const std::size_t return_address)
     : state_(State::Ready)
     , pid_(pid_counter++)
@@ -46,20 +47,20 @@ Process::Process(const Process& parent, const std::size_t process_entry, const s
     std::memcpy(stack_.get(), parent.stack_.get(), parent.stack_size());
     HardwareStoredRegisters* hw_registers = reinterpret_cast<HardwareStoredRegisters*>(stack_ptr + sizeof(SoftwareStoredRegisters));
     hw_registers->r0 = 0;
-    hw_registers->r1 = 1;
-    hw_registers->r2 = 2;
-    hw_registers->r3 = 3;
+    hw_registers->r1 = 0;
+    hw_registers->r2 = 0;
+    hw_registers->r3 = 0;
 
     SoftwareStoredRegisters* sw_registers = reinterpret_cast<SoftwareStoredRegisters*>(stack_ptr);
 
-    sw_registers->r4 = 4;
-    sw_registers->r5 = 5;
-    sw_registers->r6 = 6;
-    sw_registers->r7 = 7;
-    sw_registers->r8 = 8;
-    sw_registers->r9 = 9;
-    sw_registers->r10 = 10;
-    sw_registers->r11 = 11;
+    sw_registers->r4 = 0;
+    sw_registers->r5 = 0;
+    sw_registers->r6 = 0;
+    sw_registers->r7 = 0;
+    sw_registers->r8 = 0;
+    sw_registers->r9 = 0;
+    sw_registers->r10 = 0;
+    sw_registers->r11 = 0;
 
     hw_registers->psr = default_psr_status;
     hw_registers->lr = 0;
@@ -100,20 +101,20 @@ Process::Process(const std::size_t process_entry, const std::size_t stack_size)
 
     HardwareStoredRegisters* hw_registers = reinterpret_cast<HardwareStoredRegisters*>(stack_ptr + sizeof(SoftwareStoredRegisters));
     hw_registers->r0 = 0;
-    hw_registers->r1 = 1;
-    hw_registers->r2 = 2;
-    hw_registers->r3 = 3;
+    hw_registers->r1 = 0;
+    hw_registers->r2 = 0;
+    hw_registers->r3 = 0;
 
     SoftwareStoredRegisters* sw_registers = reinterpret_cast<SoftwareStoredRegisters*>(stack_ptr);
 
-    sw_registers->r4 = 4;
-    sw_registers->r5 = 5;
-    sw_registers->r6 = 6;
-    sw_registers->r7 = 7;
-    sw_registers->r8 = 8;
-    sw_registers->r9 = 9;
-    sw_registers->r10 = 10;
-    sw_registers->r11 = 11;
+    sw_registers->r4 = 0;
+    sw_registers->r5 = 0;
+    sw_registers->r6 = 0;
+    sw_registers->r7 = 0;
+    sw_registers->r8 = 0;
+    sw_registers->r9 = 0;
+    sw_registers->r10 = 0;
+    sw_registers->r11 = 0;
 
     //uint32_t psp = get_psp();
     hw_registers->psr = default_psr_status;
@@ -168,7 +169,7 @@ void Process::current_stack_pointer(const std::size_t* stack_pointer)
 
 void Process::block()
 {
-    printf("State set to blocked %d\n", pid_);
+    UsartWriter{} << "State set to blocked: " << pid_ << hex << ", 0x" <<  reinterpret_cast<uint32_t>(this) << endl;
     state_ = State::Blocked;
 }
 
@@ -179,7 +180,6 @@ void Process::unblock()
         state_ = State::Ready;
     }
 }
-
 
 Process::State Process::get_state() const
 {

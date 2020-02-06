@@ -28,8 +28,6 @@ namespace process
 {
 
 // static Process* current_process;
-
-
 Scheduler::Scheduler(ProcessManager& processes)
     : processes_(processes)
     , current_process_(processes_.get_processes().begin())
@@ -60,21 +58,18 @@ const std::size_t* Scheduler::schedule_next()
     }
 
     auto next = get_next();
-    if (next->get_state() == Process::State::Running)
+    while (next->get_state() != Process::State::Running)
     {
-        return current_process_->current_stack_pointer();
-    }
-
-    if (next->get_state() == Process::State::Ready)
-    {
-        if (current_process_->get_state() == Process::State::Blocked)
-        printf("Current is: %d\n", current_process_->pid());
-        printf("Ready is: %d\n", next->pid());
         current_process_ = next;
-        return current_process_->current_stack_pointer();
+        if (next->get_state() == Process::State::Ready)
+        {
+            if (current_process_->get_state() == Process::State::Blocked)
+            return current_process_->current_stack_pointer();
+        }
+        next = get_next();
     }
 
-    return nullptr;
+    return current_process_->current_stack_pointer();
 }
 
 void Scheduler::unblock_all()
