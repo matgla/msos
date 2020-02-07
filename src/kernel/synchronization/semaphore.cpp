@@ -19,8 +19,6 @@
 
 #include "msos/kernel/process/scheduler.hpp"
 
-#include <cstdio>
-
 #include <stm32f10x.h>
 
 extern "C"
@@ -28,14 +26,12 @@ extern "C"
 
 void block()
 {
-    printf("Block %d\n", msos::kernel::process::scheduler->current_process().pid());
     msos::kernel::process::scheduler->current_process().block();
     SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
 }
 
 void unblock()
 {
-    printf("Unblock %d\n", msos::kernel::process::scheduler->current_process().pid());
     msos::kernel::process::scheduler->unblock_all();
     SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
 }

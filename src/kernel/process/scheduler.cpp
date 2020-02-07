@@ -61,9 +61,8 @@ const std::size_t* Scheduler::schedule_next()
     while (next->get_state() != Process::State::Running)
     {
         current_process_ = next;
-        if (next->get_state() == Process::State::Ready)
+        if (current_process_->get_state() == Process::State::Ready || current_process_->get_state() == Process::State::Running)
         {
-            if (current_process_->get_state() == Process::State::Blocked)
             return current_process_->current_stack_pointer();
         }
         next = get_next();

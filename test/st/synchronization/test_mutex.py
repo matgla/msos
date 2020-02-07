@@ -26,7 +26,7 @@ def test_mutex_synchronization():
     sut.expect("Parent is going to sleep", 1)
     sut.expect("Child is starting", 1)
     sut.expect("Parent finished waiting", 1)
-    sut.expect("Parent is working", 1)
+    # sut.expect("Parent is working", 1)
     sut.expect("Child is going to sleep", 1)
     sut.expect("Parent is working", 1)
     sut.expect("Child finished waiting", 1)
