@@ -46,9 +46,9 @@ msos::kernel::process::ProcessManager* processes;
 
 namespace msos
 {
-namespace kernel 
+namespace kernel
 {
-namespace process 
+namespace process
 {
 
 Scheduler* scheduler;
@@ -61,7 +61,7 @@ static bool was_initialized = false;
 static bool first = true;
 void __attribute__((naked)) PendSV_Handler(void)
 {
-    if (!first)
+    if (!first && !msos::kernel::process::scheduler->current_process_was_deleted())
     {
 
         asm volatile inline (

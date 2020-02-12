@@ -52,6 +52,7 @@ ProcessManager::ContainerType::iterator Scheduler::get_next()
 
 const std::size_t* Scheduler::schedule_next()
 {
+    current_process_was_deleted_ = false;
     if (processes_.get_processes().empty())
     {
         return nullptr;

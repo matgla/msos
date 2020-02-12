@@ -93,6 +93,30 @@ static msos::kernel::synchronization::Semaphore mutex(1);
 
 msos::kernel::synchronization::Mutex mutex_;
 
+void printa()
+{
+    writer << "Some print" << endl;
+}
+
+void child_fun()
+{
+    writer << "Child" << endl;
+    // mutex_.lock();
+    // writer << "Child is going to sleep" << endl;
+    // hal::time::sleep(std::chrono::milliseconds(500));
+
+    // writer << "Child Done" << endl;
+    // printa();
+    // mutex_.unlock();
+    // while (true) {
+    //     hal::time::sleep(std::chrono::milliseconds(500));
+    //     writer << "Child" << endl;
+    // }
+    // asm inline("bx lr");
+    exit(0);
+    return;
+}
+
 void kernel_process()
 {
     printf("Hello from Kernel\n");
@@ -105,7 +129,7 @@ void kernel_process()
 
         writer << "parent going to sleep" << endl;
 
-        hal::time::sleep(std::chrono::seconds(5));
+        hal::time::sleep(std::chrono::seconds(1));
 
         writer << "Parent Done" << endl;
         mutex_.unlock();
@@ -116,18 +140,7 @@ void kernel_process()
     }
     else
     {
-
-        writer << "Child" << endl;
-        mutex_.lock();
-        writer << "Child is going to sleep" << endl;
-        hal::time::sleep(std::chrono::seconds(1));
-
-        writer << "Child Done" << endl;
-        mutex_.unlock();
-        while (true) {
-            hal::time::sleep(std::chrono::milliseconds(500));
-            writer << "Child" << endl;
-        }
+        child_fun();
     }
 }
 #include <cstring>
@@ -194,7 +207,7 @@ int main()
 
     //hal::time::sleep(std::chrono::milliseconds(500));
 
-    //root_process(reinterpret_cast<std::size_t>(&kernel_process));
+    root_process(reinterpret_cast<std::size_t>(&kernel_process));
 
     while (true)
     {

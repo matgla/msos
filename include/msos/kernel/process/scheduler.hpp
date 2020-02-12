@@ -38,12 +38,27 @@ public:
     Process& current_process();
     const std::size_t* schedule_next();
     void unblock_all();
+    ProcessManager& get_processes()
+    {
+        return processes_;
+    }
+
+    bool current_process_was_deleted()
+    {
+        return current_process_was_deleted_;
+    }
+
+    void current_process_was_deleted(bool v)
+    {
+        current_process_was_deleted_ = v;
+    }
 
 private:
     ProcessManager::ContainerType::iterator get_next();
 
     ProcessManager& processes_;
     ProcessManager::ContainerType::iterator current_process_;
+    bool current_process_was_deleted_ = false;
 };
 
 extern Scheduler* scheduler;

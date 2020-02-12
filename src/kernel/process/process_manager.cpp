@@ -1,4 +1,4 @@
-// This file is part of MSOS project. 
+// This file is part of MSOS project.
 // Copyright (C) 2019 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
@@ -16,11 +16,13 @@
 
 #include "msos/kernel/process/process_manager.hpp"
 
+#include <algorithm>
 #include <cstdio>
 
 #include <hal/core/criticalSection.hpp>
 
 #include "msos/kernel/process/process.hpp"
+#include <stm32f10x.h>
 
 
 namespace msos
@@ -30,7 +32,7 @@ namespace kernel
 namespace process
 {
 
-ProcessManager::ProcessManager() : processes_{} 
+ProcessManager::ProcessManager() : processes_{}
 {
 }
 
@@ -50,7 +52,7 @@ Process& ProcessManager::create_process(std::size_t process_entry, std::size_t s
     return processes_.back();
 }
 
-const ProcessManager::ContainerType& ProcessManager::get_processes() const 
+const ProcessManager::ContainerType& ProcessManager::get_processes() const
 {
     return processes_;
 }
@@ -60,7 +62,7 @@ ProcessManager::ContainerType& ProcessManager::get_processes()
     return processes_;
 }
 
-void ProcessManager::print() const 
+void ProcessManager::print() const
 {
     printf("Process list\n");
     printf("============\n");
@@ -70,7 +72,22 @@ void ProcessManager::print() const
     }
 }
 
-} // namespace process     
-} // namespace kernel 
-} // namespace msos 
+void ProcessManager::delete_process(pid_t pid)
+{
+    printf("Deleting process with pid %d\n", pid);
+    auto it = std::find_if(processes_.begin(), processes_.end(), [pid](const Process& process) {
+        return process.pid() == pid;
+    });
+
+    if (it != processes_.end())
+    {
+        processes_.erase(it);
+    }
+    print();
+    SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
+}
+
+} // namespace process
+} // namespace kernel
+} // namespace msos
 

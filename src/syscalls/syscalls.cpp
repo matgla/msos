@@ -25,6 +25,8 @@
 #include <hal/memory/heap.hpp>
 #include <board.hpp>
 
+#include "msos/kernel/process/scheduler.hpp"
+
 extern "C"
 {
     int _gettimeofday(struct timeval* tv, void* tzvp);
@@ -47,7 +49,12 @@ int _gettimeofday(struct timeval* tv, void* tzvp)
 
 void _exit(int code)
 {
+    printf("Process exited\n");
+    msos::kernel::process::scheduler->get_processes().delete_process(msos::kernel::process::scheduler->current_process().pid());
+    msos::kernel::process::scheduler->current_process_was_deleted(true);
+    while(1);
 }
+
 int _kill(int pid, int sig)
 {
     return 0;

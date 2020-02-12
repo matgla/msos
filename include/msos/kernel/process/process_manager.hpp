@@ -21,11 +21,11 @@
 #include "msos/kernel/process/fwd.hpp"
 #include "msos/kernel/process/process.hpp"
 
-namespace msos 
+namespace msos
 {
 namespace kernel
 {
-namespace process 
+namespace process
 {
 
 class ProcessManager
@@ -37,6 +37,8 @@ public:
 
     Process& create_process(std::size_t process_entry, std::size_t stack_size);
 
+    void delete_process(pid_t pid);
+
     const ContainerType& get_processes() const;
     ContainerType& get_processes();
     void print() const;
@@ -45,6 +47,6 @@ private:
 };
 
 } // namespace process
-} // namespace kernel 
+} // namespace kernel
 } // namespace msos
 
