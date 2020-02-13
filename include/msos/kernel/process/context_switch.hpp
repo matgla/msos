@@ -1,4 +1,4 @@
-// This file is part of MSOS project. 
+// This file is part of MSOS project.
 // Copyright (C) 2019 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
 
 #include <cstdint>
 
-extern "C" 
+extern "C"
 {
 
 static __inline__ uint32_t get_program_counter()
@@ -29,7 +29,7 @@ static __inline__ uint32_t get_program_counter()
 static __inline__ uint32_t get_sp()
 {
     uint32_t sp;
-    asm ("mov %0, sp" : "=r"(sp));
+    asm ("mrs %0, psp" : "=r"(sp));
     return sp;
 }
 

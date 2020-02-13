@@ -39,6 +39,14 @@ void exit_handler()
 
 constexpr uint32_t default_psr_status = 0x21000000;
 
+void print_stack(const uint32_t* stack, std::size_t length)
+{
+    for (std::size_t i = 0; i < length / 4; i+=4)
+    {
+        printf("%p: 0x%08x 0x%08x 0x%08x 0x%08x\n", &stack[i], stack[i], stack[i+1], stack[i+2], stack[i+3]);
+    }
+}
+
 static pid_t pid_counter = 1;
 Process::Process(const Process& parent, const std::size_t process_entry, const std::size_t return_address)
     : state_(State::Ready)
@@ -47,11 +55,14 @@ Process::Process(const Process& parent, const std::size_t process_entry, const s
     , stack_(new std::size_t[parent.stack_size()/(sizeof(std::size_t))]())
 {
     uint8_t* stack_ptr = reinterpret_cast<uint8_t*>(stack_.get()) + stack_size_ - sizeof(HardwareStoredRegisters);
+    printf("Process stack difference %x, stack start %p, current sp %p: \n", process_entry, stack_.get(), stack_ptr);
+
     // std::size_t required_stack_size = process_entry * sizeof(std::size_t) + sizeof(HardwareStoredRegisters) + sizeof(SoftwareStoredRegisters);
     // if (required_stack_size >= stack_size_)
     // {
     //     printf ("Not enough space on stack in child task, required %d bytes.\n", required_stack_size);
     // }
+
 
     std::memcpy(stack_.get(), parent.stack_.get(), parent.stack_size());
     HardwareStoredRegisters* hw_registers = reinterpret_cast<HardwareStoredRegisters*>(stack_ptr);
@@ -77,6 +88,13 @@ Process::Process(const Process& parent, const std::size_t process_entry, const s
     hw_registers->pc = return_address;
     sw_registers->lr = return_to_thread_mode_psp;
     current_stack_pointer_ = reinterpret_cast<std::size_t*>(stack_ptr);
+
+    printf("Parent stack dump\n===============================\n");
+    print_stack(reinterpret_cast<uint32_t*>(parent.stack_.get()), stack_size_);
+    printf("Child stack dump\n===============================\n");
+    print_stack(reinterpret_cast<uint32_t*>(stack_.get()), stack_size_);
+
+    printf("Current SP: %p\n", current_stack_pointer_);
 }
 
 Process::Process(const Process& process)

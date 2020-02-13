@@ -25,11 +25,13 @@
 #include "msos/kernel/process/process.hpp"
 
 #include <hal/time/time.hpp>
+#include <hal/core/criticalSection.hpp>
 
 #include <stm32f10x.h>
 
 extern "C"
 {
+
     pid_t _fork();
     pid_t getpid();
 
@@ -37,6 +39,13 @@ extern "C"
     void PendSV_Handler(void);
 }
 
+static inline uint32_t get_PRIMASK()
+{
+    uint32_t mask;
+    asm inline volatile(
+        "mrs %0, primask\n" : "=r"(mask));
+    return mask;
+}
 
 extern std::size_t __stack_start;
 std::size_t* stack_start = &__stack_start;
@@ -111,7 +120,7 @@ pid_t root_process(const std::size_t process)
     processes = new msos::kernel::process::ProcessManager();
     msos::kernel::process::scheduler = new msos::kernel::process::Scheduler(*processes);
 
-    auto& root_process = processes->create_process(process, 2048);
+    auto& root_process = processes->create_process(process, default_stack_size);
     processes->print();
     msos::kernel::process::scheduler->schedule_next();
     NVIC_SetPriority(PendSV_IRQn, 0xff); /* Lowest possible priority */
@@ -122,7 +131,10 @@ pid_t root_process(const std::size_t process)
         i++;
         if (i > 100)
         {
-            SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
+            if (get_PRIMASK() != 1)
+            {
+                SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
+            }
         i = 0;
         }
     });
@@ -132,13 +144,15 @@ pid_t root_process(const std::size_t process)
 
 pid_t _fork()
 {
+    hal::core::startCriticalSection();
     auto& parent_process = msos::kernel::process::scheduler->current_process();
-    std::size_t diff = (reinterpret_cast<std::size_t>(parent_process.stack_pointer()) + parent_process.stack_size()) - get_sp();
     std::size_t return_address = reinterpret_cast<std::size_t>(__builtin_return_address(0));
+    std::size_t diff = (reinterpret_cast<std::size_t>(parent_process.stack_pointer()) + parent_process.stack_size()) - get_sp();
     auto& child_process = processes->create_process(parent_process, diff, return_address);
 
     printf("Child proccess forked with PID: %d\n", child_process.pid());
     processes->print();
+    hal::core::stopCriticalSection();
     return child_process.pid();
 }
 

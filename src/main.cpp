@@ -98,22 +98,69 @@ void printa()
     writer << "Some print" << endl;
 }
 
+void b_finish()
+{
+    writer << "B finished" << endl;
+}
+
+void print_stack(std::size_t length)
+{
+    mutex_.lock();
+    const uint32_t* stack;
+    asm inline("mrs %0, psp" : "=r"(stack));
+    stack-=4;
+    for (std::size_t i = 0; i < length; i+=4)
+    {
+        printf("%p: 0x%08x 0x%08x 0x%08x 0x%08x\n", &stack[i], stack[i], stack[i+1], stack[i+2], stack[i+3]);
+    }
+    mutex_.unlock();
+}
+
 void child_fun()
 {
     writer << "Child" << endl;
-    // mutex_.lock();
-    // writer << "Child is going to sleep" << endl;
-    // hal::time::sleep(std::chrono::milliseconds(500));
+    mutex_.lock();
+    writer << "Child is going to sleep" << endl;
+    hal::time::sleep(std::chrono::milliseconds(500));
 
-    // writer << "Child Done" << endl;
-    // printa();
-    // mutex_.unlock();
-    // while (true) {
-    //     hal::time::sleep(std::chrono::milliseconds(500));
-    //     writer << "Child" << endl;
-    // }
-    // asm inline("bx lr");
-    exit(0);
+    writer << "Child Done" << endl;
+    printa();
+    mutex_.unlock();
+    int i = 0;
+    int data = 0xfacefade;
+    int out;
+    asm volatile inline (
+                "mov %[out], %[in]\n\t"
+                "push {%[out]}\n\t"
+                : [out] "=r" (out)
+                : [in] "r" (data)
+                );
+    if (_fork())
+    {
+        printf("Stack in child A\n");
+        print_stack(10);
+        while (i < 2)
+        {
+            hal::time::sleep(std::chrono::milliseconds(500));
+            writer << "Child A" << endl;
+            i++;
+        }
+    }
+    else
+    {
+        printf("Stack in child B\n");
+        print_stack(10);
+
+        while (i < 4)
+        {
+            hal::time::sleep(std::chrono::milliseconds(500));
+            writer << "Child B" << endl;
+            i++;
+        }
+
+        b_finish();
+    }
+
     return;
 }
 
@@ -142,6 +189,12 @@ void kernel_process()
     {
         child_fun();
     }
+
+    // Child process default exit
+    exit(0);
+
+    // Main process should never goes here
+    while (true) {}
 }
 #include <cstring>
 int main()
@@ -207,6 +260,7 @@ int main()
 
     //hal::time::sleep(std::chrono::milliseconds(500));
 
+    // __disable_irq();
     root_process(reinterpret_cast<std::size_t>(&kernel_process));
 
     while (true)

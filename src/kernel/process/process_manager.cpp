@@ -38,17 +38,13 @@ ProcessManager::ProcessManager() : processes_{}
 
 Process& ProcessManager::create_process(const Process& parent, const std::size_t process_entry, const std::size_t return_address)
 {
-    hal::core::startCriticalSection();
     processes_.emplace_back(parent, process_entry, return_address);
-    hal::core::stopCriticalSection();
     return processes_.back();
 }
 
 Process& ProcessManager::create_process(std::size_t process_entry, std::size_t stack_size)
 {
-    hal::core::startCriticalSection();
     processes_.emplace_back(process_entry, stack_size);
-    hal::core::stopCriticalSection();
     return processes_.back();
 }
 
