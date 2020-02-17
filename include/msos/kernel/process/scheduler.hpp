@@ -34,6 +34,8 @@ class Scheduler
 public:
     Scheduler(ProcessManager& processes);
 
+    void delete_process(pid_t pid);
+
     const Process& current_process() const;
     Process& current_process();
     const std::size_t* schedule_next();

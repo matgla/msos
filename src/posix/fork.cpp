@@ -92,6 +92,7 @@ void __attribute__((naked)) PendSV_Handler(void)
     asm volatile inline (
             "mov r0, %0\n" : : "r" (msos::kernel::process::scheduler->schedule_next())
     );
+
     asm volatile inline (
             "ldmia r0!, {r4 - r11, lr}\n"
             "msr psp, r0\n"
@@ -142,17 +143,24 @@ pid_t root_process(const std::size_t process)
    return root_process.pid();
 }
 
-pid_t _fork()
+
+pid_t process_fork(uint32_t sp)
 {
     hal::core::startCriticalSection();
     auto& parent_process = msos::kernel::process::scheduler->current_process();
+    std::size_t diff = (reinterpret_cast<std::size_t>(parent_process.stack_pointer()) + parent_process.stack_size()) - sp;
     std::size_t return_address = reinterpret_cast<std::size_t>(__builtin_return_address(0));
-    std::size_t diff = (reinterpret_cast<std::size_t>(parent_process.stack_pointer()) + parent_process.stack_size()) - get_sp();
     auto& child_process = processes->create_process(parent_process, diff, return_address);
 
     printf("Child proccess forked with PID: %d\n", child_process.pid());
     processes->print();
     hal::core::stopCriticalSection();
     return child_process.pid();
+}
+
+// This function must ensure that stack is not touched inside, but may calls such functions
+pid_t __attribute__((naked)) _fork()
+{
+    return process_fork(get_sp());
 }
 

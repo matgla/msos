@@ -19,6 +19,7 @@
 #include "msos/kernel/process/process_manager.hpp"
 
 #include <cstdio>
+#include <stm32f10x.h>
 
 namespace msos
 {
@@ -48,6 +49,16 @@ ProcessManager::ContainerType::iterator Scheduler::get_next()
 {
     return std::next(current_process_) == processes_.get_processes().end() ?
         processes_.get_processes().begin() : std::next(current_process_);
+}
+
+void Scheduler::delete_process(pid_t pid)
+{
+    printf("Deleting process with pid %d\n", pid);
+    if (pid == current_process_->pid())
+    {
+        current_process_ = get_next();
+    }
+    processes_.delete_process(pid);
 }
 
 const std::size_t* Scheduler::schedule_next()

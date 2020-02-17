@@ -80,7 +80,6 @@ void ProcessManager::delete_process(pid_t pid)
         processes_.erase(it);
     }
     print();
-    SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
 }
 
 } // namespace process

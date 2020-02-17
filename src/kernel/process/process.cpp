@@ -54,8 +54,8 @@ Process::Process(const Process& parent, const std::size_t process_entry, const s
     , stack_size_(parent.stack_size())
     , stack_(new std::size_t[parent.stack_size()/(sizeof(std::size_t))]())
 {
-    uint8_t* stack_ptr = reinterpret_cast<uint8_t*>(stack_.get()) + stack_size_ - sizeof(HardwareStoredRegisters);
-    printf("Process stack difference %x, stack start %p, current sp %p: \n", process_entry, stack_.get(), stack_ptr);
+    uint8_t* stack_ptr = reinterpret_cast<uint8_t*>(stack_.get()) + stack_size_ - sizeof(HardwareStoredRegisters) - process_entry;
+    printf("Process stack difference %x, stack start %p, current sp %p, dest dp %p\n", process_entry, stack_.get(), stack_ptr);
 
     // std::size_t required_stack_size = process_entry * sizeof(std::size_t) + sizeof(HardwareStoredRegisters) + sizeof(SoftwareStoredRegisters);
     // if (required_stack_size >= stack_size_)
@@ -89,10 +89,10 @@ Process::Process(const Process& parent, const std::size_t process_entry, const s
     sw_registers->lr = return_to_thread_mode_psp;
     current_stack_pointer_ = reinterpret_cast<std::size_t*>(stack_ptr);
 
-    printf("Parent stack dump\n===============================\n");
-    print_stack(reinterpret_cast<uint32_t*>(parent.stack_.get()), stack_size_);
-    printf("Child stack dump\n===============================\n");
-    print_stack(reinterpret_cast<uint32_t*>(stack_.get()), stack_size_);
+    // printf("Parent stack dump\n===============================\n");
+    // print_stack(reinterpret_cast<uint32_t*>(parent.stack_.get()), stack_size_);
+    // printf("Child stack dump\n===============================\n");
+    // print_stack(reinterpret_cast<uint32_t*>(stack_.get()), stack_size_);
 
     printf("Current SP: %p\n", current_stack_pointer_);
 }
