@@ -125,6 +125,7 @@ pid_t root_process(const std::size_t process)
     processes->print();
     msos::kernel::process::scheduler->schedule_next();
     NVIC_SetPriority(PendSV_IRQn, 0xff); /* Lowest possible priority */
+    NVIC_SetPriority(SVCall_IRQn, 0x01); /* Lowest possible priority */
     NVIC_SetPriority(SysTick_IRQn, 0x00); /* Highest possible priority */
     hal::time::Time::add_handler([](std::chrono::milliseconds)
     {
@@ -144,23 +145,50 @@ pid_t root_process(const std::size_t process)
 }
 
 
-pid_t process_fork(uint32_t sp)
+pid_t process_fork(uint32_t sp, uint32_t return_address)
 {
-    hal::core::startCriticalSection();
+    // hal::core::startCriticalSection();
     auto& parent_process = msos::kernel::process::scheduler->current_process();
     std::size_t diff = (reinterpret_cast<std::size_t>(parent_process.stack_pointer()) + parent_process.stack_size()) - sp;
-    std::size_t return_address = reinterpret_cast<std::size_t>(__builtin_return_address(0));
-    auto& child_process = processes->create_process(parent_process, diff, return_address);
+    auto& child_process = processes->create_process(parent_process, diff + 4, return_address);
 
     printf("Child proccess forked with PID: %d\n", child_process.pid());
     processes->print();
-    hal::core::stopCriticalSection();
+    // hal::core::stopCriticalSection();
     return child_process.pid();
+}
+
+
+extern "C"
+{
+pid_t _fork_p(uint32_t sp);
+}
+
+pid_t _fork_p(uint32_t sp)
+{
+    uint32_t syscall_return_code = 0;
+    printf("Fork syscall %p\n", syscall_return_code);
+    asm volatile inline("mov r0, #3");
+    asm volatile inline("mov r2, %0" : : "r"(&syscall_return_code));
+    asm volatile inline("mov r1, %0" : : "r"(reinterpret_cast<std::size_t>(__builtin_return_address(0))));
+    asm volatile inline("isb   \n\t"
+                        "dsb   \n\t"
+                        "svc 0 \n\t"
+                        "isb   \n\t"
+                        "dsb   \n\t");
+
+    printf("Fork returned %d\n", syscall_return_code);
+    return syscall_return_code;
 }
 
 // This function must ensure that stack is not touched inside, but may calls such functions
 pid_t __attribute__((naked)) _fork()
 {
-    return process_fork(get_sp());
+    asm volatile inline("push {r0, lr}\n\t"
+                        "mrs r0, PSP\n\t"
+                        "b _fork_p\n\t"
+                        "pop {r0, pc}\n\t"
+    );
+    // return _fork_p(get_sp());
 }
 

@@ -41,7 +41,59 @@ extern "C"
     int _lseek(int file, int ptr, int dir);
     int _close(int file);
     int _fstat(int file, struct stat* st);
+    void SVC_Handler();
+
 }
+pid_t process_fork(uint32_t sp, uint32_t return_address);
+
+volatile uint32_t old;
+volatile uint32_t counter = 0;
+
+static __inline__ uint32_t get_psp()
+{
+    uint32_t sp;
+    asm ("mrs %0, psp" : "=r"(sp));
+    return sp;
+}
+
+void SVC_Handler()
+{
+    uint32_t number;
+    asm volatile("mov %0, r0" :"=r"(number));
+    if (number == 1)
+    {
+        old = NVIC->ISER[0];
+        NVIC->ICER[0] = 0xffffffff;
+        __disable_irq();
+        __disable_fault_irq();
+        ++counter;
+    }
+    else if (number == 2 && counter != 1)
+    {
+        --counter;
+    }
+    else if (number == 2 && counter == 1)
+    {
+        NVIC->ISER[0] = old;
+        __enable_irq();
+        __enable_fault_irq();
+        --counter;
+    }
+    else if (number == 3)
+    {
+        uint32_t return_address;
+        uint32_t* val;
+
+        asm volatile inline("mov %0, r1" : "=r"(return_address));
+        asm volatile inline("mov %0, r2" : "=r"(val));
+        printf("Forking process: %x, %p\n", return_address, val);
+
+        uint32_t pid = process_fork(get_psp(), return_address);
+        *val = pid;
+        // asm volatile inline("STR %0, [r2]" : : "r"(pid));
+    }
+}
+
 
 int _gettimeofday(struct timeval* tv, void* tzvp)
 {
