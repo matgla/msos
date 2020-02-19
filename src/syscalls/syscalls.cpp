@@ -87,8 +87,9 @@ void SVC_Handler()
         asm volatile inline("mov %0, r1" : "=r"(return_address));
         asm volatile inline("mov %0, r2" : "=r"(val));
         printf("Forking process: %x, %p\n", return_address, val);
-
-        uint32_t pid = process_fork(get_psp(), return_address);
+        uint32_t sp;
+        asm volatile inline("mov %0, r4" : "=r"(sp));
+        uint32_t pid = process_fork(sp, return_address);
         *val = pid;
         // asm volatile inline("STR %0, [r2]" : : "r"(pid));
     }

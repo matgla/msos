@@ -67,32 +67,32 @@ Process::Process(const Process& parent, const std::size_t process_entry, const s
     std::memcpy(stack_.get(), parent.stack_.get(), parent.stack_size());
     HardwareStoredRegisters* hw_registers = reinterpret_cast<HardwareStoredRegisters*>(stack_ptr);
     hw_registers->r0 = 0;
-    hw_registers->r1 = 0;
-    hw_registers->r2 = 0;
-    hw_registers->r3 = 0;
+    hw_registers->r1 = 1;
+    hw_registers->r2 = 2;
+    hw_registers->r3 = 3;
 
     stack_ptr -= sizeof(SoftwareStoredRegisters);
     SoftwareStoredRegisters* sw_registers = reinterpret_cast<SoftwareStoredRegisters*>(stack_ptr);
 
-    sw_registers->r4 = 0;
-    sw_registers->r5 = 0;
-    sw_registers->r6 = 0;
-    sw_registers->r7 = 0;
-    sw_registers->r8 = 0;
-    sw_registers->r9 = 0;
-    sw_registers->r10 = 0;
-    sw_registers->r11 = 0;
+    sw_registers->r4 = 4;
+    sw_registers->r5 = 5;
+    sw_registers->r6 = 6;
+    sw_registers->r7 = 7;
+    sw_registers->r8 = 8;
+    sw_registers->r9 = 9;
+    sw_registers->r10 = 10;
+    sw_registers->r11 = 11;
 
     hw_registers->psr = default_psr_status;
-    hw_registers->lr = 0xDEADBEEF;
+    hw_registers->lr = reinterpret_cast<uint32_t>(&exit_handler);
     hw_registers->pc = return_address;
     sw_registers->lr = return_to_thread_mode_psp;
     current_stack_pointer_ = reinterpret_cast<std::size_t*>(stack_ptr);
 
-    // printf("Parent stack dump\n===============================\n");
-    // print_stack(reinterpret_cast<uint32_t*>(parent.stack_.get()), stack_size_);
-    // printf("Child stack dump\n===============================\n");
-    // print_stack(reinterpret_cast<uint32_t*>(stack_.get()), stack_size_);
+//    printf("Parent stack dump\n===============================\n");
+//    print_stack(reinterpret_cast<uint32_t*>(parent.stack_.get()), stack_size_);
+//    printf("Child stack dump\n===============================\n");
+//    print_stack(reinterpret_cast<uint32_t*>(stack_.get()), stack_size_);
 
     printf("Current SP: %p\n", current_stack_pointer_);
 }
@@ -146,7 +146,7 @@ Process::Process(const std::size_t process_entry, const std::size_t stack_size)
 
     //uint32_t psp = get_psp();
     hw_registers->psr = default_psr_status;
-    hw_registers->lr = 0xDEADBEEF;
+    hw_registers->lr = reinterpret_cast<uint32_t>(&exit_handler);
     hw_registers->pc = process_entry;
     sw_registers->lr = return_to_thread_mode_psp;
     current_stack_pointer_ = reinterpret_cast<std::size_t*>(stack_ptr);

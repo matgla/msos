@@ -149,8 +149,8 @@ pid_t process_fork(uint32_t sp, uint32_t return_address)
 {
     // hal::core::startCriticalSection();
     auto& parent_process = msos::kernel::process::scheduler->current_process();
-    std::size_t diff = (reinterpret_cast<std::size_t>(parent_process.stack_pointer()) + parent_process.stack_size()) - sp;
-    auto& child_process = processes->create_process(parent_process, diff + 4, return_address);
+    std::size_t diff = (reinterpret_cast<std::size_t>(parent_process.stack_pointer()) + parent_process.stack_size()) - sp - 8;
+    auto& child_process = processes->create_process(parent_process, diff, return_address);
 
     printf("Child proccess forked with PID: %d\n", child_process.pid());
     processes->print();
@@ -161,19 +161,21 @@ pid_t process_fork(uint32_t sp, uint32_t return_address)
 
 extern "C"
 {
-pid_t _fork_p(uint32_t sp);
+pid_t _fork_p(uint32_t sp, uint32_t link_register);
 }
 
-pid_t _fork_p(uint32_t sp)
+pid_t _fork_p(uint32_t sp, uint32_t link_register)
 {
     uint32_t syscall_return_code = 0;
     printf("Fork syscall %p\n", syscall_return_code);
     asm volatile inline("mov r0, #3");
-    asm volatile inline("mov r2, %0" : : "r"(&syscall_return_code));
-    asm volatile inline("mov r1, %0" : : "r"(reinterpret_cast<std::size_t>(__builtin_return_address(0))));
+    asm volatile inline("mov r4, %0" : : "r"(sp));
+    asm volatile inline("mov r2, %0" : : "r"(&syscall_return_code) : "r2");
+    asm volatile inline("mov r1, %0" : : "r"(link_register) : "r1");
     asm volatile inline("isb   \n\t"
                         "dsb   \n\t"
                         "svc 0 \n\t"
+                        "wfi   \n\t"
                         "isb   \n\t"
                         "dsb   \n\t");
 
@@ -184,10 +186,14 @@ pid_t _fork_p(uint32_t sp)
 // This function must ensure that stack is not touched inside, but may calls such functions
 pid_t __attribute__((naked)) _fork()
 {
-    asm volatile inline("push {r0, lr}\n\t"
+    asm volatile inline("isb\n\t"
+                        "push {r0, r1}\n\t"
+                        "mov r1, lr\n\t"
+                        "push {lr}\n\t"
                         "mrs r0, PSP\n\t"
-                        "b _fork_p\n\t"
-                        "pop {r0, pc}\n\t"
+                        "isb\n\t"
+                        "bl _fork_p\n\t"
+                        "pop {r0, r1, pc}\n\t"
     );
     // return _fork_p(get_sp());
 }
