@@ -48,15 +48,15 @@ void print_stack(const uint32_t* stack, std::size_t length)
 }
 
 static pid_t pid_counter = 1;
-Process::Process(const Process& parent, const std::size_t process_entry, const std::size_t return_address)
+Process::Process(const Process& parent, const std::size_t process_entry, const std::size_t return_address, RegistersDump* registers)
     : state_(State::Ready)
     , pid_(pid_counter++)
     , stack_size_(parent.stack_size())
     , stack_(new std::size_t[parent.stack_size()/(sizeof(std::size_t))]())
 {
     uint8_t* stack_ptr = reinterpret_cast<uint8_t*>(stack_.get()) + stack_size_ - sizeof(HardwareStoredRegisters) - process_entry;
-    printf("Process stack difference %x, stack start %p, current sp %p, dest dp %p\n", process_entry, stack_.get(), stack_ptr);
-
+    printf("Process entry %x, stack start %p, dest dp %p\n", process_entry, stack_.get(), stack_ptr);
+    printf("Return address 0x%x\n", return_address);
     // std::size_t required_stack_size = process_entry * sizeof(std::size_t) + sizeof(HardwareStoredRegisters) + sizeof(SoftwareStoredRegisters);
     // if (required_stack_size >= stack_size_)
     // {
@@ -67,21 +67,22 @@ Process::Process(const Process& parent, const std::size_t process_entry, const s
     std::memcpy(stack_.get(), parent.stack_.get(), parent.stack_size());
     HardwareStoredRegisters* hw_registers = reinterpret_cast<HardwareStoredRegisters*>(stack_ptr);
     hw_registers->r0 = 0;
-    hw_registers->r1 = 1;
-    hw_registers->r2 = 2;
-    hw_registers->r3 = 3;
+    hw_registers->r1 = registers->r1;
+    hw_registers->r2 = registers->r2;
+    hw_registers->r3 = registers->r3;
 
     stack_ptr -= sizeof(SoftwareStoredRegisters);
     SoftwareStoredRegisters* sw_registers = reinterpret_cast<SoftwareStoredRegisters*>(stack_ptr);
 
-    sw_registers->r4 = 4;
-    sw_registers->r5 = 5;
-    sw_registers->r6 = 6;
-    sw_registers->r7 = 7;
-    sw_registers->r8 = 8;
-    sw_registers->r9 = 9;
-    sw_registers->r10 = 10;
-    sw_registers->r11 = 11;
+    sw_registers->r4 = registers->r4;
+    sw_registers->r5 = registers->r5;
+    printf("Dumping r6: 0x%x\n", registers->r6);
+    sw_registers->r6 = registers->r6;
+    sw_registers->r7 = registers->r7;
+    sw_registers->r8 = registers->r8;
+    sw_registers->r9 = registers->r9;
+    sw_registers->r10 = registers->r10;
+    sw_registers->r11 = registers->r11;
 
     hw_registers->psr = default_psr_status;
     hw_registers->lr = reinterpret_cast<uint32_t>(&exit_handler);

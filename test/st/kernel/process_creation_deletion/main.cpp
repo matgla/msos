@@ -84,6 +84,7 @@ void child_fun()
         b_finish();
     }
 
+    printf("Exit \n");
     return;
 }
 
@@ -99,14 +100,16 @@ void kernel_process()
 
         writer << "Parent going to sleep" << endl;
 
-        hal::time::sleep(std::chrono::seconds(1));
+        hal::time::sleep(std::chrono::milliseconds(200));
 
         writer << "Parent Done" << endl;
         mutex_.unlock();
         int i = 0;
         while (true) {
             hal::time::sleep(std::chrono::milliseconds(100));
+            mutex_.lock();
             writer << "Parent: " << hex << i << endl;
+            mutex_.unlock();
             ++i;
             if (i == 10)
             {

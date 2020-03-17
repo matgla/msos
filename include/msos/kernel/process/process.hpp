@@ -23,6 +23,8 @@
 
 #include <sys/types.h>
 
+#include "msos/kernel/process/registers.hpp"
+
 extern "C"
 {
     pid_t root_process(const std::size_t process);
@@ -59,7 +61,7 @@ public:
 
 
     Process() = default;
-    Process(const Process& parent, const std::size_t process_entry, const std::size_t return_address);
+    Process(const Process& parent, const std::size_t process_entry, const std::size_t return_address, RegistersDump* registers);
     Process(std::size_t* stack_pointer, const std::size_t stack_size);
 
     Process(const Process& process);

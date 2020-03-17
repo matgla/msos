@@ -23,6 +23,8 @@
 #include "msos/kernel/process/process_manager.hpp"
 #include "msos/kernel/process/scheduler.hpp"
 #include "msos/kernel/process/process.hpp"
+#include "msos/kernel/process/registers.hpp"
+#include "msos/kernel/synchronization/mutex.hpp"
 
 #include <hal/time/time.hpp>
 #include <hal/core/criticalSection.hpp>
@@ -32,8 +34,12 @@
 extern "C"
 {
 
-    pid_t _fork();
+    pid_t _fork(void);
     pid_t getpid();
+    void dump_registers(void);
+
+    pid_t process_fork(uint32_t sp, uint32_t return_address, msos::kernel::process::RegistersDump* registers);
+
 
     void SysTick_Handler(void);
     void PendSV_Handler(void);
@@ -96,8 +102,9 @@ void __attribute__((naked)) PendSV_Handler(void)
     asm volatile inline (
             "ldmia r0!, {r4 - r11, lr}\n"
             "msr psp, r0\n"
-            "isb\n"
-            "bx lr\n"
+            );
+    asm volatile inline (
+        "bx lr\n"
     );
 }
 
@@ -127,34 +134,32 @@ pid_t root_process(const std::size_t process)
     NVIC_SetPriority(PendSV_IRQn, 0xff); /* Lowest possible priority */
     NVIC_SetPriority(SVCall_IRQn, 0x01); /* Lowest possible priority */
     NVIC_SetPriority(SysTick_IRQn, 0x00); /* Highest possible priority */
-    hal::time::Time::add_handler([](std::chrono::milliseconds)
+    hal::time::Time::add_handler([](std::chrono::milliseconds time)
     {
-        volatile static int i = 0;
-        i++;
-        if (i > 100)
+        static std::chrono::milliseconds last_time = time;
+
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(time - last_time) >= std::chrono::milliseconds(100))
         {
             if (get_PRIMASK() != 1)
             {
                 SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
             }
-        i = 0;
+            last_time = time;
         }
+
     });
-   //SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
    return root_process.pid();
 }
 
 
-pid_t process_fork(uint32_t sp, uint32_t return_address)
+pid_t process_fork(uint32_t sp, uint32_t return_address, msos::kernel::process::RegistersDump* registers)
 {
-    // hal::core::startCriticalSection();
     auto& parent_process = msos::kernel::process::scheduler->current_process();
-    std::size_t diff = (reinterpret_cast<std::size_t>(parent_process.stack_pointer()) + parent_process.stack_size()) - sp - 8;
-    auto& child_process = processes->create_process(parent_process, diff, return_address);
+    /* sizeof(size_t), LR is pushed to stack in _fork function */
+    std::size_t diff = (reinterpret_cast<std::size_t>(parent_process.stack_pointer()) + parent_process.stack_size()) - sp - sizeof(size_t);
+    auto& child_process = processes->create_process(parent_process, diff, return_address, registers);
 
-    printf("Child proccess forked with PID: %d\n", child_process.pid());
     processes->print();
-    // hal::core::stopCriticalSection();
     return child_process.pid();
 }
 
@@ -164,37 +169,52 @@ extern "C"
 pid_t _fork_p(uint32_t sp, uint32_t link_register);
 }
 
-pid_t _fork_p(uint32_t sp, uint32_t link_register)
+static msos::kernel::process::RegistersDump registers;
+static volatile uint32_t syscall_return_code = 0;
+
+pid_t __attribute__((naked)) _fork_p(uint32_t sp, uint32_t link_register)
 {
-    uint32_t syscall_return_code = 0;
-    printf("Fork syscall %p\n", syscall_return_code);
-    asm volatile inline("mov r0, #3");
+    asm volatile inline("push {r2, r3, r4, r5, lr}");
+
+    asm volatile inline("mov r5, %0" : : "r"(&registers));
     asm volatile inline("mov r4, %0" : : "r"(sp));
-    asm volatile inline("mov r2, %0" : : "r"(&syscall_return_code) : "r2");
-    asm volatile inline("mov r1, %0" : : "r"(link_register) : "r1");
-    asm volatile inline("isb   \n\t"
-                        "dsb   \n\t"
+    asm volatile inline("mov r1, %0" : : "r"(link_register));
+    asm volatile inline("mov r2, %0" : : "r"(&syscall_return_code));
+    asm volatile inline("mov r0, #3");
+    asm volatile inline(//"isb   \n\t"
+                        //"dsb   \n\t"
                         "svc 0 \n\t"
                         "wfi   \n\t"
                         "isb   \n\t"
-                        "dsb   \n\t");
-
-    printf("Fork returned %d\n", syscall_return_code);
-    return syscall_return_code;
+                        "dsb   \n\t"
+                        );
+    asm volatile inline("mov r0, %0" : "=r"(syscall_return_code));
+    asm volatile inline("pop {r2, r3, r4, r5, pc}");
 }
 
 // This function must ensure that stack is not touched inside, but may calls such functions
-pid_t __attribute__((naked)) _fork()
+pid_t __attribute__((naked)) _fork(void)
 {
+    asm volatile inline ("mov r0, #7");
+    asm volatile inline ("svc 0");
+
+    asm volatile inline ("mov r0, %0" : : "r"(reinterpret_cast<uint32_t*>(&registers)));
+    asm volatile inline ("stmia r0, {r1 - r12, lr}");
     asm volatile inline("isb\n\t"
-                        "push {r0, r1}\n\t"
+                        "push {lr}\n\t");
+
+    asm volatile inline(
                         "mov r1, lr\n\t"
-                        "push {lr}\n\t"
                         "mrs r0, PSP\n\t"
                         "isb\n\t"
                         "bl _fork_p\n\t"
-                        "pop {r0, r1, pc}\n\t"
+                        "pop {pc}\n\t"
     );
+
+    asm volatile inline ("mov r0, #8");
+    asm volatile inline ("svc 0");
+
+
     // return _fork_p(get_sp());
 }
 

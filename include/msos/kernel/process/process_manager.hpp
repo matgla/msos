@@ -20,6 +20,7 @@
 
 #include "msos/kernel/process/fwd.hpp"
 #include "msos/kernel/process/process.hpp"
+#include "msos/kernel/process/registers.hpp"
 
 namespace msos
 {
@@ -33,7 +34,7 @@ class ProcessManager
 public:
     ProcessManager();
     using ContainerType = std::list<Process>;
-    Process& create_process(const Process& parent, const std::size_t process_entry, const std::size_t return_address);
+    Process& create_process(const Process& parent, const std::size_t process_entry, const std::size_t return_address, RegistersDump* registers);
 
     Process& create_process(std::size_t process_entry, std::size_t stack_size);
 

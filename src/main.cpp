@@ -104,23 +104,13 @@ void b_finish()
     writer << "B finished" << endl;
 }
 
-void print_stack(std::size_t length)
-{
-    const uint32_t* stack;
-    asm inline("mrs %0, psp" : "=r"(stack));
-    stack-=4;
-    for (std::size_t i = 0; i < length; i+=4)
-    {
-        printf("%p: 0x%08x 0x%08x 0x%08x 0x%08x\n", &stack[i], stack[i], stack[i+1], stack[i+2], stack[i+3]);
-    }
-}
 
 void child_fun()
 {
     writer << "Child" << endl;
     mutex_.lock();
     writer << "Child is going to sleep" << endl;
-    hal::time::sleep(std::chrono::milliseconds(500));
+    hal::time::sleep(std::chrono::milliseconds(200));
 
     writer << "Child Done" << endl;
     printa();
@@ -128,19 +118,11 @@ void child_fun()
     int i = 0;
     int data = 0xfacefade;
     int out;
-    // asm volatile inline (
-    //             "mov %[out], %[in]\n\t"
-    //             "push {%[out]}\n\t"
-    //             : [out] "=r" (out)
-    //             : [in] "r" (data)
-    //             );
     if (_fork())
     {
-        printf("Stack in child A\n");
-        print_stack(10);
         while (i < 2)
         {
-            hal::time::sleep(std::chrono::milliseconds(500));
+            hal::time::sleep(std::chrono::milliseconds(100));
             writer << "Child A" << endl;
             i++;
         }
@@ -149,38 +131,10 @@ void child_fun()
     }
     else
     {
-        printf("Stack in child B, current sp: %x\n", get_psp());
         out = 0;
-        // asm volatile inline (
-        //     "pop {%[out]}\n\t"
-        //     : [out] "=r" (out)
-        // );
-        // printf("Pooped value: %x\n");
-        // asm volatile inline (
-        //     "pop {%[out]}\n\t"
-        //     : [out] "=r" (out)
-        // );
-        // printf("Pooped value: %x\n");
-        // asm volatile inline (
-        //     "pop {%[out]}\n\t"
-        //     : [out] "=r" (out)
-        // );
-        // printf("Pooped value: %x\n");
-        // asm volatile inline (
-        //     "pop {%[out]}\n\t"
-        //     : [out] "=r" (out)
-        // );
-        // printf("Pooped value: %x\n");
-        // asm volatile inline (
-        //     "pop {%[out]}\n\t"
-        //     : [out] "=r" (out)
-        // );
-        // printf("Pooped value: %x\n");
-        print_stack(10);
-
-        while (i < 4)
+        while (i < 3)
         {
-            hal::time::sleep(std::chrono::milliseconds(500));
+            hal::time::sleep(std::chrono::milliseconds(50));
             writer << "Child B" << endl;
             i++;
         }
@@ -212,7 +166,7 @@ void kernel_process()
             hal::time::sleep(std::chrono::milliseconds(100));
             writer << "Parent: " << i << endl;
             ++i;
-            if (i == 10)
+            if (i == 5)
             {
                 writer << "Forking" << endl;
                 if (_fork())

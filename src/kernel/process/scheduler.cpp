@@ -53,7 +53,6 @@ ProcessManager::ContainerType::iterator Scheduler::get_next()
 
 void Scheduler::delete_process(pid_t pid)
 {
-    printf("Deleting process with pid %d\n", pid);
     if (pid == current_process_->pid())
     {
         current_process_ = get_next();

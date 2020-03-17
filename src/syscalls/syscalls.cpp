@@ -44,7 +44,12 @@ extern "C"
     void SVC_Handler();
 
 }
+
+extern "C"
+{
 pid_t process_fork(uint32_t sp, uint32_t return_address);
+
+}
 
 volatile uint32_t old;
 volatile uint32_t counter = 0;
@@ -65,7 +70,6 @@ void SVC_Handler()
         old = NVIC->ISER[0];
         NVIC->ICER[0] = 0xffffffff;
         __disable_irq();
-        __disable_fault_irq();
         ++counter;
     }
     else if (number == 2 && counter != 1)
@@ -76,22 +80,40 @@ void SVC_Handler()
     {
         NVIC->ISER[0] = old;
         __enable_irq();
-        __enable_fault_irq();
         --counter;
     }
     else if (number == 3)
     {
-        uint32_t return_address;
-        uint32_t* val;
-
-        asm volatile inline("mov %0, r1" : "=r"(return_address));
-        asm volatile inline("mov %0, r2" : "=r"(val));
-        printf("Forking process: %x, %p\n", return_address, val);
+        /* this should be pure assembly */
         uint32_t sp;
-        asm volatile inline("mov %0, r4" : "=r"(sp));
-        uint32_t pid = process_fork(sp, return_address);
-        *val = pid;
+
+        asm volatile inline(
+            "push {r0, lr}\n\t"
+            "mov r0, r4\n\t"
+            "push {r2}\n\t"
+            "bl process_fork\n\t"
+            "pop {r2}\n\t"
+            "str r0, [r2, #0]\n\t"
+            "pop {r0, lr}\n\t"
+        );
+
+        // uint32_t return_address;
+        // uint32_t* val;
+
+        // asm volatile inline("mov %0, r2" : "=r"(val));
+        // asm volatile inline("mov %0, r1" : "=r"(return_address));
+
+        // uint32_t pid = process_fork(sp, return_address);
+        // *val = pid;
         // asm volatile inline("STR %0, [r2]" : : "r"(pid));
+    }
+    else if (number == 7)
+    {
+        NVIC_DisableIRQ(PendSV_IRQn);
+    }
+    else if (number == 8)
+    {
+        NVIC_EnableIRQ(PendSV_IRQn);
     }
 }
 
