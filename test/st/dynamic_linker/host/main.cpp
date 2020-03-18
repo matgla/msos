@@ -53,10 +53,13 @@ int main()
     board::interfaces::Usart1::init(115200);
 
     uint32_t address_of_lot_getter = reinterpret_cast<uint32_t>(&get_lot_at);
-    hal::core::BackupRegisters::init();
-    hal::core::BackupRegisters::write(1, address_of_lot_getter >> 16);
-    hal::core::BackupRegisters::write(2, address_of_lot_getter);
+    // hal::core::BackupRegisters::init();
+    // hal::core::BackupRegisters::write(1, address_of_lot_getter >> 16);
+    // hal::core::BackupRegisters::write(2, address_of_lot_getter);
+    uint32_t* lot_in_memory = reinterpret_cast<uint32_t*>(0x20000000);
+    *lot_in_memory = address_of_lot_getter;
     writer << "Address of lot getter: 0x" << hex << address_of_lot_getter << endl;
+    writer << "Address of lot in memory: 0x" << hex << reinterpret_cast<uint32_t>(lot_in_memory) << endl;
 
     std::size_t module_address = 0x08000000;
     module_address += 32 * 1024;

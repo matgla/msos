@@ -18,19 +18,20 @@ add_library(msos_posix)
 
 set (library_includes ${PROJECT_SOURCE_DIR}/include/msos/posix)
 
-target_sources(msos_posix 
-    PUBLIC 
-        ${CMAKE_CURRENT_SOURCE_DIR}/fork.cpp 
+target_sources(msos_posix
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/fork.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/fork.s
 )
 
-target_include_directories(msos_posix 
-    PUBLIC 
-        ${library_includes} 
-        ${PROJECT_SOURCE_DIR}/include 
+target_include_directories(msos_posix
+    PUBLIC
+        ${library_includes}
+        ${PROJECT_SOURCE_DIR}/include
 )
 
-target_link_libraries(msos_posix 
-    PRIVATE 
-        msos_kernel_process 
+target_link_libraries(msos_posix
+    PRIVATE
+        msos_kernel_process
 )
 

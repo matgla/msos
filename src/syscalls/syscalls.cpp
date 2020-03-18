@@ -61,7 +61,7 @@ static __inline__ uint32_t get_psp()
     return sp;
 }
 
-void SVC_Handler()
+void __attribute__((naked)) SVC_Handler()
 {
     uint32_t number;
     asm volatile("mov %0, r0" :"=r"(number));
@@ -91,10 +91,11 @@ void SVC_Handler()
             "push {r0, lr}\n\t"
             "mov r0, r4\n\t"
             "push {r2}\n\t"
+            "mov r2, r5\n\t"
             "bl process_fork\n\t"
             "pop {r2}\n\t"
             "str r0, [r2, #0]\n\t"
-            "pop {r0, lr}\n\t"
+            "pop {r0, pc}\n\t"
         );
 
         // uint32_t return_address;
@@ -115,6 +116,24 @@ void SVC_Handler()
     {
         NVIC_EnableIRQ(PendSV_IRQn);
     }
+    else if (number == 9)
+    {
+        asm volatile inline(
+            "bl get_next_task\n"
+            "ldmia r0!, {r4 - r11, lr}\n"
+            "msr psp, r0\n"
+            "bx lr\n");
+    }
+    else if (number == 10)
+    {
+        msos::kernel::process::scheduler->delete_process(msos::kernel::process::scheduler->current_process().pid());
+        msos::kernel::process::scheduler->current_process_was_deleted(true);
+        asm volatile inline(
+            "bl get_next_task\n"
+            "ldmia r0!, {r4 - r11, lr}\n"
+            "msr psp, r0\n"
+            "bx lr\n");
+    }
 }
 
 
@@ -125,13 +144,19 @@ int _gettimeofday(struct timeval* tv, void* tzvp)
 
 void _exit(int code)
 {
-    hal::core::startCriticalSection();
     printf("Process exited with code: %d\n", code);
-    msos::kernel::process::scheduler->delete_process(msos::kernel::process::scheduler->current_process().pid());
-    msos::kernel::process::scheduler->current_process_was_deleted(true);
-    printf("Enable interrupts \n");
-    hal::core::stopCriticalSection();
-    SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
+    asm volatile inline(
+        "mov r0, #10\n\t"
+        "svc 0\n\t"
+        "isb\n\t"
+        "dsb\n\t"
+        "wfi\n\t"
+    );
+    // hal::core::startCriticalSection();
+    // disable pend sv
+    // hal::core::stopCriticalSection();
+    // enable pend sv
+    // SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
 
     while(1);
 }

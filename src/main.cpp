@@ -58,7 +58,7 @@ extern "C"
     {
         board::interfaces::Usart1::write("Test Function \n");
     }
-    pid_t _fork();
+    pid_t _fork(void);
     std::size_t* get_psp();
 }
 
@@ -164,6 +164,7 @@ void kernel_process()
         int i = 0;
         while (true) {
             hal::time::sleep(std::chrono::milliseconds(100));
+            b_finish();
             writer << "Parent: " << i << endl;
             ++i;
             if (i == 5)

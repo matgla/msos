@@ -122,9 +122,9 @@ void kernel_process()
                 {
                     int x = 0;
                     writer << "Child C is starting: " << i << endl;
-                    while (x < 10)
+                    while (x < 3)
                     {
-                        // writer << "Child C is working " << x << endl;
+                        writer << "Child C is working " << x << endl;
                         hal::time::sleep(std::chrono::milliseconds(50));
                         x++;
                     }
