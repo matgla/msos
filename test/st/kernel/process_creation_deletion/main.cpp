@@ -31,11 +31,6 @@
 
 hal::UsartWriter writer;
 
-extern "C"
-{
-    pid_t _fork();
-}
-
 msos::kernel::synchronization::Mutex mutex_;
 
 void printa()
@@ -61,7 +56,7 @@ void child_fun()
     int i = 0;
     int dump = 123;
 
-    if (_fork())
+    if (fork())
     {
         while (i < 2)
         {
@@ -92,7 +87,7 @@ void kernel_process()
 {
     writer << "Hello from Kernel" << endl;
 
-    if (_fork())
+    if (fork())
     {
         writer << "Parent" << endl;
 
@@ -114,7 +109,7 @@ void kernel_process()
             if (i == 10)
             {
                 writer << "Forking" << endl;
-                if (_fork())
+                if (fork())
                 {
                     writer << "Parent continues " << i << endl;
                 }

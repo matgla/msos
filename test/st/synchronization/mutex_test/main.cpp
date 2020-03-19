@@ -35,14 +35,9 @@ static msos::kernel::synchronization::Semaphore stdio_mutex_(1);
 
 msos::kernel::synchronization::Mutex mutex_;
 
-extern "C"
-{
-    pid_t _fork();
-}
-
 void kernel_process()
 {
-    if (_fork())
+    if (fork())
     {
         writer << "Parent is starting" << endl;
 

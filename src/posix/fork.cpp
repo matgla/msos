@@ -33,8 +33,6 @@
 
 extern "C"
 {
-
-    pid_t _fork(void);
     pid_t getpid();
     void dump_registers(void);
 
@@ -49,9 +47,6 @@ extern "C"
 
     void SysTick_Handler(void);
     void PendSV_Handler(void);
-
-    void store_context();
-    void load_context(uint32_t);
 }
 
 static inline uint32_t get_PRIMASK()
@@ -100,56 +95,8 @@ void set_first_task_processed()
     first = false;
 }
 
-void __attribute__((naked)) store_context()
-{
-    asm volatile inline (
-        "push {r0}\n"
-
-        "pop {r0}\n"
-    );
-}
-
-void __attribute__((naked)) load_context(uint32_t sp)
-{
-    asm volatile inline (
-        "ldmia r0!, {r4 - r11, lr}\n"
-        "msr psp, r0\n"
-    );
-}
-
 void __attribute__((naked)) PendSV_Handler(void)
 {
-    // asm volatile inline("mov r0, %0" : : "r"(first))
-    // asm volatile inline(
-    //     "cmp r0, #1\n"
-    //     "bne process_first\n"
-    //     "bl was_current_process_deleted\n"
-    //     "cmp r0, #1"
-    //     "beq "
-    //     "process_first:\n\t"
-    //     ""
-    // )
-    // if (!first && !msos::kernel::process::scheduler->current_process_was_deleted())
-    // {
-    //     std::size_t* stack;
-    //     asm volatile inline (
-    //         "mov %0, r0" : "=r" (stack)
-    //     );
-    //     msos::kernel::process::scheduler->current_process().current_stack_pointer(stack);
-    // }
-    // else
-    // {
-    //     first = false;
-    // }
-
-    // asm volatile inline (
-    //         "mov r0, %0\n" : : "r" (msos::kernel::process::scheduler->schedule_next())
-    // );
-
-    // asm volatile inline (
-    //         "ldmia r0!, {r4 - r11, lr}\n"
-    //         "msr psp, r0\n"
-    //         );
     asm volatile inline (
         "mrs r0, psp \n"
         "stmdb r0!, {r4 - r11, lr}\n"
@@ -244,67 +191,8 @@ pid_t process_fork(uint32_t sp, uint32_t return_address, msos::kernel::process::
 
 extern "C"
 {
-pid_t _fork_p(uint32_t sp, uint32_t link_register);
-
 volatile msos::kernel::process::RegistersDump registers;
 volatile uint32_t syscall_return_code = 0;
 
 }
-// pid_t __attribute__((naked)) _fork_p(uint32_t sp, uint32_t link_register)
-// {
-//     asm volatile inline("push {r1, r2, r3, r4, r5, lr}");
-
-//     asm volatile inline("mov r5, %0" : : "r"(&registers));
-//     asm volatile inline("mov r4, %0" : : "r"(sp));
-//     asm volatile inline("mov r1, %0" : : "r"(link_register));
-//     asm volatile inline("mov r2, %0" : : "r"(&syscall_return_code));
-//     asm volatile inline("mov r0, #3");
-//     asm volatile inline(//"isb   \n\t"
-//                         //"dsb   \n\t"
-//                         "svc 0 \n\t"
-//                         "wfi   \n\t"
-//                         "isb   \n\t"
-//                         "dsb   \n\t"
-//                         );
-//     asm volatile inline("mov r0, %0" : "=r"(syscall_return_code));
-//     asm volatile inline("pop {r1, r2, r3, r4, r5, pc}");
-// }
-
-// void lock_pendsv()
-// {
-//     is_pendsv_blocked = true;
-// }
-
-// void unlock_pendsv()
-// {
-//     is_pendsv_blocked = false;
-
-// }
-
-// // This function must ensure that stack is not touched inside, but may calls such functions
-// pid_t __attribute__((naked)) _fork(void)
-// {
-//     // asm volatile inline("ldr r0, =is_pendsv_blocked");
-//     asm volatile inline("push {r1}\n\t"
-//                         "mov r1, #1\n\t"
-//                         "str r1, [r0]\n\t"
-//                         "pop {r1}\n\t");
-//     asm volatile inline ("mov r0, %0" : : "i"(reinterpret_cast<uint32_t>(&registers)));
-//     asm volatile inline ("stmia r0, {r1 - r12, lr}");
-//     asm volatile inline("isb\n\t"
-//                         "push {lr}\n\t");
-
-//     asm volatile inline("mov r1, lr\n\t"
-//                         "mrs r0, PSP\n\t"
-//                         "isb\n\t"
-//                         "bl _fork_p\n\t");
-
-//     asm volatile inline("mov r0, %0" : : "i"(reinterpret_cast<uint32_t>(&is_pendsv_blocked)));
-//     asm volatile inline("push {r1}\n\t"
-//                         "mov r1, #0\n\t"
-//                         "str r1, [r0]\n\t"
-//                         "pop {r1}\n\t");
-
-//     asm volatile inline("pop {pc}\n\t");
-// }
 

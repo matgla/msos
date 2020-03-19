@@ -10,7 +10,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
@@ -32,10 +32,9 @@ class BinaryUnderTest:
         self.binary_path = binary_path
 
     def start(self):
-        self.executable = pexpect.spawnu("qemu-system-arm -machine " \
-                                         "stm32-f103c8 -kernel " + \
-                                         self.binary_path + " -serial stdio " \
-                                         " -nographic")
+        self.executable = pexpect.spawnu("qemu-system-arm -kernel " + \
+                                         self.binary_path + \
+                                         " -machine stm32_black_pill -serial stdio")
     def stop(self, timeout):
         if (self.executable):
             self.executable.expect("TEST DONE", timeout)

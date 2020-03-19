@@ -58,7 +58,6 @@ extern "C"
     {
         board::interfaces::Usart1::write("Test Function \n");
     }
-    pid_t _fork(void);
     std::size_t* get_psp();
 }
 
@@ -118,7 +117,7 @@ void child_fun()
     int i = 0;
     int data = 0xfacefade;
     int out;
-    if (_fork())
+    if (fork())
     {
         while (i < 2)
         {
@@ -149,7 +148,7 @@ void kernel_process()
 {
     printf("Hello from Kernel\n");
 
-    if (_fork())
+    if (fork())
     {
         writer << "Parent" << endl;
 
@@ -170,7 +169,7 @@ void kernel_process()
             if (i == 5)
             {
                 writer << "Forking" << endl;
-                if (_fork())
+                if (fork())
                 {
                     writer << "Old parent" << endl;
                 }
