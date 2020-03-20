@@ -14,193 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include <cstdlib>
+
 #include <board.hpp>
 #include <hal/time/sleep.hpp>
 #include <hal/core/core.hpp>
-//#include <hal/core/backupRegisters.hpp>
-//#include <eul/utils/string.hpp>
-//#include <hal/memory/heap.hpp>
-//#include <string_view>
 
 #include <hal/time/time.hpp>
 
 #include "msos/usart_printer.hpp"
-/*#include "msos/dynamic_linker/symbol.hpp"
-#include "msos/dynamic_linker/relocation.hpp"
-#include "msos/dynamic_linker/module.hpp"
-#include "msos/dynamic_linker/environment.hpp"
-#include "msos/dynamic_linker/dynamic_linker.hpp"
-*/
-#include "msos/kernel/process/process.hpp"
-#include "msos/kernel/process/process_manager.hpp"
-#include "msos/kernel/process/scheduler.hpp"
-
-#include "msos/kernel/synchronization/semaphore.hpp"
-#include "msos/kernel/synchronization/mutex.hpp"
 
 #include "msos/drivers/storage/ram_block_device.hpp"
-/*
-#include <unistd.h>
-*/
-//msos::dl::DynamicLinker dynamic_linker;
+#include "msos/fs/ramfs.hpp"
+#include "msos/fs/mount_points.hpp"
+
+// #include "msos/fs/"
 
 hal::UsartWriter writer;
-/*uint32_t get_lot_at(uint32_t address)
-{
-    return dynamic_linker.get_lot_for_module_at(address);
-}
-*/
-extern "C"
-{
-    void call_external(uint32_t address);
-    void get_address();
-    void test_function()
-    {
-        board::interfaces::Usart1::write("Test Function \n");
-    }
-    std::size_t* get_psp();
-}
 
-/*
-void write_to_usart(const char* data)
-{
-    board::interfaces::Usart1::write(data);
-}
-
-void test_main()
-{
-    write_to_usart("EEEEEHH\n");
-}
-*/
-// void call_external(const uint32_t address)
-// {
-//    reinterpret_cast<void(*)()>(address)();
-// }
-
-/*const msos::dl::LoadedModule* load_module(msos::dl::DynamicLinker& linker, const uint32_t address)
-{
-    writer << "Loading module..., env symbol 0x" << hex << reinterpret_cast<uint32_t>(&write_to_usart) << endl;
-    msos::dl::Environment<1> environment{
-        msos::dl::SymbolAddress{"_Z14write_to_usartPKc", &write_to_usart}
-    };
-
-    return linker.load_module(address, msos::dl::LoadingModeCopyData, environment);
-}
-*/
-//static int i = 1;
-
-static msos::kernel::synchronization::Semaphore mutex(1);
-
-msos::kernel::synchronization::Mutex mutex_;
-
-void printa()
-{
-    writer << "Some print" << endl;
-}
-
-void b_finish()
-{
-    writer << "B finished" << endl;
-}
-
-
-void child_fun()
-{
-    writer << "Child" << endl;
-    mutex_.lock();
-    writer << "Child is going to sleep" << endl;
-    hal::time::sleep(std::chrono::milliseconds(200));
-
-    writer << "Child Done" << endl;
-    printa();
-    mutex_.unlock();
-    int i = 0;
-    int data = 0xfacefade;
-    int out;
-    if (fork())
-    {
-        while (i < 2)
-        {
-            hal::time::sleep(std::chrono::milliseconds(100));
-            writer << "Child A" << endl;
-            i++;
-        }
-
-        writer << "Child A finished" << endl;
-    }
-    else
-    {
-        out = 0;
-        while (i < 3)
-        {
-            hal::time::sleep(std::chrono::milliseconds(50));
-            writer << "Child B" << endl;
-            i++;
-        }
-
-        b_finish();
-    }
-
-    return;
-}
-
-void kernel_process()
-{
-    printf("Hello from Kernel\n");
-
-    if (fork())
-    {
-        writer << "Parent" << endl;
-
-        mutex_.lock();
-
-        writer << "parent going to sleep" << endl;
-
-        hal::time::sleep(std::chrono::seconds(1));
-
-        writer << "Parent Done" << endl;
-        mutex_.unlock();
-        int i = 0;
-        while (true) {
-            hal::time::sleep(std::chrono::milliseconds(100));
-            b_finish();
-            writer << "Parent: " << i << endl;
-            ++i;
-            if (i == 5)
-            {
-                writer << "Forking" << endl;
-                if (fork())
-                {
-                    writer << "Old parent" << endl;
-                }
-                else
-                {
-                    int x = 0;
-                    writer << "Child C is starting" << endl;
-                    break;
-                    while (x < 10)
-                    {
-                        // writer << "Child C is working " << x << endl;
-                        hal::time::sleep(std::chrono::milliseconds(50));
-                        x++;
-                    }
-                }
-            }
-        }
-    }
-    else
-    {
-        child_fun();
-    }
-
-    printf("Some child died\n");
-    // Child process default exit
-    exit(0);
-
-    // Main process should never goes here
-    while (true) {}
-}
-#include <cstring>
 int main()
 {
     hal::core::Core::initializeClocks();
@@ -226,46 +57,19 @@ int main()
         << "Write size: " << bd.write_size() << endl
         << "Erase size: " << bd.erase_size() << endl;
 
-    char buffer[24];
-    gsl::span<uint8_t> buffer_span = gsl::make_span(reinterpret_cast<uint8_t*>(buffer), 24);
+    msos::fs::RamFs ramfs;
+    msos::fs::mount_points.mount_filesystem("/", &ramfs);
 
-    std::strncpy(buffer, "Hello", sizeof(buffer));
+    FILE* test_file = fopen("/test.txt", "rw");
 
-    writer << "Erase 24 bytes at 0x0" << endl;
-    error = bd.erase(0x0, 24);
-    if (error)
+    if (test_file == NULL)
     {
-        writer << "Can't erase" << endl;
+        writer << "File is null" << endl;
     }
-
-    writer << "Write Hello at address 0x4" << endl;
-    error = bd.write(0x04, buffer_span);
-
-    if (error)
+    else
     {
-        writer << "Can't write to bd" << endl;
+        writer << "File is not null" << endl;
     }
-
-    std::memset(buffer, 0, 24);
-
-    writer << "Read" << endl;
-    error = bd.read(0x0, buffer_span);
-    if (error)
-    {
-        writer << "Can't read from bd" << endl;
-    }
-
-    for (char byte : buffer)
-    {
-        writer << hex << static_cast<int>(byte) << " : ";
-        writer << byte << endl;
-    }
-
-
-    //hal::time::sleep(std::chrono::milliseconds(500));
-
-    // __disable_irq();
-    root_process(reinterpret_cast<std::size_t>(&kernel_process));
 
     while (true)
     {

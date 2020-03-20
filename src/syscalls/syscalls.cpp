@@ -26,6 +26,7 @@
 #include <hal/core/criticalSection.hpp>
 #include <board.hpp>
 
+#include "msos/fs/mount_points.hpp"
 #include "msos/kernel/process/scheduler.hpp"
 
 extern "C"
@@ -42,6 +43,7 @@ extern "C"
     int _close(int file);
     int _fstat(int file, struct stat* st);
     void SVC_Handler();
+    int _open(const char* filename, int flags);
 
 }
 
@@ -238,5 +240,17 @@ int _close(int file)
 
 int _fstat(int file, struct stat* st)
 {
+    return 0;
+}
+
+int _open(const char* filename, int flags)
+{
+    msos::fs::IFileSystem* root_fs = msos::fs::mount_points.get_mounted_filesystem("/");
+    if (root_fs == nullptr)
+    {
+        errno = ENOENT;
+        return -1;
+    }
+
     return 0;
 }

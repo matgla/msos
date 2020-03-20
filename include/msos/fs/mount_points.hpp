@@ -16,30 +16,28 @@
 
 #pragma once
 
+#include <vector>
 #include <string_view>
 
-#include "msfs/block_device.hpp"
+#include "msos/fs/i_filesystem.hpp"
+#include "msos/fs/mount_point.hpp"
 
-namespace msfs
+namespace msos
+{
+namespace fs
 {
 
-class FileSystem
+class MountPoints
 {
 public:
-    virtual ~FileSystem() = default;
+    IFileSystem* get_mounted_filesystem(const std::string_view& point);
+    bool mount_filesystem(const std::string_view& point, IFileSystem* filesystem);
 
-    virtual int mount(BlockDevice& device) = 0;
-    virtual int umount() = 0;
-
-    virtual int create() = 0;
-    virtual int mkdir(const std::string_view path, int mode) = 0;
-
-    virtual int remove(const std::string_view path) = 0;
-    virtual int stat(const std::string_view path) = 0;
-
-protected:
-    static bool mounted_;
+private:
+    std::vector<MountPoint> points_;
 };
 
-} // namespace msfs
+extern MountPoints mount_points;
 
+} // namespace fs
+} // namespace msos

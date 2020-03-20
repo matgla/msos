@@ -21,7 +21,7 @@ add_subdirectory(kernel)
 add_subdirectory(syscalls)
 add_subdirectory(utils)
 add_subdirectory(posix)
-#add_subdirectory(fs)
+add_subdirectory(fs)
 add_subdirectory(drivers)
 
 set (library_includes ${PROJECT_SOURCE_DIR}/include/msos)
@@ -37,6 +37,7 @@ target_link_libraries(msos
         msos_syscalls
         msos_dynamic_linker
         msos_drivers_storage
+        msos_fs
         hal
         msos_posix
 )
@@ -48,18 +49,18 @@ target_include_directories(msos
 
 add_executable(msos_test)
 
-target_sources(msos_test 
-    PUBLIC 
-        ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp 
+target_sources(msos_test
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 
 target_link_libraries(msos_test
-    PUBLIC 
-        msos 
+    PUBLIC
+        msos
 )
 
-set_target_properties(msos_test 
-    PROPERTIES 
+set_target_properties(msos_test
+    PROPERTIES
         SUFFIX ".elf"
 )
 

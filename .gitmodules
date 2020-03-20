@@ -19,3 +19,6 @@
 [submodule "scripts/kconfig"]
 	path = scripts/kconfig
 	url = https://github.com/ulfalizer/Kconfiglib.git
+[submodule "lib/romfs"]
+	path = lib/romfs
+	url = https://github.com/matgla/ms_romfs.git
