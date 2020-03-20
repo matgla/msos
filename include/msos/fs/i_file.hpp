@@ -16,36 +16,36 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string_view>
 
-#include "msos/drivers/storage/block_device.hpp"
+#include <unistd.h>
 
-#include "msos/fs/i_file.hpp"
+#include <gsl/span>
 
 namespace msos
 {
 namespace fs
 {
 
-class IFileSystem
+class IFile
 {
 public:
-    virtual ~IFileSystem() = default;
+    using DataType = gsl::span<uint8_t>;
+    using ConstDataType = gsl::span<const uint8_t>;
 
-    virtual int mount(drivers::storage::BlockDevice& device) = 0;
-    virtual int umount() = 0;
+    virtual ~IFile() = default;
 
-    virtual int create() = 0;
-    virtual int mkdir(const std::string_view path, int mode) = 0;
+    virtual ssize_t read(DataType data) = 0;
+    virtual ssize_t write(const ConstDataType data) = 0;
+    virtual off_t seek(off_t offset, int base) const = 0;
+    virtual int close() = 0;
+    virtual int sync() = 0;
 
-    virtual int remove(const std::string_view path) = 0;
-    virtual int stat(const std::string_view path) = 0;
+    virtual off_t tell() const = 0;
+    virtual ssize_t size() const = 0;
 
-    virtual IFile* get(const std::string_view path) = 0;
-    virtual IFile* create(const std::string_view path) = 0;
-
-protected:
-    static bool mounted_;
+    virtual std::string_view name() const = 0;
 };
 
 } // namespace fs

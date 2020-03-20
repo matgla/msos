@@ -21,6 +21,8 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <fcntl.h>
+#include <gsl/span>
 
 #include <hal/memory/heap.hpp>
 #include <hal/core/criticalSection.hpp>
@@ -210,16 +212,34 @@ std::size_t get_heap_usage()
 } // namespace memory
 } // namespace hal
 
-int _write(int file, const char* ptr, int len)
+int _write(int fd, const char* ptr, int len)
 {
-    // TODO: temporary hack, this shoul really write to system file
-    board::interfaces::Usart1 usart;
-    usart.write(std::string_view(ptr, len));
+    // TODO: temporary hack, this also should, write to process descriptor
+    if (fd == 0 || fd == 1 || fd == 2)
+    {
+        board::interfaces::Usart1 usart;
+        usart.write(std::string_view(ptr, len));
+        return 0;
+    }
+
+    msos::fs::IFile* file = msos::kernel::process::scheduler->current_process().get_file(fd);
+    if (file)
+    {
+        return file->write(gsl::make_span<const uint8_t>(reinterpret_cast<const uint8_t*>(ptr), len));
+    }
+
     return 0;
 }
 
-int _read(int file, char* ptr, int len)
+int _read(int fd, char* ptr, int len)
 {
+    msos::fs::IFile* file = msos::kernel::process::scheduler->current_process().get_file(fd);
+
+    if (file)
+    {
+        return file->read(gsl::make_span<uint8_t>(reinterpret_cast<uint8_t*>(ptr), len));
+    }
+
     return 0;
 }
 
@@ -246,11 +266,31 @@ int _fstat(int file, struct stat* st)
 int _open(const char* filename, int flags)
 {
     msos::fs::IFileSystem* root_fs = msos::fs::mount_points.get_mounted_filesystem("/");
+
     if (root_fs == nullptr)
     {
         errno = ENOENT;
         return -1;
     }
 
-    return 0;
+    msos::fs::IFile* file;
+    printf("Flags: %d\n", flags);
+    if (flags & O_CREAT)
+    {
+        file = root_fs->create(filename);
+
+        int fd = msos::kernel::process::scheduler->current_process().add_file(file);
+        printf("File created %s, fd: %d\n", filename, fd);
+
+        return fd;
+    }
+    if (flags & O_RDONLY)
+    {
+        file = root_fs->get(filename);
+        int fd = msos::kernel::process::scheduler->current_process().add_file(file);
+        printf("Got file: %s, fd: %d\n", filename, fd);
+        return fd;
+    }
+
+    return 3;
 }

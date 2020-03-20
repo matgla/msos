@@ -20,13 +20,16 @@ set(library_includes ${PROJECT_SOURCE_DIR}/include/msos/fs)
 
 target_sources(msos_fs
     PUBLIC
+        ${library_includes}/i_file.hpp
         ${library_includes}/i_filesystem.hpp
         ${library_includes}/mount_point.hpp
         ${library_includes}/mount_points.hpp
         ${library_includes}/ramfs.hpp
+        ${library_includes}/ramfs_file.hpp
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/mount_points.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ramfs.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/ramfs_file.cpp
 )
 
 target_include_directories(msos_fs

@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "msos/fs/ramfs.hpp"
+#include "msos/fs/ramfs_file.hpp"
 
 #include <eul/utils/unused.hpp>
 
@@ -55,6 +56,19 @@ int RamFs::stat(const std::string_view path)
 {
     UNUSED1(path);
     return 1;
+}
+
+IFile* RamFs::get(const std::string_view path)
+{
+    UNUSED1(path);
+    return nullptr;
+}
+
+IFile* RamFs::create(const std::string_view path)
+{
+    printf("Creating file with name: %s\n", path.data());
+    IFile* file = new RamfsFile(path);
+    return file;
 }
 
 } // namespace fs

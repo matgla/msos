@@ -23,7 +23,7 @@
 #include <hal/time/time.hpp>
 
 #include "msos/usart_printer.hpp"
-
+#include "msos/kernel/process/process.hpp"
 #include "msos/drivers/storage/ram_block_device.hpp"
 #include "msos/fs/ramfs.hpp"
 #include "msos/fs/mount_points.hpp"
@@ -32,15 +32,8 @@
 
 hal::UsartWriter writer;
 
-int main()
+void kernel_process()
 {
-    hal::core::Core::initializeClocks();
-    using LED = board::gpio::LED_BLUE;
-    LED::init(hal::gpio::Output::OutputPushPull, hal::gpio::Speed::Default);
-    using Usart = board::interfaces::Usart1;
-    Usart::init(9600);
-    hal::time::Time::init();
-
     writer << "I am starting" << endl;
 
     msos::drivers::storage::RamBlockDevice bd(2048, 1, 1, 1);
@@ -60,7 +53,7 @@ int main()
     msos::fs::RamFs ramfs;
     msos::fs::mount_points.mount_filesystem("/", &ramfs);
 
-    FILE* test_file = fopen("/test.txt", "rw");
+    FILE* test_file = fopen("/test.txt", "w");
 
     if (test_file == NULL)
     {
@@ -69,7 +62,44 @@ int main()
     else
     {
         writer << "File is not null" << endl;
+        fputs("Hej, ten plik dostaje dane i nawet je zapisuje :)\n", test_file);
+
+        fclose(test_file);
     }
+
+    test_file = fopen("/test.txt", "r");
+
+    if (test_file == NULL)
+    {
+        writer << "File is null" << endl;
+    }
+    else
+    {
+        if (test_file)
+        {
+            writer << "Content of file: " << endl;
+            int c;
+            int i = 0;
+            while ((c = getc(test_file)) != EOF)
+            {
+                writer << static_cast<char>(c);
+            }
+            writer << endl;
+        }
+        fclose(test_file);
+    }
+}
+
+int main()
+{
+    hal::core::Core::initializeClocks();
+    using LED = board::gpio::LED_BLUE;
+    LED::init(hal::gpio::Output::OutputPushPull, hal::gpio::Speed::Default);
+    using Usart = board::interfaces::Usart1;
+    Usart::init(9600);
+    hal::time::Time::init();
+
+    root_process(reinterpret_cast<std::size_t>(&kernel_process));
 
     while (true)
     {

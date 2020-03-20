@@ -53,6 +53,7 @@ Process::Process(const Process& parent, const std::size_t process_entry, const s
     , pid_(pid_counter++)
     , stack_size_(parent.stack_size())
     , stack_(new std::size_t[parent.stack_size()/(sizeof(std::size_t))]())
+    , fd_map_(0x7)
 {
     uint8_t* stack_ptr = reinterpret_cast<uint8_t*>(stack_.get()) + stack_size_ - sizeof(HardwareStoredRegisters) - process_entry;
     printf("Process entry %x, stack start %p, dest dp %p\n", process_entry, stack_.get(), stack_ptr);
@@ -102,6 +103,7 @@ Process::Process(const Process& process)
     : state_(process.state_)
     , pid_(process.pid_)
     , stack_size_(process.stack_size_)
+    , fd_map_(process.fd_map_)
 {
     if (process.stack_ != nullptr)
     {
@@ -113,6 +115,10 @@ Process::Process(const Process& process)
     {
         current_stack_pointer_ = process.current_stack_pointer_;
     }
+    for (int i = 0; i < 8; i++)
+    {
+        fd_[i] = process.fd_[i];
+    }
 }
 
 Process::Process(const std::size_t process_entry, const std::size_t stack_size)
@@ -120,6 +126,7 @@ Process::Process(const std::size_t process_entry, const std::size_t stack_size)
     , pid_(pid_counter++)
     , stack_size_(stack_size)
     , stack_(new std::size_t[stack_size/(sizeof(std::size_t))]())
+    , fd_map_(0x7)
 {
     uint8_t* stack_ptr = reinterpret_cast<uint8_t*>(stack_.get()) + stack_size_ - sizeof(HardwareStoredRegisters) - sizeof(SoftwareStoredRegisters);
     std::size_t required_stack_size = sizeof(HardwareStoredRegisters) + sizeof(SoftwareStoredRegisters);
@@ -214,6 +221,33 @@ Process::State Process::get_state() const
 {
     return state_;
 }
+
+int Process::add_file(msos::fs::IFile* file)
+{
+    int i = 0;
+
+    for (i = 0; i < 8; i++)
+    {
+        if ((fd_map_ & (1 << i)) == 0)
+        {
+            fd_map_ |= (1 << i);
+            fd_[i] = file;
+            return i;
+        }
+    }
+    return -1;
+}
+
+msos::fs::IFile* Process::get_file(int fd) const
+{
+    printf("FD_MAP: %x\n", fd_map_);
+    if (fd_map_ & (1 << fd))
+    {
+        return fd_[fd];
+    }
+    return nullptr;
+}
+
 
 } // namespace process
 } // namespace kernel

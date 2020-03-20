@@ -25,6 +25,8 @@
 
 #include "msos/kernel/process/registers.hpp"
 
+#include "msos/fs/i_file.hpp"
+
 extern "C"
 {
     pid_t root_process(const std::size_t process);
@@ -79,6 +81,8 @@ public:
     void block();
     void unblock();
     State get_state() const;
+    int add_file(msos::fs::IFile* file);
+    msos::fs::IFile* get_file(int fd) const;
 private:
 
     State state_;
@@ -86,6 +90,8 @@ private:
     std::size_t stack_size_;
     std::unique_ptr<std::size_t[]> stack_;
     const std::size_t* current_stack_pointer_;
+    uint8_t fd_map_;
+    msos::fs::IFile* fd_[8];
 };
 
 } // namespace process

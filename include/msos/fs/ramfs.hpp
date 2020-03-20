@@ -41,6 +41,10 @@ public:
 
     int stat(const std::string_view path) override;
 
+    IFile* get(const std::string_view path) override;
+    IFile* create(const std::string_view path) override;
+
+
 protected:
     static bool mounted_;
 };

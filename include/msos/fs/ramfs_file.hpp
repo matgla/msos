@@ -16,30 +16,36 @@
 
 #pragma once
 
-#include <cstdint>
+#include <string_view>
 
-#include <unistd.h>
+#include "msos/fs/i_filesystem.hpp"
 
-#include <gsl/span.hpp>
-
-namespace msfs
+namespace msos
+{
+namespace fs
 {
 
-class File
+struct RamfsFile : public IFile
 {
 public:
-    using DataType = gsl::span<uint8_t>;
+    RamfsFile(const std::string_view name);
 
-    virtual ~File() = default;
+    ssize_t read(DataType data) override;
+    ssize_t write(const ConstDataType data) override;
+    off_t seek(off_t offset, int base) const override;
+    int close() override;
+    int sync() override;
 
-    virtual ssize_t read(DataType& data) const = 0;
-    virtual ssize_t write(const DataType& data) = 0;
-    virtual off_t seek(off_t offset, int base) const = 0;
-    virtual int close() = 0;
-    virtual int sync() = 0;
+    off_t tell() const override;
+    ssize_t size() const override;
 
-    virtual off_t tell() const;
-    virtual ssize_t size() const;
+    std::string_view name() const override;
+
+private:
+    std::string_view filename_;
+    std::vector<uint8_t> data_;
+    std::size_t position_;
 };
 
-} // namespace msfs
+} // namespace fs
+} // namespace msos
