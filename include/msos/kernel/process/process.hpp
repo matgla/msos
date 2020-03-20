@@ -18,6 +18,7 @@
 
 #include <cstdint>
 
+#include <array>
 #include <memory>
 #include <list>
 
@@ -81,7 +82,8 @@ public:
     void block();
     void unblock();
     State get_state() const;
-    int add_file(msos::fs::IFile* file);
+    int add_file(std::unique_ptr<msos::fs::IFile>&& file);
+    int remove_file(int fd);
     msos::fs::IFile* get_file(int fd) const;
 private:
 
@@ -91,7 +93,7 @@ private:
     std::unique_ptr<std::size_t[]> stack_;
     const std::size_t* current_stack_pointer_;
     uint8_t fd_map_;
-    msos::fs::IFile* fd_[8];
+    std::array<std::unique_ptr<msos::fs::IFile>, 8> fd_;
 };
 
 } // namespace process

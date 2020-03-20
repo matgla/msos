@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include <string_view>
+#include <memory>
 
 #include <unistd.h>
 
@@ -46,6 +47,8 @@ public:
     virtual ssize_t size() const = 0;
 
     virtual std::string_view name() const = 0;
+    virtual std::unique_ptr<IFile> clone() const = 0;
+
 };
 
 } // namespace fs

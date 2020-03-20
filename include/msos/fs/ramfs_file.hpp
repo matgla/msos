@@ -28,7 +28,7 @@ namespace fs
 struct RamfsFile : public IFile
 {
 public:
-    RamfsFile(const std::string_view name);
+    RamfsFile(const std::string_view name, std::vector<uint8_t>& data);
 
     ssize_t read(DataType data) override;
     ssize_t write(const ConstDataType data) override;
@@ -41,9 +41,11 @@ public:
 
     std::string_view name() const override;
 
+    std::unique_ptr<IFile> clone() const override;
+
 private:
     std::string_view filename_;
-    std::vector<uint8_t> data_;
+    std::vector<uint8_t>& data_;
     std::size_t position_;
 };
 

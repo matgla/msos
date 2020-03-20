@@ -19,11 +19,25 @@
 #include <string_view>
 
 #include "msos/fs/i_filesystem.hpp"
+#include "msos/fs/ramfs_file.hpp"
 
 namespace msos
 {
 namespace fs
 {
+
+struct RamFsData
+{
+    RamFsData(const std::string_view& name)
+        : filename{name}
+        , data{}
+    {
+
+    }
+
+    std::string_view filename;
+    std::vector<uint8_t> data;
+};
 
 class RamFs : public IFileSystem
 {
@@ -41,12 +55,12 @@ public:
 
     int stat(const std::string_view path) override;
 
-    IFile* get(const std::string_view path) override;
-    IFile* create(const std::string_view path) override;
-
+    std::unique_ptr<IFile> get(const std::string_view path) override;
+    std::unique_ptr<IFile> create(const std::string_view path) override;
 
 protected:
     static bool mounted_;
+    std::vector<RamFsData> files_;
 };
 
 } // namespace fs

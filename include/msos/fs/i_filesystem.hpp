@@ -41,9 +41,8 @@ public:
     virtual int remove(const std::string_view path) = 0;
     virtual int stat(const std::string_view path) = 0;
 
-    virtual IFile* get(const std::string_view path) = 0;
-    virtual IFile* create(const std::string_view path) = 0;
-
+    virtual std::unique_ptr<IFile> get(const std::string_view path) = 0;
+    virtual std::unique_ptr<IFile> create(const std::string_view path) = 0;
 protected:
     static bool mounted_;
 };

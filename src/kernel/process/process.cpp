@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <cstring>
+#include <utility>
 
 #include "msos/usart_printer.hpp"
 
@@ -117,7 +118,7 @@ Process::Process(const Process& process)
     }
     for (int i = 0; i < 8; i++)
     {
-        fd_[i] = process.fd_[i];
+        fd_[i] = std::move(process.fd_[i]->clone());
     }
 }
 
@@ -222,7 +223,7 @@ Process::State Process::get_state() const
     return state_;
 }
 
-int Process::add_file(msos::fs::IFile* file)
+int Process::add_file(std::unique_ptr<msos::fs::IFile>&& file)
 {
     int i = 0;
 
@@ -231,7 +232,7 @@ int Process::add_file(msos::fs::IFile* file)
         if ((fd_map_ & (1 << i)) == 0)
         {
             fd_map_ |= (1 << i);
-            fd_[i] = file;
+            fd_[i] = std::move(file);
             return i;
         }
     }
@@ -240,12 +241,22 @@ int Process::add_file(msos::fs::IFile* file)
 
 msos::fs::IFile* Process::get_file(int fd) const
 {
-    printf("FD_MAP: %x\n", fd_map_);
     if (fd_map_ & (1 << fd))
     {
-        return fd_[fd];
+        return fd_[fd].get();
     }
     return nullptr;
+}
+
+int Process::remove_file(int fd)
+{
+    if (fd_map_ & (1 << fd))
+    {
+        fd_map_ &= ~(1 << fd);
+        fd_[fd].reset();
+        return 0;
+    }
+    return -1;
 }
 
 

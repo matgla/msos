@@ -255,7 +255,7 @@ int _lseek(int file, int ptr, int dir)
 
 int _close(int file)
 {
-    return 0;
+    return msos::kernel::process::scheduler->current_process().remove_file(file);
 }
 
 int _fstat(int file, struct stat* st)
@@ -273,22 +273,22 @@ int _open(const char* filename, int flags)
         return -1;
     }
 
-    msos::fs::IFile* file;
+    std::unique_ptr<msos::fs::IFile> file;
     printf("Flags: %d\n", flags);
-    if (flags & O_CREAT)
+    if ((flags & O_ACCMODE) == O_RDONLY)
+    {
+        file = root_fs->get(filename);
+        int fd = msos::kernel::process::scheduler->current_process().add_file(std::move(file));
+        printf("Got file: %s, fd: %d\n", filename, fd);
+        return fd;
+    }
+    else if ((flags & O_CREAT) == O_CREAT)
     {
         file = root_fs->create(filename);
 
-        int fd = msos::kernel::process::scheduler->current_process().add_file(file);
+        int fd = msos::kernel::process::scheduler->current_process().add_file(std::move(file));
         printf("File created %s, fd: %d\n", filename, fd);
 
-        return fd;
-    }
-    if (flags & O_RDONLY)
-    {
-        file = root_fs->get(filename);
-        int fd = msos::kernel::process::scheduler->current_process().add_file(file);
-        printf("Got file: %s, fd: %d\n", filename, fd);
         return fd;
     }
 

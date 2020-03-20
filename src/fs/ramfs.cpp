@@ -58,17 +58,24 @@ int RamFs::stat(const std::string_view path)
     return 1;
 }
 
-IFile* RamFs::get(const std::string_view path)
+std::unique_ptr<IFile> RamFs::get(const std::string_view path)
 {
-    UNUSED1(path);
+    for (auto& file : files_)
+    {
+        printf("f: %s == %s\n", file.filename.data(), path.data());
+        if (file.filename == path)
+        {
+            return std::make_unique<RamfsFile>(path, file.data);
+        }
+    }
     return nullptr;
 }
 
-IFile* RamFs::create(const std::string_view path)
+std::unique_ptr<IFile> RamFs::create(const std::string_view path)
 {
     printf("Creating file with name: %s\n", path.data());
-    IFile* file = new RamfsFile(path);
-    return file;
+    files_.push_back(RamFsData{path});
+    return std::make_unique<RamfsFile>(path, files_.back().data);
 }
 
 } // namespace fs

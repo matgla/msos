@@ -23,7 +23,10 @@ namespace msos
 namespace fs
 {
 
-RamfsFile::RamfsFile(const std::string_view name) : filename_(name), data_{}, position_(0)
+RamfsFile::RamfsFile(const std::string_view name, std::vector<uint8_t>& data)
+    : filename_(name)
+    , data_{data}
+    , position_(0)
 {
 
 }
@@ -78,6 +81,12 @@ std::string_view RamfsFile::name() const
 {
     return filename_;
 }
+
+std::unique_ptr<IFile> RamfsFile::clone() const
+{
+    return std::make_unique<RamfsFile>(filename_, data_);
+}
+
 
 } // namespace fs
 } // namespace msos
