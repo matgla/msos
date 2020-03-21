@@ -68,7 +68,7 @@ Process::Process(const Process& parent, const std::size_t process_entry, const s
 
     std::memcpy(stack_.get(), parent.stack_.get(), parent.stack_size());
     HardwareStoredRegisters* hw_registers = reinterpret_cast<HardwareStoredRegisters*>(stack_ptr);
-    hw_registers->r0 = 0;
+    hw_registers->r0 = 0;//registers->r0;
     hw_registers->r1 = registers->r1;
     hw_registers->r2 = registers->r2;
     hw_registers->r3 = registers->r3;

@@ -88,7 +88,7 @@ std::unique_ptr<IFile> RomFs::get(std::string_view path)
         auto file = dir->get_file(filename);
         if (file)
         {
-            printf("Got file\n");
+            printf("Got file: %p\n", file->data());
             return std::make_unique<RomFsFile>(*file);
         }
     }
