@@ -25,11 +25,15 @@ target_sources(msos_fs
         ${library_includes}/mount_point.hpp
         ${library_includes}/mount_points.hpp
         ${library_includes}/ramfs.hpp
+        ${library_includes}/romfs.hpp
         ${library_includes}/ramfs_file.hpp
+        ${library_includes}/romfs_file.hpp
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/mount_points.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ramfs.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/romfs.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ramfs_file.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/romfs_file.cpp
 )
 
 target_include_directories(msos_fs
@@ -49,6 +53,7 @@ target_link_libraries(msos_fs
         gsl
         eul
         msos_drivers_storage
+        romfs
 )
 
 

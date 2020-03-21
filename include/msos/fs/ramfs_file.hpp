@@ -43,6 +43,8 @@ public:
 
     std::unique_ptr<IFile> clone() const override;
 
+    ConstDataType data() const override;
+
 private:
     std::string_view filename_;
     std::vector<uint8_t>& data_;

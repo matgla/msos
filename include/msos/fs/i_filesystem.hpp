@@ -36,13 +36,13 @@ public:
     virtual int umount() = 0;
 
     virtual int create() = 0;
-    virtual int mkdir(const std::string_view path, int mode) = 0;
+    virtual int mkdir(std::string_view path, int mode) = 0;
 
-    virtual int remove(const std::string_view path) = 0;
-    virtual int stat(const std::string_view path) = 0;
+    virtual int remove(std::string_view path) = 0;
+    virtual int stat(std::string_view path) = 0;
 
-    virtual std::unique_ptr<IFile> get(const std::string_view path) = 0;
-    virtual std::unique_ptr<IFile> create(const std::string_view path) = 0;
+    virtual std::unique_ptr<IFile> get(std::string_view path) = 0;
+    virtual std::unique_ptr<IFile> create(std::string_view path) = 0;
 protected:
     static bool mounted_;
 };

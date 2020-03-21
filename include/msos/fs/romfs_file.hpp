@@ -18,49 +18,38 @@
 
 #include <string_view>
 
+#include <romfs/fileHeader.hpp>
+
 #include "msos/fs/i_filesystem.hpp"
-#include "msos/fs/ramfs_file.hpp"
 
 namespace msos
 {
 namespace fs
 {
 
-struct RamFsData
-{
-    RamFsData(const std::string_view& name)
-        : filename{name}
-        , data{}
-    {
-
-    }
-
-    std::string_view filename;
-    std::vector<uint8_t> data;
-};
-
-class RamFs : public IFileSystem
+struct RomFsFile : public IFile
 {
 public:
+    RomFsFile(const romfs::FileHeader& fh);
 
-    int mount(drivers::storage::BlockDevice& device) override;
+    ssize_t read(DataType data) override;
+    ssize_t write(const ConstDataType data) override;
+    off_t seek(off_t offset, int base) const override;
+    int close() override;
+    int sync() override;
 
-    int umount() override;
+    off_t tell() const override;
+    ssize_t size() const override;
 
-    int create() override;
+    std::string_view name() const override;
 
-    int mkdir(std::string_view path, int mode) override;
+    std::unique_ptr<IFile> clone() const override;
 
-    int remove(std::string_view path) override;
+    ConstDataType data() const override;
 
-    int stat(std::string_view path) override;
-
-    std::unique_ptr<IFile> get(std::string_view path) override;
-    std::unique_ptr<IFile> create(std::string_view path) override;
-
-protected:
-    static bool mounted_;
-    std::vector<RamFsData> files_;
+private:
+    romfs::FileHeader file_;
+    std::size_t position_;
 };
 
 } // namespace fs

@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "msos/fs/ramfs_file.hpp"
+#include "msos/fs/romfs_file.hpp"
+
+#include <cstring>
 
 #include <eul/utils/unused.hpp>
 
@@ -23,73 +25,72 @@ namespace msos
 namespace fs
 {
 
-RamfsFile::RamfsFile(const std::string_view name, std::vector<uint8_t>& data)
-    : filename_(name)
-    , data_{data}
+RomFsFile::RomFsFile(const romfs::FileHeader& fh)
+    : file_(fh)
     , position_(0)
-{
 
+{
 }
 
-ssize_t RamfsFile::read(DataType data)
+ssize_t RomFsFile::read(DataType data)
 {
-    if (position_ >= data_.size())
+    if (position_ >= file_.get_size())
     {
         printf("returning EOF\n");
         return 0;
     }
-    size_t len = (data_.size() - position_) > static_cast<size_t>(data.size()) ? data.size() : data_.size() - position_;
+    size_t len = (file_.get_size() - position_) > static_cast<size_t>(data.size()) ? data.size() : file_.get_size() - position_;
 
-    std::copy(data_.begin() + position_, data_.end(), data.begin());
+    std::memcpy(data.data(), file_.data() + position_, len);
     position_ += len;
     return len;
 }
 
-ssize_t RamfsFile::write(const ConstDataType data)
+ssize_t RomFsFile::write(const ConstDataType data)
 {
-    std::copy(data.begin(), data.end(), std::back_inserter(data_));
-    return data.size();
+    UNUSED1(data);
+    return -1;
 }
 
-off_t RamfsFile::seek(off_t offset, int base) const
+off_t RomFsFile::seek(off_t offset, int base) const
 {
     UNUSED2(offset, base);
     return 0;
 }
 
-int RamfsFile::close()
+int RomFsFile::close()
 {
     return 0;
 }
 
-int RamfsFile::sync()
+int RomFsFile::sync()
 {
     return 0;
 }
 
-off_t RamfsFile::tell() const
+off_t RomFsFile::tell() const
 {
     return 0;
 }
 
-ssize_t RamfsFile::size() const
+ssize_t RomFsFile::size() const
 {
     return 0;
 }
 
-std::string_view RamfsFile::name() const
+std::string_view RomFsFile::name() const
 {
-    return filename_;
+    return file_.get_name();
 }
 
-std::unique_ptr<IFile> RamfsFile::clone() const
+std::unique_ptr<IFile> RomFsFile::clone() const
 {
-    return std::make_unique<RamfsFile>(filename_, data_);
+    return std::make_unique<RomFsFile>(file_);
 }
 
-IFile::ConstDataType RamfsFile::data() const
+IFile::ConstDataType RomFsFile::data() const
 {
-    return data_;
+    return gsl::make_span<const uint8_t>(file_.data(), file_.get_size());
 }
 
 } // namespace fs

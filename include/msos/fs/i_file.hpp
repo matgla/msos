@@ -43,6 +43,9 @@ public:
     virtual int close() = 0;
     virtual int sync() = 0;
 
+    /* for XIP filesystems pointer to memory must be returned somehow */
+    virtual ConstDataType data() const = 0;
+
     virtual off_t tell() const = 0;
     virtual ssize_t size() const = 0;
 

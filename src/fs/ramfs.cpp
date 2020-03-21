@@ -40,25 +40,25 @@ int RamFs::create()
     return 1;
 }
 
-int RamFs::mkdir(const std::string_view path, int mode)
+int RamFs::mkdir(std::string_view path, int mode)
 {
     UNUSED2(path, mode);
     return 1;
 }
 
-int RamFs::remove(const std::string_view path)
+int RamFs::remove(std::string_view path)
 {
     UNUSED1(path);
     return 1;
 }
 
-int RamFs::stat(const std::string_view path)
+int RamFs::stat(std::string_view path)
 {
     UNUSED1(path);
     return 1;
 }
 
-std::unique_ptr<IFile> RamFs::get(const std::string_view path)
+std::unique_ptr<IFile> RamFs::get(std::string_view path)
 {
     for (auto& file : files_)
     {
@@ -71,7 +71,7 @@ std::unique_ptr<IFile> RamFs::get(const std::string_view path)
     return nullptr;
 }
 
-std::unique_ptr<IFile> RamFs::create(const std::string_view path)
+std::unique_ptr<IFile> RamFs::create(std::string_view path)
 {
     printf("Creating file with name: %s\n", path.data());
     files_.push_back(RamFsData{path});

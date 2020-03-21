@@ -18,30 +18,19 @@
 
 #include <string_view>
 
+#include <romfs/romfs.hpp>
+
 #include "msos/fs/i_filesystem.hpp"
-#include "msos/fs/ramfs_file.hpp"
 
 namespace msos
 {
 namespace fs
 {
 
-struct RamFsData
-{
-    RamFsData(const std::string_view& name)
-        : filename{name}
-        , data{}
-    {
-
-    }
-
-    std::string_view filename;
-    std::vector<uint8_t> data;
-};
-
-class RamFs : public IFileSystem
+class RomFs : public IFileSystem
 {
 public:
+    RomFs(const uint8_t* memory);
 
     int mount(drivers::storage::BlockDevice& device) override;
 
@@ -60,7 +49,8 @@ public:
 
 protected:
     static bool mounted_;
-    std::vector<RamFsData> files_;
+    romfs::RomFsDisk disk_;
+
 };
 
 } // namespace fs

@@ -26,15 +26,39 @@
 #include "msos/kernel/process/process.hpp"
 #include "msos/drivers/storage/ram_block_device.hpp"
 #include "msos/fs/ramfs.hpp"
+#include "msos/fs/romfs.hpp"
 #include "msos/fs/mount_points.hpp"
+
+#include <msos/dynamic_linker/dynamic_linker.hpp>
+#include <msos/dynamic_linker/environment.hpp>
 
 // #include "msos/fs/"
 
+msos::dl::DynamicLinker dynamic_linker;
 hal::UsartWriter writer;
+
+uint32_t get_lot_at(uint32_t address)
+{
+    writer << "Getting address of LOT: 0x" << hex << address << endl;
+    return dynamic_linker.get_lot_for_module_at(address);
+}
+
+extern "C"
+{
+void usart_write(const char* data);
+
+}
+
+void usart_write(const char* data)
+{
+    writer << data;
+}
 
 void kernel_process()
 {
     writer << "I am starting" << endl;
+
+    uint8_t* romfs_disk = reinterpret_cast<uint8_t*>(0x08008000);
 
     msos::drivers::storage::RamBlockDevice bd(2048, 1, 1, 1);
 
@@ -87,6 +111,78 @@ void kernel_process()
             writer << endl;
         }
         fclose(test_file);
+    }
+
+    writer << "Started testing ROMFS disk" << endl;
+    msos::fs::RomFs romfs(romfs_disk);
+    msos::fs::mount_points.mount_filesystem("/rom", &romfs);
+
+    writer << "Opening file /rom/test.txt" << endl;
+    FILE *romfs_file = fopen("/rom/test.txt", "r");
+
+    writer << "Fopen called" << endl;
+    if (romfs_file == NULL)
+    {
+        writer << "Can't open: /rom/test.txt" << endl;
+    }
+    else
+    {
+        if (romfs_file)
+        {
+            writer << "Content of file: " << endl;
+            int c;
+            int i = 0;
+            while ((c = getc(romfs_file)) != EOF)
+            {
+                writer << static_cast<char>(c);
+            }
+            writer << endl;
+        }
+        fclose(romfs_file);
+    }
+
+    /* get raw file and execute */
+    auto file = romfs.get("/interface_and_classes.bin");
+    if (file)
+    {
+        writer << "Got file with binary" << endl;
+
+        uint32_t address_of_lot_getter = reinterpret_cast<uint32_t>(&get_lot_at);
+        uint32_t* lot_in_memory = reinterpret_cast<uint32_t*>(0x20000000);
+        *lot_in_memory = address_of_lot_getter;
+        writer << "Address of lot getter: 0x" << hex << address_of_lot_getter << endl;
+        writer << "Address of lot in memory: 0x" << hex << reinterpret_cast<uint32_t>(lot_in_memory) << endl;
+
+        std::size_t module_address = reinterpret_cast<uint32_t>(file->data().data());
+        int extern_data = 123;
+        msos::dl::Environment<4> env{
+            msos::dl::SymbolAddress{"usart_write", &usart_write},
+            msos::dl::SymbolAddress{"strlen", &strlen},
+            msos::dl::SymbolAddress{"write", &write},
+            msos::dl::SymbolAddress{"extern_1", &extern_data}
+        };
+        writer << "[TEST START]" << endl;
+
+        const msos::dl::LoadedModule* module = dynamic_linker.load_module(module_address, msos::dl::LoadingModeCopyData, env);
+
+        if (module == nullptr)
+        {
+            writer << "Module not loaded properly" << endl;
+            writer << "[TEST DONE]" << endl;
+            while (true)
+            {
+            }
+        }
+        writer << "Module loaded" << endl;
+
+        module->execute();
+
+        writer << "[TEST DONE]" << endl;
+    }
+
+    while (true)
+    {
+
     }
 }
 

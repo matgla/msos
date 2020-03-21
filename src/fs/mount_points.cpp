@@ -25,6 +25,11 @@ namespace fs
 
 MountPoints mount_points;
 
+const std::vector<MountPoint> MountPoints::get_mounted_points() const
+{
+    return points_;
+}
+
 IFileSystem* MountPoints::get_mounted_filesystem(const std::string_view& point)
 {
     auto mount_point = std::find_if(points_.begin(), points_.end(), [point](const MountPoint& mp){

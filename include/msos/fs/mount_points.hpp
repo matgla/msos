@@ -30,6 +30,7 @@ namespace fs
 class MountPoints
 {
 public:
+    const std::vector<MountPoint> get_mounted_points() const;
     IFileSystem* get_mounted_filesystem(const std::string_view& point);
     bool mount_filesystem(const std::string_view& point, IFileSystem* filesystem);
 

@@ -265,9 +265,33 @@ int _fstat(int file, struct stat* st)
 
 int _open(const char* filename, int flags)
 {
-    msos::fs::IFileSystem* root_fs = msos::fs::mount_points.get_mounted_filesystem("/");
+    auto& mount_points = msos::fs::mount_points.get_mounted_points();
 
-    if (root_fs == nullptr)
+    msos::fs::IFileSystem* fs;
+    std::string_view best_mount_point;
+    std::string_view path(filename);
+
+    for (auto& point : mount_points)
+    {
+        std::size_t index = path.find(point.point);
+        if (index != std::string_view::npos)
+        {
+            if (point.point.size() > best_mount_point.size())
+            {
+                best_mount_point = point.point;
+            }
+        }
+    }
+
+    if (best_mount_point != "/")
+    {
+        path.remove_prefix(best_mount_point.size());
+    }
+
+
+    fs = msos::fs::mount_points.get_mounted_filesystem(best_mount_point);
+
+    if (fs == nullptr)
     {
         errno = ENOENT;
         return -1;
@@ -277,14 +301,14 @@ int _open(const char* filename, int flags)
     printf("Flags: %d\n", flags);
     if ((flags & O_ACCMODE) == O_RDONLY)
     {
-        file = root_fs->get(filename);
+        file = fs->get(path);
         int fd = msos::kernel::process::scheduler->current_process().add_file(std::move(file));
         printf("Got file: %s, fd: %d\n", filename, fd);
         return fd;
     }
     else if ((flags & O_CREAT) == O_CREAT)
     {
-        file = root_fs->create(filename);
+        file = fs->create(path);
 
         int fd = msos::kernel::process::scheduler->current_process().add_file(std::move(file));
         printf("File created %s, fd: %d\n", filename, fd);
