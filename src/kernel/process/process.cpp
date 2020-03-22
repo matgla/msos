@@ -34,7 +34,15 @@ namespace process
 void exit_handler()
 {
     printf("Process exited\n");
-    scheduler->get_processes().delete_process(scheduler->current_process().pid());
+    // scheduler->get_processes().delete_process(scheduler->current_process().pid());
+    asm volatile inline(
+        "mov r0, #10\n\t"
+        "svc 0\n\t"
+        "isb\n\t"
+        "dsb\n\t"
+        "wfi\n\t"
+    );
+
     while(1);
 }
 
@@ -46,6 +54,20 @@ void print_stack(const uint32_t* stack, std::size_t length)
     {
         printf("%p: 0x%08x 0x%08x 0x%08x 0x%08x\n", &stack[i], stack[i], stack[i+1], stack[i+2], stack[i+3]);
     }
+}
+
+uint32_t Process::patch_register(const Process& parent, uint32_t reg)
+{
+    uint32_t parent_stack = reinterpret_cast<uint32_t>(parent.stack_.get());
+    printf("Compare %x >= %x && < %x\n", reg, parent_stack, parent_stack + parent.stack_size_);
+
+    if (reg >= parent_stack - parent.stack_size_ && reg < parent_stack)
+    {
+        uint32_t stack = reinterpret_cast<uint32_t>(stack_.get());
+        printf("Patching register from 0x%x to 0x%x\n", reg, (stack + (reg - parent_stack)));
+        return stack + (reg - parent_stack);
+    }
+    return reg;
 }
 
 static pid_t pid_counter = 1;
@@ -69,22 +91,22 @@ Process::Process(const Process& parent, const std::size_t process_entry, const s
     std::memcpy(stack_.get(), parent.stack_.get(), parent.stack_size());
     HardwareStoredRegisters* hw_registers = reinterpret_cast<HardwareStoredRegisters*>(stack_ptr);
     hw_registers->r0 = 0;//registers->r0;
-    hw_registers->r1 = registers->r1;
-    hw_registers->r2 = registers->r2;
-    hw_registers->r3 = registers->r3;
+    hw_registers->r1 = patch_register(parent, registers->r1);
+    hw_registers->r2 = patch_register(parent, registers->r2);
+    hw_registers->r3 = patch_register(parent, registers->r3);
 
     stack_ptr -= sizeof(SoftwareStoredRegisters);
     SoftwareStoredRegisters* sw_registers = reinterpret_cast<SoftwareStoredRegisters*>(stack_ptr);
 
-    sw_registers->r4 = registers->r4;
-    sw_registers->r5 = registers->r5;
+    sw_registers->r4 = patch_register(parent, registers->r4);
+    sw_registers->r5 = patch_register(parent, registers->r5);
     printf("Dumping r6: 0x%x\n", registers->r6);
-    sw_registers->r6 = registers->r6;
-    sw_registers->r7 = registers->r7;
-    sw_registers->r8 = registers->r8;
-    sw_registers->r9 = registers->r9;
-    sw_registers->r10 = registers->r10;
-    sw_registers->r11 = registers->r11;
+    sw_registers->r6 = patch_register(parent, registers->r6);
+    sw_registers->r7 = patch_register(parent, registers->r7);
+    sw_registers->r8 = patch_register(parent, registers->r8);
+    sw_registers->r9 = patch_register(parent, registers->r9);
+    sw_registers->r10 = patch_register(parent, registers->r10);
+    sw_registers->r11 = patch_register(parent, registers->r11);
 
     hw_registers->psr = default_psr_status;
     hw_registers->lr = reinterpret_cast<uint32_t>(&exit_handler);
@@ -122,7 +144,7 @@ Process::Process(const Process& process)
     }
 }
 
-Process::Process(const std::size_t process_entry, const std::size_t stack_size)
+Process::Process(const std::size_t process_entry, const std::size_t stack_size, uint32_t arg)
     : state_(State::Ready)
     , pid_(pid_counter++)
     , stack_size_(stack_size)
@@ -137,7 +159,7 @@ Process::Process(const std::size_t process_entry, const std::size_t stack_size)
     }
 
     HardwareStoredRegisters* hw_registers = reinterpret_cast<HardwareStoredRegisters*>(stack_ptr + sizeof(SoftwareStoredRegisters));
-    hw_registers->r0 = 0;
+    hw_registers->r0 = arg;
     hw_registers->r1 = 0;
     hw_registers->r2 = 0;
     hw_registers->r3 = 0;
@@ -159,6 +181,7 @@ Process::Process(const std::size_t process_entry, const std::size_t stack_size)
     hw_registers->pc = process_entry;
     sw_registers->lr = return_to_thread_mode_psp;
     current_stack_pointer_ = reinterpret_cast<std::size_t*>(stack_ptr);
+    printf("Process created\n");
 }
 
 Process::Process(std::size_t* stack_pointer, const std::size_t stack_size)

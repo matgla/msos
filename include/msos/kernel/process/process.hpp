@@ -68,7 +68,7 @@ public:
     Process(std::size_t* stack_pointer, const std::size_t stack_size);
 
     Process(const Process& process);
-    Process(const std::size_t process_entry, const std::size_t stack_size);
+    Process(const std::size_t process_entry, const std::size_t stack_size, uint32_t arg = 0);
 
     pid_t pid() const;
     std::size_t stack_size() const;
@@ -87,6 +87,7 @@ public:
     msos::fs::IFile* get_file(int fd) const;
 private:
 
+    uint32_t patch_register(const Process& parent, uint32_t reg);
     State state_;
     pid_t pid_;
     std::size_t stack_size_;

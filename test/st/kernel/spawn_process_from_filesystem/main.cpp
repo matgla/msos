@@ -39,6 +39,8 @@
 #include <msos/dynamic_linker/dynamic_linker.hpp>
 #include <msos/dynamic_linker/environment.hpp>
 
+#include <msos/kernel/process/spawn.hpp>
+
 // #include "msos/fs/"
 
 msos::dl::DynamicLinker dynamic_linker;
@@ -71,6 +73,53 @@ void trap()
     writer << "Trap" << endl;
 }
 
+void child_process(void* arg)
+{
+    printf("Welcome in child process with arg %p\n", arg);
+    auto& romfs = *reinterpret_cast<msos::fs::RomFs*>(arg);
+    /* get raw file and execute */
+    printf ("Casted to %p\n", romfs);
+    auto file = romfs.get("/interface_and_classes.bin");
+    printf("Get file\n");
+    if (!file)
+    {
+        writer << "Can't open file" << endl;
+        return;
+    }
+    trap();
+    std::size_t module_address = reinterpret_cast<uint32_t>(file->data().data());
+    writer << "Got file with binary: " << hex << module_address << endl;
+    writer << "Got file with binary: " << file->name() << endl;
+
+    uint32_t address_of_lot_getter = reinterpret_cast<uint32_t>(&get_lot_at);
+    uint32_t* lot_in_memory = reinterpret_cast<uint32_t*>(0x20000000);
+    *lot_in_memory = address_of_lot_getter;
+    writer << "Address of lot getter: 0x" << hex << address_of_lot_getter << endl;
+    writer << "Address of lot in memory: 0x" << hex << reinterpret_cast<uint32_t>(lot_in_memory) << endl;
+
+    int extern_data = 123;
+    msos::dl::Environment<4> env{
+        msos::dl::SymbolAddress{"usart_write", &usart_write},
+        msos::dl::SymbolAddress{"strlen", &strlen},
+        msos::dl::SymbolAddress{"write", &write},
+        msos::dl::SymbolAddress{"extern_1", &extern_data}
+    };
+    writer << "[TEST START]" << endl;
+
+    const msos::dl::LoadedModule* module = dynamic_linker.load_module(module_address, msos::dl::LoadingModeCopyData, env);
+
+    if (module == nullptr)
+    {
+        writer << "Module not loaded properly" << endl;
+        writer << "[TEST DONE]" << endl;
+        while (true)
+        {
+        }
+    }
+    writer << "Module loaded" << endl;
+
+    module->execute();
+}
 
 void kernel_process()
 {
@@ -170,63 +219,18 @@ void kernel_process()
         fclose(romfs_file);
     }
 
+    printf("ROMFS ptr %p\n", &romfs);
 
-    if (fork())
+    if (spawn(child_process, &romfs))
     {
         writer << "Spawned child process" << endl;
     }
-    else
-    {
-         /* get raw file and execute */
-    auto file = romfs.get("/interface_and_classes.bin");
-    if (!file)
-    {
-        writer << "Can't open file" << endl;
-        exit(-1);
-    }
-    trap();
-    std::size_t module_address = reinterpret_cast<uint32_t>(file->data().data());
-    writer << "Got file with binary: " << hex << module_address << endl;
-    writer << "Got file with binary: " << file->name() << endl;
-
-    uint32_t address_of_lot_getter = reinterpret_cast<uint32_t>(&get_lot_at);
-    uint32_t* lot_in_memory = reinterpret_cast<uint32_t*>(0x20000000);
-    *lot_in_memory = address_of_lot_getter;
-    writer << "Address of lot getter: 0x" << hex << address_of_lot_getter << endl;
-    writer << "Address of lot in memory: 0x" << hex << reinterpret_cast<uint32_t>(lot_in_memory) << endl;
-
-    int extern_data = 123;
-    msos::dl::Environment<4> env{
-        msos::dl::SymbolAddress{"usart_write", &usart_write},
-        msos::dl::SymbolAddress{"strlen", &strlen},
-        msos::dl::SymbolAddress{"write", &write},
-        msos::dl::SymbolAddress{"extern_1", &extern_data}
-    };
-    writer << "[TEST START]" << endl;
-
-    const msos::dl::LoadedModule* module = dynamic_linker.load_module(module_address, msos::dl::LoadingModeCopyData, env);
-
-    if (module == nullptr)
-    {
-        writer << "Module not loaded properly" << endl;
-        writer << "[TEST DONE]" << endl;
-        while (true)
-        {
-        }
-    }
-    writer << "Module loaded" << endl;
-
-    module->execute();
-
-    writer << "[TEST DONE]" << endl;
-        exit(0);
-    }
-
 
     while (true)
     {
         hal::time::sleep(std::chrono::seconds(1));
         writer << "Parent" << endl;
+        writer << "[TEST DONE]" << endl;
     }
 }
 
@@ -239,6 +243,7 @@ int main()
     Usart::init(9600);
     hal::time::Time::init();
 
+    writer << "[TEST START]" << endl;
     root_process(reinterpret_cast<std::size_t>(&kernel_process));
 
     while (true)

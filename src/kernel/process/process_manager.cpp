@@ -42,9 +42,10 @@ Process& ProcessManager::create_process(const Process& parent, const std::size_t
     return processes_.back();
 }
 
-Process& ProcessManager::create_process(std::size_t process_entry, std::size_t stack_size)
+Process& ProcessManager::create_process(std::size_t process_entry, std::size_t stack_size, uint32_t arg)
 {
-    processes_.emplace_back(process_entry, stack_size);
+    processes_.emplace_back(process_entry, stack_size, arg);
+    printf("Stucked here\n");
     return processes_.back();
 }
 

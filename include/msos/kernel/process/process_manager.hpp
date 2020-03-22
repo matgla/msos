@@ -36,7 +36,7 @@ public:
     using ContainerType = std::list<Process>;
     Process& create_process(const Process& parent, const std::size_t process_entry, const std::size_t return_address, RegistersDump* registers);
 
-    Process& create_process(std::size_t process_entry, std::size_t stack_size);
+    Process& create_process(std::size_t process_entry, std::size_t stack_size, uint32_t arg = 0);
 
     void delete_process(pid_t pid);
 

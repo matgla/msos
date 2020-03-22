@@ -28,6 +28,7 @@
 
 #include "msos/kernel/synchronization/semaphore.hpp"
 #include "msos/kernel/synchronization/mutex.hpp"
+#include "msos/kernel/process/spawn.hpp"
 
 hal::UsartWriter writer;
 
@@ -43,7 +44,25 @@ void b_finish()
     writer << "B finished" << endl;
 }
 
-void child_fun()
+void trap()
+{
+    writer << "Trap" << endl;
+}
+
+void child_process_b(void* arg)
+{
+    int i = *reinterpret_cast<int*>(arg);
+    while (i < 4)
+    {
+        hal::time::sleep(std::chrono::milliseconds(500));
+        writer << "Child B " << i << endl;
+        i++;
+    }
+
+    b_finish();
+}
+
+void child_fun(void* arg)
 {
     writer << "Child process started" << endl;
     mutex_.lock();
@@ -56,89 +75,67 @@ void child_fun()
     int i = 0;
     int dump = 123;
 
-    if (fork())
+    spawn(&child_process_b, &i);
+    while (i < 2)
     {
-        while (i < 2)
-        {
-            hal::time::sleep(std::chrono::milliseconds(500));
-            writer << "Child A " << i << ", " << dump << endl;
-            i++;
-        }
-
-        writer << "Child A finished" << endl;
-    }
-    else
-    {
-        while (i < 4)
-        {
-            hal::time::sleep(std::chrono::milliseconds(500));
-            writer << "Child B " << i << endl;
-            i++;
-        }
-
-        b_finish();
+        hal::time::sleep(std::chrono::milliseconds(500));
+        writer << "Child A " << i << ", " << dump << endl;
+        i++;
     }
 
-    printf("Exit \n");
+    writer << "Child A finished" << endl;
+
+    printf("Exit aa\n");
+
     return;
+}
+
+void child_process_c(void *arg)
+{
+    int i = *reinterpret_cast<int*>(arg);
+    int x = 0;
+    writer << "Child C is starting: " << i << endl;
+    while (x < 3)
+    {
+        writer << "Child C is working " << x << endl;
+        hal::time::sleep(std::chrono::milliseconds(50));
+        x++;
+    }
+    writer << "[TEST DONE]" << endl;
 }
 
 void kernel_process()
 {
     writer << "Hello from Kernel" << endl;
 
-    if (fork())
-    {
-        writer << "Parent" << endl;
+    spawn(&child_fun, NULL);
 
+    writer << "Parent" << endl;
+
+    mutex_.lock();
+
+    writer << "Parent going to sleep" << endl;
+
+    hal::time::sleep(std::chrono::milliseconds(200));
+
+    writer << "Parent Done" << endl;
+    mutex_.unlock();
+    int i = 0;
+    while (true) {
+        hal::time::sleep(std::chrono::milliseconds(100));
         mutex_.lock();
-
-        writer << "Parent going to sleep" << endl;
-
-        hal::time::sleep(std::chrono::milliseconds(200));
-
-        writer << "Parent Done" << endl;
+        writer << "Parent: " << hex << i << endl;
         mutex_.unlock();
-        int i = 0;
-        while (true) {
-            hal::time::sleep(std::chrono::milliseconds(100));
-            mutex_.lock();
-            writer << "Parent: " << hex << i << endl;
-            mutex_.unlock();
-            ++i;
-            if (i == 10)
-            {
-                writer << "Forking" << endl;
-                if (fork())
-                {
-                    writer << "Parent continues " << i << endl;
-                }
-                else
-                {
-                    int x = 0;
-                    writer << "Child C is starting: " << i << endl;
-                    while (x < 3)
-                    {
-                        writer << "Child C is working " << x << endl;
-                        hal::time::sleep(std::chrono::milliseconds(50));
-                        x++;
-                    }
-                    writer << "[TEST DONE]" << endl;
-                    break;
-                }
-            }
+        ++i;
+        if (i == 10)
+        {
+            writer << "Forking" << endl;
+            spawn(&child_process_c, &i);
+
+            writer << "Parent continues " << i << endl;
         }
     }
-    else
-    {
-        child_fun();
-    }
 
-    writer << "Some child died" << endl;
-    // Child process default exit
-    exit(0);
-
-    // Main process should never goes here
     while (true) {}
 }
 

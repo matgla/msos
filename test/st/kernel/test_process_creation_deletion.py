@@ -35,11 +35,9 @@ def test_process_creation_deletion():
     sut.expect("Child B", 1)
     sut.expect("Parent:", 1)
     sut.expect("Child A finished", 1)
-    sut.expect("Process exited with code: 0", 1)
     sut.expect("Child B", 1)
     sut.expect("Child B", 1)
     sut.expect("B finished", 1)
-    sut.expect("Process exited with code: 0", 1)
     sut.expect("Child C is starting", 1)
     sut.expect("Parent:", 1)
 

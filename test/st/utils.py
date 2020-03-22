@@ -34,7 +34,7 @@ class BinaryUnderTest:
     def start(self):
         self.executable = pexpect.spawnu("qemu-system-arm -kernel " + \
                                          self.binary_path + \
-                                         " -machine stm32_black_pill -serial stdio")
+                                         " -machine stm32_black_pill -serial mon:stdio -nographic")
     def stop(self, timeout):
         if (self.executable):
             self.executable.expect("TEST DONE", timeout)

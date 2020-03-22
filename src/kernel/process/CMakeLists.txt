@@ -18,29 +18,31 @@ add_library(msos_kernel_process)
 
 set (library_includes ${PROJECT_SOURCE_DIR}/include/msos/kernel/process)
 
-target_sources(msos_kernel_process 
+target_sources(msos_kernel_process
     PUBLIC
         ${library_includes}/context_switch.hpp
         ${library_includes}/fwd.hpp
-        ${library_includes}/process.hpp 
+        ${library_includes}/process.hpp
         ${library_includes}/process_manager.hpp
-        ${library_includes}/registers.hpp 
-        ${library_includes}/scheduler.hpp 
+        ${library_includes}/registers.hpp
+        ${library_includes}/scheduler.hpp
+        ${library_includes}/spawn.hpp
 
-   PRIVATE 
-        ${CMAKE_CURRENT_SOURCE_DIR}/context_switch.s 
-        ${CMAKE_CURRENT_SOURCE_DIR}/process.cpp 
-        ${CMAKE_CURRENT_SOURCE_DIR}/process_manager.cpp 
-        ${CMAKE_CURRENT_SOURCE_DIR}/scheduler.cpp 
+   PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/context_switch.s
+        ${CMAKE_CURRENT_SOURCE_DIR}/process.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/process_manager.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/scheduler.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/spawn.cpp
 )
 
-target_link_libraries(msos_kernel_process 
-    PUBLIC 
-        hal 
+target_link_libraries(msos_kernel_process
+    PUBLIC
+        hal
 )
-        
-target_include_directories(msos_kernel_process 
-    PUBLIC 
+
+target_include_directories(msos_kernel_process
+    PUBLIC
         ${PROJECT_SOURCE_DIR}/include
 )
 
