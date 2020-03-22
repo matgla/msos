@@ -34,5 +34,6 @@ target_link_libraries(msos_syscalls
     PUBLIC
         hal
         msos_kernel_process
+        msos_kernel_synchronization
 )
 

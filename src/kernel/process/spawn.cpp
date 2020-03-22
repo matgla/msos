@@ -20,6 +20,10 @@
 #include "msos/kernel/process/context_switch.hpp"
 #include "msos/kernel/process/scheduler.hpp"
 
+#include "msos/syscalls/syscalls.hpp"
+
+#include <hal/interrupt/systick.hpp>
+
 msos::kernel::process::ProcessManager processes;
 
 constexpr std::size_t default_stack_size = 1024;
@@ -33,10 +37,12 @@ pid_t spawn(void (*start_routine) (void *), void *arg)
 
 pid_t spawn_root_process(void (*start_routine) (void *), void *arg)
 {
+    hal::interrupt::disable_systick();
     msos::kernel::process::Scheduler::get().set_process_manager(processes);
     processes.create_process(reinterpret_cast<std::size_t>(start_routine), default_stack_size);
     msos::kernel::process::Scheduler::get().schedule_next();
-    msos::process::initialize_context_switching();
 
+    msos::process::initialize_context_switching();
+    trigger_syscall(SyscallNumber::SYSCALL_START_ROOT_PROCESS, NULL, NULL);
     while(1) {}
 }

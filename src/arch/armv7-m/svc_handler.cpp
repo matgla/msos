@@ -19,6 +19,8 @@
 #include <hal/interrupt/svc.hpp>
 
 #include "msos/syscalls/syscalls.hpp"
+#include "msos/kernel/synchronization/semaphore.hpp"
+#include "msos/kernel/process/context_switch.hpp"
 
 #include "arch/armv7-m/svc_handler.hpp"
 
@@ -36,6 +38,10 @@ void initialize_svc()
             {
                 msos::syscalls::process_exit(*reinterpret_cast<int*>(args));
             } break;
+            case SyscallNumber::SYSCALL_START_ROOT_PROCESS:
+            {
+                switch_to_next_task();
+            }
         }
     });
 }

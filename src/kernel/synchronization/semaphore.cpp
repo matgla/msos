@@ -18,25 +18,7 @@
 #include "msos/kernel/synchronization/atomic.hpp"
 
 #include "msos/kernel/process/scheduler.hpp"
-
-#include <stm32f10x.h>
-
-extern "C"
-{
-
-void block()
-{
-    msos::kernel::process::Scheduler::get().current_process().block();
-    SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
-}
-
-void unblock()
-{
-    msos::kernel::process::Scheduler::get().unblock_all();
-    SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
-}
-
-}
+#include "msos/syscalls/syscalls.hpp"
 
 namespace msos
 {

@@ -14,34 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 #include <hal/interrupt/pendsv.hpp>
 
-#include "msos/kernel/process/context_switch.hpp"
+#include "msos/kernel/process/scheduler.hpp"
 
-#include "arch/armv7-m/pendsv_handler.hpp"
 
 extern "C"
 {
-    void PendSV_Handler(void);
+
+void block()
+{
+    msos::kernel::process::Scheduler::get().current_process().block();
+    hal::interrupt::trigger_pendsv();
 }
 
-namespace msos
+void unblock()
 {
-namespace process
-{
-
-static bool first = true;
-
-void initialize_pendsv()
-{
+    msos::kernel::process::Scheduler::get().unblock_all();
+    hal::interrupt::trigger_pendsv();
 }
 
-} // namespace process
-} // namespace msos
-
-/* TODO: I have to create custom vector table */
-void __attribute__((naked)) PendSV_Handler(void)
-{
-    store_and_switch_to_next_task();
 }
