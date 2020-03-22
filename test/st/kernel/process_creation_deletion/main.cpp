@@ -64,8 +64,8 @@ void child_process_b(void* arg)
 
 void child_fun(void* arg)
 {
-    writer << "Child process started" << endl;
     mutex_.lock();
+    writer << "Child process started" << endl;
     writer << "Child is going to sleep" << endl;
     hal::time::sleep(std::chrono::milliseconds(500));
 

@@ -20,24 +20,34 @@
 
 .global semaphore_wait
 semaphore_wait:
+    push {r1, r2, lr}
+    b wait_loop
+
+wait_loop:
     ldrex r1, [r0]
     cmp r1, #0
-    beq block
+    IT EQ
+    bleq block
     sub r1, #1
     strex r2, r1, [r0]
     cmp r2, #0
-    bne semaphore_wait
+    bne wait_loop
     dmb
-    bx lr
+    pop {r1, r2, pc}
 
 .global semaphore_post
 semaphore_post:
+    push {r1, r2, lr}
+    b post_loop
+
+post_loop:
     ldrex r1, [r0]
     add r1, #1
     strex r2, r1, [r0]
     cmp r2, #0
-    bne semaphore_post
+    bne post_loop
     cmp r0, #1
     dmb
-    bge unblock
-    bx lr
+    IT GE
+    blge unblock
+    pop {r1, r2, pc}
