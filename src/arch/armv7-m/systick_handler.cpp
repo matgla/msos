@@ -1,5 +1,5 @@
-// This file is part of MSOS project. This is simple OS for embedded development devices.
-// Copyright (C) 2019 Mateusz Stadnik
+// This file is part of MSOS project.
+// Copyright (C) 2020 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,39 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
+#include <hal/interrupt/pendsv.hpp>
+#include <hal/interrupt/systick.hpp>
 
-#include <vector>
-
-#include "msos/kernel/process/fwd.hpp"
-#include "msos/kernel/process/process.hpp"
-#include "msos/kernel/process/registers.hpp"
+#include "arch/armv7-m/pendsv_handler.hpp"
 
 namespace msos
-{
-namespace kernel
 {
 namespace process
 {
 
-class ProcessManager
+void initialize_systick()
 {
-public:
-    ProcessManager();
-    using ContainerType = std::list<Process>;
+    hal::interrupt::set_systick_handler([](std::chrono::milliseconds time)
+    {
+        static std::chrono::milliseconds last_time = time;
 
-    Process& create_process(std::size_t process_entry, std::size_t stack_size, uint32_t arg = 0);
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(time - last_time) >= std::chrono::milliseconds(100))
+        {
+            hal::interrupt::trigger_pendsv();
 
-    void delete_process(pid_t pid);
-
-    const ContainerType& get_processes() const;
-    ContainerType& get_processes();
-    void print() const;
-private:
-    ContainerType processes_;
-};
+            last_time = time;
+        }
+    });
+}
 
 } // namespace process
-} // namespace kernel
 } // namespace msos
-

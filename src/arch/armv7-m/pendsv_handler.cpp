@@ -1,5 +1,5 @@
-// This file is part of MSOS project. This is simple OS for embedded development devices.
-// Copyright (C) 2019 Mateusz Stadnik
+// This file is part of MSOS project.
+// Copyright (C) 2020 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,39 +14,38 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
+#include <hal/interrupt/pendsv.hpp>
 
-#include <vector>
+#include "msos/kernel/process/context_switch.hpp"
 
-#include "msos/kernel/process/fwd.hpp"
-#include "msos/kernel/process/process.hpp"
-#include "msos/kernel/process/registers.hpp"
+#include "arch/armv7-m/pendsv_handler.hpp"
 
 namespace msos
-{
-namespace kernel
 {
 namespace process
 {
 
-class ProcessManager
+namespace
 {
-public:
-    ProcessManager();
-    using ContainerType = std::list<Process>;
 
-    Process& create_process(std::size_t process_entry, std::size_t stack_size, uint32_t arg = 0);
+static bool first = true;
 
-    void delete_process(pid_t pid);
+} // namespace
 
-    const ContainerType& get_processes() const;
-    ContainerType& get_processes();
-    void print() const;
-private:
-    ContainerType processes_;
-};
+
+void initialize_pendsv()
+{
+    hal::interrupt::set_pendsv_handler([]{
+        if (first)
+        {
+            first = false;
+            switch_to_next_task();
+            return;
+        }
+
+        store_and_switch_to_next_task();
+    });
+}
 
 } // namespace process
-} // namespace kernel
 } // namespace msos
-

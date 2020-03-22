@@ -64,9 +64,6 @@ public:
 
 
     Process() = default;
-    Process(const Process& parent, const std::size_t process_entry, const std::size_t return_address, RegistersDump* registers);
-    Process(std::size_t* stack_pointer, const std::size_t stack_size);
-
     Process(const Process& process);
     Process(const std::size_t process_entry, const std::size_t stack_size, uint32_t arg = 0);
 

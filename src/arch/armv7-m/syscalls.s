@@ -14,37 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
+.syntax unified
+.arch armv7-m
+.thumb
 
-#include <cstdint>
-
-#include <eul/utils/noncopyable.hpp>
-
-namespace msos
-{
-namespace kernel
-{
-namespace synchronization
-{
-
-class Semaphore : public eul::utils::noncopyable
-{
-public:
-    Semaphore(uint32_t value);
-
-    int wait();
-    int post();
-
-private:
-    int value_;
-};
-
-} // namespace kernel
-} // namespace synchronization
-} // namespace msos
-
-extern "C"
-{
-    void semaphore_wait(int* value);
-    void semaphore_post(int* value);
-}
+.global trigger_syscall
+trigger_syscall:
+    svc 0
+    bx lr

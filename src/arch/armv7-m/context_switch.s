@@ -14,37 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
+.syntax unified
+.arch armv7-m
+.thumb
 
-#include <cstdint>
+.global switch_to_next_task
+switch_to_next_task:
+    bl get_next_task
+    ldmia r0!, {r4-r11, lr}
+    msr psp, r0
+    bx lr
 
-#include <eul/utils/noncopyable.hpp>
-
-namespace msos
-{
-namespace kernel
-{
-namespace synchronization
-{
-
-class Semaphore : public eul::utils::noncopyable
-{
-public:
-    Semaphore(uint32_t value);
-
-    int wait();
-    int post();
-
-private:
-    int value_;
-};
-
-} // namespace kernel
-} // namespace synchronization
-} // namespace msos
-
-extern "C"
-{
-    void semaphore_wait(int* value);
-    void semaphore_post(int* value);
-}
+.global store_and_switch_to_next_task
+store_and_switch_to_next_task:
+    mrs r0, psp
+    stmdb r0!, {r4-r11, lr}
+    bl update_stack_pointer
+    b switch_to_next_task

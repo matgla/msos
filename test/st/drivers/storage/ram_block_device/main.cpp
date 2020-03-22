@@ -35,7 +35,6 @@ int main()
     LED::init(hal::gpio::Output::OutputPushPull, hal::gpio::Speed::Default);
     using Usart = board::interfaces::Usart1;
     Usart::init(9600);
-    hal::time::Time::init();
 
     writer << "[TEST_START]" << endl;
 

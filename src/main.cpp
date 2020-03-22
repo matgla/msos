@@ -29,9 +29,9 @@
 #include "msos/fs/romfs.hpp"
 #include "msos/fs/mount_points.hpp"
 
+#include "msos/kernel/process/spawn.hpp"
 #include "msos/kernel/process/process.hpp"
 #include "msos/kernel/process/process_manager.hpp"
-#include "msos/kernel/process/scheduler.hpp"
 
 #include "msos/kernel/synchronization/semaphore.hpp"
 #include "msos/kernel/synchronization/mutex.hpp"
@@ -72,7 +72,7 @@ void trap()
 }
 
 
-void kernel_process()
+void kernel_process(void*)
 {
     writer << "I am starting" << endl;
 
@@ -237,9 +237,8 @@ int main()
     LED::init(hal::gpio::Output::OutputPushPull, hal::gpio::Speed::Default);
     using Usart = board::interfaces::Usart1;
     Usart::init(9600);
-    hal::time::Time::init();
 
-    root_process(reinterpret_cast<std::size_t>(&kernel_process));
+    spawn_root_process(&kernel_process, NULL);
 
     while (true)
     {

@@ -19,33 +19,21 @@
 extern "C"
 {
 
-static __inline__ uint32_t get_program_counter()
+void update_stack_pointer(const std::size_t* stack);
+const std::size_t* get_next_task();
+void switch_to_next_task();
+void store_and_switch_to_next_task();
+
+}
+
+namespace msos
 {
-    uint32_t pc;
-    asm ("mov %0, pc" : "=r"(pc));
-    return pc;
-}
-
-static __inline__ uint32_t get_sp()
+namespace process
 {
-    uint32_t sp;
-    asm ("mrs %0, psp" : "=r"(sp));
-    return sp;
-}
 
-static __inline__ uint32_t get_lr()
-{
-    uint32_t lr;
-    asm ("mov %0, lr" : "=r"(lr));
-    return lr;
-}
+void initialize_context_switching();
 
-void context_switch(std::size_t stack);
-std::size_t* get_psp();
-void load_context(uint32_t sp);
-void load_context_msp(uint32_t sp);
-void store_context();
-void store_context_msp();
+} // namespace process
+} // namespace msos
 
-}
 

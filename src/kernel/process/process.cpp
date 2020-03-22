@@ -21,8 +21,7 @@
 
 #include "msos/kernel/process/process.hpp"
 #include "msos/kernel/process/registers.hpp"
-
-#include "msos/kernel/process/scheduler.hpp"
+#include "msos/syscalls/syscalls.hpp"
 
 namespace msos
 {
@@ -34,14 +33,7 @@ namespace process
 void exit_handler()
 {
     printf("Process exited\n");
-    // scheduler->get_processes().delete_process(scheduler->current_process().pid());
-    asm volatile inline(
-        "mov r0, #10\n\t"
-        "svc 0\n\t"
-        "isb\n\t"
-        "dsb\n\t"
-        "wfi\n\t"
-    );
+    trigger_syscall(SyscallNumber::SYSCALL_EXIT, NULL, NULL);
 
     while(1);
 }
@@ -71,56 +63,6 @@ uint32_t Process::patch_register(const Process& parent, uint32_t reg)
 }
 
 static pid_t pid_counter = 1;
-Process::Process(const Process& parent, const std::size_t process_entry, const std::size_t return_address, RegistersDump* registers)
-    : state_(State::Ready)
-    , pid_(pid_counter++)
-    , stack_size_(parent.stack_size())
-    , stack_(new std::size_t[parent.stack_size()/(sizeof(std::size_t))]())
-    , fd_map_(0x7)
-{
-    uint8_t* stack_ptr = reinterpret_cast<uint8_t*>(stack_.get()) + stack_size_ - sizeof(HardwareStoredRegisters) - process_entry;
-    printf("Process entry %x, stack start %p, dest dp %p\n", process_entry, stack_.get(), stack_ptr);
-    printf("Return address 0x%x\n", return_address);
-    // std::size_t required_stack_size = process_entry * sizeof(std::size_t) + sizeof(HardwareStoredRegisters) + sizeof(SoftwareStoredRegisters);
-    // if (required_stack_size >= stack_size_)
-    // {
-    //     printf ("Not enough space on stack in child task, required %d bytes.\n", required_stack_size);
-    // }
-
-
-    std::memcpy(stack_.get(), parent.stack_.get(), parent.stack_size());
-    HardwareStoredRegisters* hw_registers = reinterpret_cast<HardwareStoredRegisters*>(stack_ptr);
-    hw_registers->r0 = 0;//registers->r0;
-    hw_registers->r1 = patch_register(parent, registers->r1);
-    hw_registers->r2 = patch_register(parent, registers->r2);
-    hw_registers->r3 = patch_register(parent, registers->r3);
-
-    stack_ptr -= sizeof(SoftwareStoredRegisters);
-    SoftwareStoredRegisters* sw_registers = reinterpret_cast<SoftwareStoredRegisters*>(stack_ptr);
-
-    sw_registers->r4 = patch_register(parent, registers->r4);
-    sw_registers->r5 = patch_register(parent, registers->r5);
-    printf("Dumping r6: 0x%x\n", registers->r6);
-    sw_registers->r6 = patch_register(parent, registers->r6);
-    sw_registers->r7 = patch_register(parent, registers->r7);
-    sw_registers->r8 = patch_register(parent, registers->r8);
-    sw_registers->r9 = patch_register(parent, registers->r9);
-    sw_registers->r10 = patch_register(parent, registers->r10);
-    sw_registers->r11 = patch_register(parent, registers->r11);
-
-    hw_registers->psr = default_psr_status;
-    hw_registers->lr = reinterpret_cast<uint32_t>(&exit_handler);
-    hw_registers->pc = return_address;
-    sw_registers->lr = return_to_thread_mode_psp;
-    current_stack_pointer_ = reinterpret_cast<std::size_t*>(stack_ptr);
-
-//    printf("Parent stack dump\n===============================\n");
-//    print_stack(reinterpret_cast<uint32_t*>(parent.stack_.get()), stack_size_);
-//    printf("Child stack dump\n===============================\n");
-//    print_stack(reinterpret_cast<uint32_t*>(stack_.get()), stack_size_);
-
-    printf("Current SP: %p\n", current_stack_pointer_);
-}
 
 Process::Process(const Process& process)
     : state_(process.state_)
@@ -182,14 +124,6 @@ Process::Process(const std::size_t process_entry, const std::size_t stack_size, 
     sw_registers->lr = return_to_thread_mode_psp;
     current_stack_pointer_ = reinterpret_cast<std::size_t*>(stack_ptr);
     printf("Process created\n");
-}
-
-Process::Process(std::size_t* stack_pointer, const std::size_t stack_size)
-    : state_(State::Ready)
-    , pid_(pid_counter++)
-    , stack_size_(stack_size)
-    , current_stack_pointer_(stack_pointer)
-{
 }
 
 const std::size_t* Process::stack_pointer() const

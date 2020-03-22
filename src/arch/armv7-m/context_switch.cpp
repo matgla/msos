@@ -1,0 +1,59 @@
+// This file is part of MSOS project.
+// Copyright (C) 2020 Mateusz Stadnik
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#include <cstdio>
+
+#include <hal/interrupt/pendsv.hpp>
+#include <hal/interrupt/svc.hpp>
+#include <hal/interrupt/systick.hpp>
+
+#include "msos/kernel/process/context_switch.hpp"
+#include "msos/kernel/process/scheduler.hpp"
+
+#include "arch/armv7-m/pendsv_handler.hpp"
+#include "arch/armv7-m/systick_handler.hpp"
+#include "arch/armv7-m/svc_handler.hpp"
+
+namespace msos
+{
+namespace process
+{
+
+void initialize_context_switching()
+{
+    hal::interrupt::set_systick_priority(0x00);
+    hal::interrupt::set_svc_priority(0xfe);
+    hal::interrupt::set_pendsv_priority(0xff);
+
+    initialize_pendsv();
+    initialize_systick();
+    initialize_svc();
+
+    hal::interrupt::set_systick_period(std::chrono::milliseconds(1));
+}
+
+} // namespace process
+} // namespace msos
+
+const std::size_t* get_next_task()
+{
+    return msos::kernel::process::Scheduler::get().schedule_next();
+}
+
+void update_stack_pointer(const std::size_t* stack)
+{
+    msos::kernel::process::Scheduler::get().current_process().current_stack_pointer(stack);
+}

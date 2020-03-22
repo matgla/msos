@@ -1,5 +1,5 @@
-# This file is part of MSOS project. This is simple OS for embedded development devices.
-# Copyright (C) 2019 Mateusz Stadnik
+# This file is part of MSOS project.
+# Copyright (C) 2020 Mateusz Stadnik
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,25 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(msos_syscalls STATIC)
+add_subdirectory(armv7-m)
 
-set (library_includes ${PROJECT_SOURCE_DIR}/include/msos/syscalls)
+add_library(msos_arch INTERFACE)
 
-target_sources(msos_syscalls
-    PUBLIC
-        ${library_includes}/syscalls.hpp
-
-        ${CMAKE_CURRENT_SOURCE_DIR}/syscalls.cpp
-)
-
-target_include_directories(msos_syscalls
-    PUBLIC
-        ${PROJECT_SOURCE_DIR}/include
-)
-
-target_link_libraries(msos_syscalls
-    PUBLIC
-        hal
-        msos_kernel_process
-)
-
+target_link_libraries(msos_arch INTERFACE msos_arch_armv7m)

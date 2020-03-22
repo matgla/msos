@@ -36,16 +36,9 @@ ProcessManager::ProcessManager() : processes_{}
 {
 }
 
-Process& ProcessManager::create_process(const Process& parent, const std::size_t process_entry, const std::size_t return_address, RegistersDump* registers)
-{
-    processes_.emplace_back(parent, process_entry, return_address, registers);
-    return processes_.back();
-}
-
 Process& ProcessManager::create_process(std::size_t process_entry, std::size_t stack_size, uint32_t arg)
 {
     processes_.emplace_back(process_entry, stack_size, arg);
-    printf("Stucked here\n");
     return processes_.back();
 }
 

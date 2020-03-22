@@ -121,7 +121,7 @@ void child_process(void* arg)
     module->execute();
 }
 
-void kernel_process()
+void kernel_process(void *)
 {
     writer << "I am starting" << endl;
 
@@ -241,10 +241,9 @@ int main()
     LED::init(hal::gpio::Output::OutputPushPull, hal::gpio::Speed::Default);
     using Usart = board::interfaces::Usart1;
     Usart::init(9600);
-    hal::time::Time::init();
 
     writer << "[TEST START]" << endl;
-    root_process(reinterpret_cast<std::size_t>(&kernel_process));
+    spawn_root_process(&kernel_process, NULL);
 
     while (true)
     {

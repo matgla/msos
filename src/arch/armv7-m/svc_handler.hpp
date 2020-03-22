@@ -1,5 +1,5 @@
 // This file is part of MSOS project.
-// Copyright (C) 2019 Mateusz Stadnik
+// Copyright (C) 2020 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,22 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-.syntax unified
+#pragma once
 
-//.global get_program_counter
-//get_program_counter:
-//    mov r0, pc
-//    bx lr
+namespace msos
+{
+namespace process
+{
 
-.global context_switch
-context_switch:
-    mrs r1, psp
-    stmdb r1!, {r4 - r11, lr}
-    ldmia r0!, {r4 - r11, lr}
-    msr psp, r0
-    bx lr
+void initialize_svc();
 
-.global get_psp
-get_psp:
-    mrs r0, psp
-    bx lr
+} // namespace process
+} // namespace msos

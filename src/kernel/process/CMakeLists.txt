@@ -29,7 +29,6 @@ target_sources(msos_kernel_process
         ${library_includes}/spawn.hpp
 
    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/context_switch.s
         ${CMAKE_CURRENT_SOURCE_DIR}/process.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/process_manager.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/scheduler.cpp
@@ -39,6 +38,7 @@ target_sources(msos_kernel_process
 target_link_libraries(msos_kernel_process
     PUBLIC
         hal
+        msos_arch
 )
 
 target_include_directories(msos_kernel_process

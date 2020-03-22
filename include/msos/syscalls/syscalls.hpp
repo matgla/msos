@@ -23,6 +23,12 @@
 
 extern "C"
 {
+    enum SyscallNumber : int
+    {
+        SYSCALL_EXIT = 1,
+        SYSCALL_KILL = 2,
+    };
+
     int _gettimeofday(struct timeval* tv, void* tzvp);
     void _init();
     void _exit(int code);
@@ -35,4 +41,17 @@ extern "C"
     int _lseek(int file, int ptr, int dir);
     int _close(int file);
     int _fstat(int file, struct stat* st);
+
+    void trigger_syscall(SyscallNumber number, void* args, void* output);
 }
+
+namespace msos
+{
+namespace syscalls
+{
+
+void process_exit(int code);
+
+} // namespace syscalls
+} // namespace mso
+

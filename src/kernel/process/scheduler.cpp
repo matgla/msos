@@ -28,10 +28,19 @@ namespace kernel
 namespace process
 {
 
-// static Process* current_process;
-Scheduler::Scheduler(ProcessManager& processes)
-    : processes_(processes)
-    , current_process_(processes_.get_processes().begin())
+void Scheduler::set_process_manager(ProcessManager& manager)
+{
+    processes_ = &manager;
+    current_process_ = processes_->get_processes().begin();
+}
+
+Scheduler& Scheduler::get()
+{
+    static Scheduler scheduler;
+    return scheduler;
+}
+
+Scheduler::Scheduler()
 {
 }
 
@@ -47,8 +56,8 @@ Process& Scheduler::current_process()
 
 ProcessManager::ContainerType::iterator Scheduler::get_next()
 {
-    return std::next(current_process_) == processes_.get_processes().end() ?
-        processes_.get_processes().begin() : std::next(current_process_);
+    return std::next(current_process_) == processes_->get_processes().end() ?
+        processes_->get_processes().begin() : std::next(current_process_);
 }
 
 void Scheduler::delete_process(pid_t pid)
@@ -57,13 +66,13 @@ void Scheduler::delete_process(pid_t pid)
     {
         current_process_ = get_next();
     }
-    processes_.delete_process(pid);
+    processes_->delete_process(pid);
 }
 
 const std::size_t* Scheduler::schedule_next()
 {
     current_process_was_deleted_ = false;
-    if (processes_.get_processes().empty())
+    if (processes_->get_processes().empty())
     {
         return nullptr;
     }
@@ -84,7 +93,7 @@ const std::size_t* Scheduler::schedule_next()
 
 void Scheduler::unblock_all()
 {
-    for (auto& process : processes_.get_processes())
+    for (auto& process : processes_->get_processes())
     {
         process.unblock();
     }

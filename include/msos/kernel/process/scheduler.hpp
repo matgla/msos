@@ -32,7 +32,9 @@ namespace process
 class Scheduler
 {
 public:
-    Scheduler(ProcessManager& processes);
+    static Scheduler& get();
+
+    void set_process_manager(ProcessManager& manager);
 
     void delete_process(pid_t pid);
 
@@ -42,7 +44,7 @@ public:
     void unblock_all();
     ProcessManager& get_processes()
     {
-        return processes_;
+        return *processes_;
     }
 
     bool current_process_was_deleted()
@@ -56,14 +58,14 @@ public:
     }
 
 private:
+    Scheduler();
+
     ProcessManager::ContainerType::iterator get_next();
 
-    ProcessManager& processes_;
+    ProcessManager* processes_;
     ProcessManager::ContainerType::iterator current_process_;
     bool current_process_was_deleted_ = false;
 };
-
-extern Scheduler* scheduler;
 
 } // namespace process
 } // namespace kernel

@@ -16,6 +16,7 @@
 
 add_library(msos STATIC)
 
+add_subdirectory(arch)
 add_subdirectory(dynamic_linker)
 add_subdirectory(kernel)
 add_subdirectory(syscalls)
@@ -39,7 +40,8 @@ target_link_libraries(msos
         msos_drivers_storage
         msos_fs
         hal
-        msos_posix
+        # msos_posix
+        msos_arch
 )
 
 target_include_directories(msos

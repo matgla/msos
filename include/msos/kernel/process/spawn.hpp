@@ -21,4 +21,5 @@
 extern "C"
 {
     pid_t spawn(void (*start_routine) (void *), void *arg);
+    pid_t spawn_root_process(void (*start_routine) (void *), void *arg);
 }

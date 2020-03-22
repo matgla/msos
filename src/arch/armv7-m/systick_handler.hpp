@@ -14,40 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-.syntax unified
+#pragma once
 
-.global _fork_p
-_fork_p:
-    push {r1, r2, r3, r4, r5, lr}
-    ldr r5, =registers
-    mov r4, r0
-    ldr r2, =syscall_return_code
-    mov r0, #3
-    svc 0
-    wfi
-    isb
-    dsb
-    ldr r0, =syscall_return_code
-    pop {r1, r2, r3, r4, r5, pc}
+namespace msos
+{
+namespace process
+{
 
-.global _fork
-_fork:
-    ldr r0, =is_pendsv_blocked
-    push {r1, lr}
-    mov r1, #1
-    str r1, [r0]
+void initialize_systick();
 
-    ldr r0, =registers
-    pop {r1}
-    stmia r0, {r1-r12, lr}
-    mrs r0, psp
-    push {r1}
-    mov r1, lr
-    bl _fork_p
-
-    push {r0}
-    ldr r0, =is_pendsv_blocked
-    mov r1, #0
-    str r1, [r0]
-    pop {r0}
-    pop {r1, pc}
+} // namespace process
+} // namespace msos

@@ -17,16 +17,26 @@
 #include "msos/kernel/process/spawn.hpp"
 
 #include "msos/kernel/process/process.hpp"
+#include "msos/kernel/process/context_switch.hpp"
 #include "msos/kernel/process/scheduler.hpp"
 
-extern msos::kernel::process::ProcessManager* processes;
+msos::kernel::process::ProcessManager processes;
+
+constexpr std::size_t default_stack_size = 1024;
 
 pid_t spawn(void (*start_routine) (void *), void *arg)
 {
-    printf("Creating process with function: %p\n", start_routine);
-    auto& child = processes->create_process(
-        reinterpret_cast<std::size_t>(start_routine), 1024, reinterpret_cast<std::uint32_t>(arg));
-    printf("Process created with pid: %d\n", child.pid());
-    processes->print();
+    auto& child = processes.create_process(
+        reinterpret_cast<std::size_t>(start_routine), default_stack_size, reinterpret_cast<std::uint32_t>(arg));
     return child.pid();
+}
+
+pid_t spawn_root_process(void (*start_routine) (void *), void *arg)
+{
+    msos::kernel::process::Scheduler::get().set_process_manager(processes);
+    processes.create_process(reinterpret_cast<std::size_t>(start_routine), default_stack_size);
+    msos::kernel::process::Scheduler::get().schedule_next();
+    msos::process::initialize_context_switching();
+
+    while(1) {}
 }

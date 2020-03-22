@@ -26,13 +26,13 @@ extern "C"
 
 void block()
 {
-    msos::kernel::process::scheduler->current_process().block();
+    msos::kernel::process::Scheduler::get().current_process().block();
     SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
 }
 
 void unblock()
 {
-    msos::kernel::process::scheduler->unblock_all();
+    msos::kernel::process::Scheduler::get().unblock_all();
     SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
 }
 
@@ -52,37 +52,13 @@ Semaphore::Semaphore(uint32_t value)
 
 int Semaphore::wait()
 {
-    asm volatile inline("wait_loop:\n\t"
-        "ldrex r1, [%[from]]\n\t"
-        "cmp r1, #0\n\t"
-        "beq block\n\t"
-        "sub r1, #1\n\t"
-        "strex r2, r1, [%[from]]\n\t"
-        "cmp r2, #0\n\t"
-        "bne wait_loop\n\t"
-        "dmb\n\t"
-        :
-        : [from] "r" (&value_));
-
+    semaphore_wait(&value_);
     return true;
 }
 
 int Semaphore::post()
 {
-    asm volatile inline(
-        "post_loop:\n\t"
-        "ldrex r1, [%[from]]\n\t"
-        "add r1, #1\n\t"
-        "strex r2, r1, [%[from]]\n\t"
-        "cmp r2, #0\n\t"
-        "bne post_loop\n\t"
-        "cmp r0, #1\n\t"
-        "dmb\n\t"
-        "bge unblock\n\t"
-        :
-        : [from] "r" (&value_)
-        );
-
+    semaphore_post(&value_);
     return true;
 }
 
