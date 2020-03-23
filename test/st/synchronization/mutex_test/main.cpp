@@ -75,10 +75,8 @@ void kernel_process(void* arg)
     spawn(&child_process, NULL);
     stdio_mutex_.lock();
     writer << "Parent is starting" << endl;
-    stdio_mutex_.lock();
-
-
     writer << "Parent is going to sleep" << endl;
+    stdio_mutex_.unlock();
 
     hal::time::sleep(std::chrono::milliseconds(20));
     stdio_mutex_.lock();
@@ -87,13 +85,12 @@ void kernel_process(void* arg)
 
     mutex_.unlock();
     /* wait before child start */
-    hal::time::sleep(std::chrono::milliseconds(20));
+    hal::time::sleep(std::chrono::milliseconds(5));
+    stdio_mutex_.lock();
+    writer << "Parent is working" << endl;
+    stdio_mutex_.unlock();
     while (true)
     {
-        stdio_mutex_.lock();
-        writer << "Parent is working" << endl;
-        stdio_mutex_.unlock();
-        hal::time::sleep(std::chrono::milliseconds(100));
     }
 }
 

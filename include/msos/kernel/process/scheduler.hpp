@@ -41,7 +41,7 @@ public:
     const Process& current_process() const;
     Process& current_process();
     const std::size_t* schedule_next();
-    void unblock_all();
+    void unblock_all(void* semaphore);
     ProcessManager& get_processes()
     {
         return *processes_;

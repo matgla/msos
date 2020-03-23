@@ -117,6 +117,8 @@ void child_process(void* arg)
     writer << "Module loaded" << endl;
 
     module->execute();
+
+    writer << "[TEST DONE]" << endl;
 }
 
 void kernel_process(void *)
@@ -218,9 +220,6 @@ void kernel_process(void *)
 
     while (true)
     {
-        hal::time::sleep(std::chrono::seconds(1));
-        writer << "Parent" << endl;
-        writer << "[TEST DONE]" << endl;
     }
 }
 

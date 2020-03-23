@@ -91,11 +91,11 @@ const std::size_t* Scheduler::schedule_next()
     return current_process_->current_stack_pointer();
 }
 
-void Scheduler::unblock_all()
+void Scheduler::unblock_all(void* semaphore)
 {
     for (auto& process : processes_->get_processes())
     {
-        process.unblock();
+        process.unblock(semaphore);
     }
 }
 

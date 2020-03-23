@@ -46,6 +46,7 @@ Process::Process(const Process& process)
     , pid_(process.pid_)
     , stack_size_(process.stack_size_)
     , fd_map_(process.fd_map_)
+    , locks_{}
 {
     if (process.stack_ != nullptr)
     {
@@ -69,6 +70,7 @@ Process::Process(const std::size_t process_entry, const std::size_t stack_size, 
     , stack_size_(stack_size)
     , stack_(new std::size_t[stack_size/(sizeof(std::size_t))]())
     , fd_map_(0x7)
+    , locks_{}
 {
     uint8_t* stack_ptr = reinterpret_cast<uint8_t*>(stack_.get()) + stack_size_ - sizeof(HardwareStoredRegisters) - sizeof(SoftwareStoredRegisters);
     std::size_t required_stack_size = sizeof(HardwareStoredRegisters) + sizeof(SoftwareStoredRegisters);
@@ -137,16 +139,37 @@ void Process::current_stack_pointer(const std::size_t* stack_pointer)
     current_stack_pointer_ = stack_pointer;
 }
 
-void Process::block()
+void Process::block(void* semaphore)
 {
+    printf("Locking %d with %p\n", pid_, semaphore);
+    auto lock = std::find(locks_.begin(), locks_.end(), reinterpret_cast<uint32_t>(semaphore));
+    if (lock == locks_.end())
+    {
+        printf("adding lock: %x\n", reinterpret_cast<uint32_t>(semaphore));
+        locks_.push_back(reinterpret_cast<uint32_t>(semaphore));
+        printf("added lock: %x\n", locks_.back());
+    }
     state_ = State::Blocked;
+    printf("Return\n");
 }
 
-void Process::unblock()
+void Process::unblock(void* semaphore)
 {
-    if (state_ == State::Blocked)
+    printf("Unlocking %d with %p\n", pid_, semaphore);
+    auto lock = std::find(locks_.begin(), locks_.end(), reinterpret_cast<uint32_t>(semaphore));
+    for (auto lock : locks_)
     {
-        state_ = State::Ready;
+        printf("in array: %x\n", lock);
+    }
+    if (lock != locks_.end())
+    {
+        printf("removing lock: %p\n", semaphore);
+        locks_.erase(lock);
+
+        if (locks_.empty())
+        {
+            state_ = State::Ready;
+        }
     }
 }
 

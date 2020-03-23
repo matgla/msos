@@ -47,6 +47,6 @@ extern "C"
 {
     void semaphore_wait(int* value);
     void semaphore_post(int* value);
-    void unblock();
-    void block();
+    void unblock(void* value);
+    void block(void* value);
 }

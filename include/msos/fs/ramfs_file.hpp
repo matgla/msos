@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <vector>
 #include <string_view>
 
 #include "msos/fs/i_filesystem.hpp"

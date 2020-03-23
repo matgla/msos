@@ -49,15 +49,10 @@ void b_finish()
     stdio_mutex_.unlock();
 }
 
-void trap()
-{
-    writer << "Trap" << endl;
-}
-
 void child_process_b(void* arg)
 {
     int i = *reinterpret_cast<int*>(arg);
-    while (i < 4)
+    while (i < 3)
     {
         hal::time::sleep(std::chrono::milliseconds(4));
         stdio_mutex_.lock();
@@ -67,8 +62,6 @@ void child_process_b(void* arg)
         i++;
     }
 
-    /* make some parent prints */
-    hal::time::sleep(std::chrono::milliseconds(10));
     b_finish();
 }
 
@@ -84,10 +77,13 @@ void child_fun(void* arg)
     /* allow parent to execute before child */
     hal::time::sleep(std::chrono::milliseconds(10));
     mutex_.lock();
+    stdio_mutex_.lock();
     writer << "Child is going to sleep" << endl;
-    hal::time::sleep(std::chrono::milliseconds(15));
-
+    stdio_mutex_.unlock();
+    hal::time::sleep(std::chrono::milliseconds(20));
+    stdio_mutex_.lock();
     writer << "Child Done" << endl;
+    stdio_mutex_.unlock();
     printa();
     mutex_.unlock();
     /* allow parent to do something before next step */
@@ -98,7 +94,7 @@ void child_fun(void* arg)
 
     while (i < 2)
     {
-        hal::time::sleep(std::chrono::milliseconds(5));
+        hal::time::sleep(std::chrono::milliseconds(1));
         stdio_mutex_.lock();
         writer << "Child A " << i << ", " << dump << endl;
         stdio_mutex_.unlock();
@@ -116,17 +112,23 @@ void child_process_c(void *arg)
 {
     int i = *reinterpret_cast<int*>(arg);
     int x = 0;
+    stdio_mutex_.lock();
     writer << "Child C is starting: " << i << endl;
+    stdio_mutex_.unlock();
     while (x < 3)
     {
+        stdio_mutex_.lock();
         writer << "Child C is working " << x << endl;
+        stdio_mutex_.unlock();
         hal::time::sleep(std::chrono::milliseconds(2));
         x++;
     }
 
     /* make some parent prints */
     hal::time::sleep(std::chrono::milliseconds(10));
+    stdio_mutex_.lock();
     writer << "[TEST DONE]" << endl;
+    stdio_mutex_.unlock();
 }
 
 void kernel_process(void *arg)
@@ -148,12 +150,15 @@ void kernel_process(void *arg)
 
     hal::time::sleep(std::chrono::milliseconds(20));
 
+    stdio_mutex_.lock();
     writer << "Parent Done" << endl;
+    stdio_mutex_.unlock();
+
     mutex_.unlock();
 
     int i = 0;
-    while (true) {
-        hal::time::sleep(std::chrono::milliseconds(10));
+    while (i < 11) {
+        hal::time::sleep(std::chrono::milliseconds(20));
         stdio_mutex_.lock();
         writer << "Parent: " << hex << i << endl;
         stdio_mutex_.unlock();

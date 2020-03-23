@@ -18,6 +18,7 @@
 
 #include <cstdint>
 
+#include <vector>
 #include <array>
 #include <memory>
 #include <list>
@@ -76,8 +77,8 @@ public:
     void kill();
     std::size_t stack_usage() const;
 
-    void block();
-    void unblock();
+    void block(void* semaphore);
+    void unblock(void* semaphore);
     State get_state() const;
     int add_file(std::unique_ptr<msos::fs::IFile>&& file);
     int remove_file(int fd);
@@ -92,6 +93,7 @@ private:
     const std::size_t* current_stack_pointer_;
     uint8_t fd_map_;
     std::array<std::unique_ptr<msos::fs::IFile>, 8> fd_;
+    std::vector<uint32_t> locks_;
 };
 
 } // namespace process

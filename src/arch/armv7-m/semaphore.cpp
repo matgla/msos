@@ -23,15 +23,15 @@
 extern "C"
 {
 
-void block()
+void block(void* value)
 {
-    msos::kernel::process::Scheduler::get().current_process().block();
+    msos::kernel::process::Scheduler::get().current_process().block(value);
     hal::interrupt::trigger_pendsv();
 }
 
-void unblock()
+void unblock(void* value)
 {
-    msos::kernel::process::Scheduler::get().unblock_all();
+    msos::kernel::process::Scheduler::get().unblock_all(value);
     hal::interrupt::trigger_pendsv();
 }
 
