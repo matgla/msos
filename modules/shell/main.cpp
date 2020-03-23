@@ -1,4 +1,4 @@
-// This file is part of MSOS project. 
+// This file is part of MSOS project.
 // Copyright (C) 2020 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,11 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <unistd.h>
+#include <string_view>
 
 int main()
 {
-    std::cout << "MS Shell" << std::endl
-        << ">";
+    printf("MSOS shell:\n");
+    write(1, "> \0", 3);
+    char buffer[100] = {};
+    while (std::string_view(buffer).find("exit") == std::string_view::npos)
+    {
+        write(1, "> \0", 3);
+        // buffer[0] = 0;
+        scanf("%s", &buffer);
+        if (std::string_view(buffer).find("ls") != std::string_view::npos)
+        {
+            printf("There will be ls in future\n");
+        }
+    }
+    printf("MSOS Shell exit\n");
 }
 

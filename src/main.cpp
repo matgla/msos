@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include <cstdio>
 #include <cstdlib>
 
 #include <board.hpp>
@@ -28,6 +29,7 @@
 #include "msos/fs/ramfs.hpp"
 #include "msos/fs/romfs.hpp"
 #include "msos/fs/mount_points.hpp"
+#include "msos/syscalls/syscalls.hpp"
 
 #include "msos/kernel/process/spawn.hpp"
 #include "msos/kernel/process/process.hpp"
@@ -76,66 +78,9 @@ void kernel_process(void*)
 {
     writer << "I am starting" << endl;
 
-    uint32_t fs_flash_start = reinterpret_cast<uint32_t>(&_fs_flash_start);
-    uint32_t fs_flash_end = reinterpret_cast<uint32_t>(&_fs_flash_end);
-
-    uint32_t fs_flash_size =  fs_flash_end > fs_flash_start ? fs_flash_end - fs_flash_start : fs_flash_start - fs_flash_end ;
-    writer << "FS flash start: 0x" << hex << fs_flash_start << ", with length: " << fs_flash_size << endl;
-
     uint8_t* romfs_disk = reinterpret_cast<uint8_t*>(0x08008000);
-
-    msos::drivers::storage::RamBlockDevice bd(2048, 1, 1, 1);
-
-    int error = bd.init();
-    if (error)
-    {
-        writer << "Cannot initialize block device" << endl;
-    }
-
-    writer << "Device geometry: " << endl
-        << "Size: " << bd.size() << endl
-        << "Read size: " << bd.read_size() << endl
-        << "Write size: " << bd.write_size() << endl
-        << "Erase size: " << bd.erase_size() << endl;
-
     msos::fs::RamFs ramfs;
     msos::fs::mount_points.mount_filesystem("/", &ramfs);
-
-    FILE* test_file = fopen("/test.txt", "w");
-
-    if (test_file == NULL)
-    {
-        writer << "File is null" << endl;
-    }
-    else
-    {
-        writer << "File is not null" << endl;
-        fputs("Hej, ten plik dostaje dane i nawet je zapisuje :)\n", test_file);
-
-        fclose(test_file);
-    }
-
-    test_file = fopen("/test.txt", "r");
-
-    if (test_file == NULL)
-    {
-        writer << "File is null" << endl;
-    }
-    else
-    {
-        if (test_file)
-        {
-            writer << "Content of file: " << endl;
-            int c;
-            int i = 0;
-            while ((c = getc(test_file)) != EOF)
-            {
-                writer << static_cast<char>(c);
-            }
-            writer << endl;
-        }
-        fclose(test_file);
-    }
 
 
     writer << "Started testing ROMFS disk" << endl;
@@ -145,46 +90,13 @@ void kernel_process(void*)
 
     msos::fs::mount_points.mount_filesystem("/rom", &romfs);
 
-    writer << "Opening file /rom/test.txt" << endl;
-    FILE *romfs_file = fopen("/rom/test.txt", "r");
-
-    writer << "Fopen called" << endl;
-    if (romfs_file == NULL)
-    {
-        writer << "Can't open: /rom/test.txt" << endl;
-    }
-    else
-    {
-        if (romfs_file)
-        {
-
-            writer << "Content of file: " << endl;
-            int c;
-            int i = 0;
-            while ((c = getc(romfs_file)) != EOF)
-            {
-                writer << static_cast<char>(c);
-            }
-            writer << endl;
-        }
-        fclose(romfs_file);
-    }
-
-
-    if (fork())
-    {
-        writer << "Spawned child process" << endl;
-    }
-    else
-    {
-         /* get raw file and execute */
-    auto file = romfs.get("/interface_and_classes.bin");
+    auto file = romfs.get("/bin/msos_shell.bin");
     if (!file)
     {
         writer << "Can't open file" << endl;
+
         exit(-1);
     }
-    trap();
     std::size_t module_address = reinterpret_cast<uint32_t>(file->data().data());
     writer << "Got file with binary: " << hex << module_address << endl;
     writer << "Got file with binary: " << file->name() << endl;
@@ -196,37 +108,47 @@ void kernel_process(void*)
     writer << "Address of lot in memory: 0x" << hex << reinterpret_cast<uint32_t>(lot_in_memory) << endl;
 
     int extern_data = 123;
-    msos::dl::Environment<4> env{
-        msos::dl::SymbolAddress{"usart_write", &usart_write},
+    msos::dl::Environment<8> env{
         msos::dl::SymbolAddress{"strlen", &strlen},
+        msos::dl::SymbolAddress{"memcpy", &memcpy},
+        msos::dl::SymbolAddress{"memcmp", &memcmp},
+        msos::dl::SymbolAddress{"memset", &memset},
+        msos::dl::SymbolAddress{"strstr", &strstr},
         msos::dl::SymbolAddress{"write", &write},
-        msos::dl::SymbolAddress{"extern_1", &extern_data}
+        msos::dl::SymbolAddress{"scanf", reinterpret_cast<uint32_t*>(&scanf)},
+        msos::dl::SymbolAddress{"printf", reinterpret_cast<uint32_t*>(&printf)}
     };
-    writer << "[TEST START]" << endl;
+
+    writer << "[TEST START] 0x" << hex << module_address << endl;
 
     const msos::dl::LoadedModule* module = dynamic_linker.load_module(module_address, msos::dl::LoadingModeCopyData, env);
+
 
     if (module == nullptr)
     {
         writer << "Module not loaded properly" << endl;
-        writer << "[TEST DONE]" << endl;
+        // writer << "[TEST DONE]" << endl;
+
         while (true)
         {
         }
     }
     writer << "Module loaded" << endl;
 
+    printf("Working or not\n");
+
+    // char test[12];
+    // scanf("%s", test);
+    // printf("test: %s\n", test);
+
     module->execute();
 
     writer << "[TEST DONE]" << endl;
-        exit(0);
-    }
-
 
     while (true)
     {
         hal::time::sleep(std::chrono::seconds(1));
-        writer << "Parent" << endl;
+        // writer << "Parent" << endl;
     }
 }
 
@@ -237,6 +159,11 @@ int main()
     LED::init(hal::gpio::Output::OutputPushPull, hal::gpio::Speed::Default);
     using Usart = board::interfaces::Usart1;
     Usart::init(9600);
+
+    Usart::on_data([](const uint8_t c)
+    {
+        write_to_stdin(c);
+    });
 
     spawn_root_process(&kernel_process, NULL);
 

@@ -15,7 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <errno.h>
-#include <string.h>
+#include <cstring>
 #include <cstdint>
 #include <cstdio>
 #include <sys/stat.h>
@@ -32,6 +32,10 @@
 #include "msos/fs/mount_points.hpp"
 #include "msos/kernel/process/scheduler.hpp"
 #include "msos/kernel/process/context_switch.hpp"
+
+#include "msos/usart_printer.hpp"
+
+static hal::UsartWriter writer;
 
 extern "C"
 {
@@ -84,6 +88,27 @@ extern char __heap_end;
 
 static char* current_heap_end = &__heap_start;
 
+char stdin_data[100];
+int index = 0;
+volatile bool new_line_readed = false;
+
+void write_to_stdin(char c)
+{
+    if (index >= 254)
+    {
+        index = 0;
+    }
+    if (c == '\n' || c == '\r')
+    {
+        new_line_readed = true;
+        c = '\n';
+        stdin_data[index + 1] = 0;
+    }
+    stdin_data[index] = c;
+    write(1, stdin_data + index, 1);
+    ++index;
+}
+
 caddr_t _sbrk(int incr)
 {
 
@@ -120,6 +145,16 @@ int _write(int fd, const char* ptr, int len)
 
 int _read(int fd, char* ptr, int len)
 {
+    if (fd == 0)
+    {
+        while (!new_line_readed) {}
+        std::memcpy(ptr, stdin_data, index + 1);
+        auto ind = index;
+        new_line_readed = false;
+        index = 0;
+        return ind ;
+    }
+
     msos::fs::IFile* file = msos::kernel::process::Scheduler::get().current_process().get_file(fd);
 
     if (file)
@@ -132,11 +167,18 @@ int _read(int fd, char* ptr, int len)
 
 int _isatty(int file)
 {
+    // if (file == 0)
+    // {
+    //     return 1;
+    // }
+
     return 0;
 }
 
 int _lseek(int file, int ptr, int dir)
 {
+    // printf("lseek file: %d, ptr %d, dir %d\n", file, ptr, dir);
+
     return 0;
 }
 
@@ -147,11 +189,19 @@ int _close(int file)
 
 int _fstat(int file, struct stat* st)
 {
+    // if (file == 0)
+    // {
+    //     st->st_mode = S_IFCHR;
+    //     st->st_blksize = 255;
+    //     st->st_size = index;
+    // }
     return 0;
 }
 
 int _open(const char* filename, int flags)
 {
+    // printf("opening file: %s\n", filename);
+
     auto& mount_points = msos::fs::mount_points.get_mounted_points();
 
     msos::fs::IFileSystem* fs;

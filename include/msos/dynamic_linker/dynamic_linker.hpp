@@ -277,6 +277,8 @@ private:
             }
             else
             {
+                printf("Address for symbol %s not found!\n", symbol.name().data());
+
                 return false;
             }
         }

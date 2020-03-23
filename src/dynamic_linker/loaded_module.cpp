@@ -59,6 +59,7 @@ int LoadedModule::execute(int argc, char *argv[]) const
 
 int LoadedModule::execute() const
 {
+    printf("Start address 0x%x\n", start_address_);
     return call_external(start_address_);
 }
 

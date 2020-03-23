@@ -26,7 +26,7 @@
 
 msos::kernel::process::ProcessManager processes;
 
-constexpr std::size_t default_stack_size = 1024;
+constexpr std::size_t default_stack_size = 4080;
 
 pid_t spawn(void (*start_routine) (void *), void *arg)
 {

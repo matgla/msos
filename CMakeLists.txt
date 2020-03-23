@@ -42,6 +42,7 @@ enable_language(ASM C CXX)
 if (BOARD)
     add_subdirectory(include/msos/drivers)
     add_subdirectory(src)
+    add_subdirectory(modules)
 endif ()
 
 if (NOT DISABLE_TESTS OR DISABLE_ST_TESTS)

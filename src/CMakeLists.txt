@@ -69,3 +69,21 @@ set_target_properties(msos_test
 include (GenerateBinary)
 generate_binary(msos_test ${vendor})
 
+find_program(truncate_exec truncate)
+set (executable_file "${CMAKE_CURRENT_BINARY_DIR}/msos_test.bin")
+
+add_custom_target(generate_romfs
+    ALL
+    DEPENDS msos_test msos_shell
+
+)
+
+add_custom_command(
+    TARGET generate_romfs
+    POST_BUILD
+    COMMAND ${truncate_exec} --size 32K ${executable_file}
+    COMMAND cp ${executable_file} ${executable_file}.tmp
+    COMMAND cat ${executable_file}.tmp ${PROJECT_BINARY_DIR}/rootfs.img > ${executable_file}
+    VERBATIM
+)
+

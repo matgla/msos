@@ -21,6 +21,8 @@
 #include <sys/time.h>
 #include <sys/types.h>
 
+void write_to_stdin(char c);
+
 extern "C"
 {
     enum SyscallNumber : int
