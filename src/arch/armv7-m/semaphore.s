@@ -23,11 +23,16 @@ semaphore_wait:
     push {r1, r2, lr}
     b wait_loop
 
+perform_block:
+    push {r0, lr}
+    bl block
+    pop {r0, pc}
+
 wait_loop:
     ldrex r1, [r0]
     cmp r1, #0
     IT EQ
-    bleq block
+    bleq perform_block
     sub r1, #1
     strex r2, r1, [r0]
     cmp r2, #0
