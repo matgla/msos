@@ -16,6 +16,8 @@
 
 #include <cstdint>
 
+#include <chrono>
+
 extern "C"
 {
 
@@ -32,6 +34,8 @@ namespace process
 {
 
 void initialize_context_switching();
+void change_context_switch_period(std::chrono::milliseconds period);
+
 
 } // namespace process
 } // namespace msos

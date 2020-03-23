@@ -27,7 +27,9 @@ extern "C"
     {
         SYSCALL_EXIT = 1,
         SYSCALL_KILL = 2,
-        SYSCALL_START_ROOT_PROCESS = 3
+        SYSCALL_START_ROOT_PROCESS = 3,
+        SYSCALL_SEMAPHORE_WAIT = 4,
+        SYSCALL_SEMAPHORE_POST = 5
     };
 
     int _gettimeofday(struct timeval* tv, void* tzvp);

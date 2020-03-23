@@ -23,5 +23,6 @@ namespace process
 
 void initialize_systick();
 
+
 } // namespace process
 } // namespace msos

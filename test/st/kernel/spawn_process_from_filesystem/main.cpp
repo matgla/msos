@@ -56,7 +56,6 @@ extern "C"
 {
 
 extern uint32_t _fs_flash_start;
-extern uint32_t _fs_flash_end;
 
 void usart_write(const char* data);
 
@@ -104,7 +103,6 @@ void child_process(void* arg)
         msos::dl::SymbolAddress{"write", &write},
         msos::dl::SymbolAddress{"extern_1", &extern_data}
     };
-    writer << "[TEST START]" << endl;
 
     const msos::dl::LoadedModule* module = dynamic_linker.load_module(module_address, msos::dl::LoadingModeCopyData, env);
 
@@ -123,15 +121,9 @@ void child_process(void* arg)
 
 void kernel_process(void *)
 {
-    writer << "I am starting" << endl;
-
     uint32_t fs_flash_start = reinterpret_cast<uint32_t>(&_fs_flash_start);
-    uint32_t fs_flash_end = reinterpret_cast<uint32_t>(&_fs_flash_end);
 
-    uint32_t fs_flash_size =  fs_flash_end > fs_flash_start ? fs_flash_end - fs_flash_start : fs_flash_start - fs_flash_end ;
-    writer << "FS flash start: 0x" << hex << fs_flash_start << ", with length: " << fs_flash_size << endl;
-
-    uint8_t* romfs_disk = reinterpret_cast<uint8_t*>(0x08008000);
+    uint8_t* romfs_disk = reinterpret_cast<uint8_t*>(fs_flash_start);
 
     msos::drivers::storage::RamBlockDevice bd(2048, 1, 1, 1);
 
@@ -150,6 +142,7 @@ void kernel_process(void *)
     msos::fs::RamFs ramfs;
     msos::fs::mount_points.mount_filesystem("/", &ramfs);
 
+    writer << "Creating file with name: /test.txt" << endl;
     FILE* test_file = fopen("/test.txt", "w");
 
     if (test_file == NULL)
@@ -159,7 +152,7 @@ void kernel_process(void *)
     else
     {
         writer << "File is not null" << endl;
-        fputs("Hej, ten plik dostaje dane i nawet je zapisuje :)\n", test_file);
+        fputs("Storing some data in file :)\n", test_file);
 
         fclose(test_file);
     }
@@ -189,9 +182,6 @@ void kernel_process(void *)
 
     writer << "Started testing ROMFS disk" << endl;
     msos::fs::RomFs romfs(romfs_disk);
-    writer << "Size: " << dec << sizeof(msos::fs::RomFs) << endl;
-    writer << "RomFs addr: 0x" << hex << reinterpret_cast<uint32_t>(&romfs) << endl;
-
     msos::fs::mount_points.mount_filesystem("/rom", &romfs);
 
     writer << "Opening file /rom/test.txt" << endl;

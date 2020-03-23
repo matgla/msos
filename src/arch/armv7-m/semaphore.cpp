@@ -17,6 +17,7 @@
 #include <hal/interrupt/pendsv.hpp>
 
 #include "msos/kernel/process/scheduler.hpp"
+#include "msos/syscalls/syscalls.hpp"
 
 
 extern "C"

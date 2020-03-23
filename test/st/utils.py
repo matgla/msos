@@ -42,7 +42,7 @@ class BinaryUnderTest:
         else:
             raise "Executable not started"
 
-    def expect(self, expectation, timeout):
+    def expect(self, expectation, timeout = 1):
         if (self.executable):
             self.executable.expect(expectation, timeout)
         else:

@@ -41,7 +41,16 @@ void initialize_svc()
             case SyscallNumber::SYSCALL_START_ROOT_PROCESS:
             {
                 switch_to_next_task();
-            }
+            } break;
+            case SyscallNumber::SYSCALL_SEMAPHORE_POST:
+            {
+                semaphore_post(reinterpret_cast<int*>(args));
+            } break;
+            case SyscallNumber::SYSCALL_SEMAPHORE_WAIT:
+            {
+                semaphore_wait(reinterpret_cast<int*>(args));
+            } break;
+
         }
     });
 }

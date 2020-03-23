@@ -1,4 +1,3 @@
-// This file is part of MSOS project. This is simple OS for embedded development devices.
 // Copyright (C) 2020 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
@@ -29,19 +28,25 @@
 #include "msos/kernel/synchronization/semaphore.hpp"
 #include "msos/kernel/synchronization/mutex.hpp"
 #include "msos/kernel/process/spawn.hpp"
+#include "msos/kernel/process/context_switch.hpp"
 
 hal::UsartWriter writer;
 
 msos::kernel::synchronization::Mutex mutex_;
+msos::kernel::synchronization::Mutex stdio_mutex_;
 
 void printa()
 {
+    stdio_mutex_.lock();
     writer << "Child has additional print" << endl;
+    stdio_mutex_.unlock();
 }
 
 void b_finish()
 {
+    stdio_mutex_.lock();
     writer << "B finished" << endl;
+    stdio_mutex_.unlock();
 }
 
 void trap()
@@ -54,38 +59,55 @@ void child_process_b(void* arg)
     int i = *reinterpret_cast<int*>(arg);
     while (i < 4)
     {
-        hal::time::sleep(std::chrono::milliseconds(500));
+        hal::time::sleep(std::chrono::milliseconds(4));
+        stdio_mutex_.lock();
         writer << "Child B " << i << endl;
+        stdio_mutex_.unlock();
+
         i++;
     }
 
+    /* make some parent prints */
+    hal::time::sleep(std::chrono::milliseconds(10));
     b_finish();
 }
 
+int i = 0;
 void child_fun(void* arg)
 {
-    mutex_.lock();
+    /* allow parent to print Parent going to sleep */
+    hal::time::sleep(std::chrono::milliseconds(10));
+    stdio_mutex_.lock();
     writer << "Child process started" << endl;
+    stdio_mutex_.unlock();
+
+    /* allow parent to execute before child */
+    hal::time::sleep(std::chrono::milliseconds(10));
+    mutex_.lock();
     writer << "Child is going to sleep" << endl;
-    hal::time::sleep(std::chrono::milliseconds(500));
+    hal::time::sleep(std::chrono::milliseconds(15));
 
     writer << "Child Done" << endl;
     printa();
     mutex_.unlock();
-    int i = 0;
+    /* allow parent to do something before next step */
+    hal::time::sleep(std::chrono::milliseconds(15));
     int dump = 123;
 
     spawn(&child_process_b, &i);
+
     while (i < 2)
     {
-        hal::time::sleep(std::chrono::milliseconds(500));
+        hal::time::sleep(std::chrono::milliseconds(5));
+        stdio_mutex_.lock();
         writer << "Child A " << i << ", " << dump << endl;
+        stdio_mutex_.unlock();
         i++;
     }
 
+    stdio_mutex_.lock();
     writer << "Child A finished" << endl;
-
-    printf("Exit aa\n");
+    stdio_mutex_.unlock();
 
     return;
 }
@@ -98,41 +120,51 @@ void child_process_c(void *arg)
     while (x < 3)
     {
         writer << "Child C is working " << x << endl;
-        hal::time::sleep(std::chrono::milliseconds(50));
+        hal::time::sleep(std::chrono::milliseconds(2));
         x++;
     }
+
+    /* make some parent prints */
+    hal::time::sleep(std::chrono::milliseconds(10));
     writer << "[TEST DONE]" << endl;
 }
 
 void kernel_process(void *arg)
 {
     writer << "Hello from Kernel" << endl;
+    msos::process::change_context_switch_period(std::chrono::milliseconds(1));
 
     spawn(&child_fun, NULL);
 
+    stdio_mutex_.lock();
     writer << "Parent" << endl;
+    stdio_mutex_.unlock();
 
     mutex_.lock();
 
+    stdio_mutex_.lock();
     writer << "Parent going to sleep" << endl;
+    stdio_mutex_.unlock();
 
-    hal::time::sleep(std::chrono::milliseconds(200));
+    hal::time::sleep(std::chrono::milliseconds(20));
 
     writer << "Parent Done" << endl;
     mutex_.unlock();
+
     int i = 0;
     while (true) {
-        hal::time::sleep(std::chrono::milliseconds(100));
-        mutex_.lock();
+        hal::time::sleep(std::chrono::milliseconds(10));
+        stdio_mutex_.lock();
         writer << "Parent: " << hex << i << endl;
-        mutex_.unlock();
+        stdio_mutex_.unlock();
         ++i;
         if (i == 10)
         {
-            writer << "Forking" << endl;
             spawn(&child_process_c, &i);
 
+            stdio_mutex_.lock();
             writer << "Parent continues " << i << endl;
+            stdio_mutex_.unlock();
         }
     }
 

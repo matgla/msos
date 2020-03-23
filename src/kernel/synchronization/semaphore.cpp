@@ -34,13 +34,15 @@ Semaphore::Semaphore(uint32_t value)
 
 int Semaphore::wait()
 {
-    semaphore_wait(&value_);
+    trigger_syscall(SyscallNumber::SYSCALL_SEMAPHORE_WAIT, &value_, NULL);
+    // semaphore_wait(&value_);
     return true;
 }
 
 int Semaphore::post()
 {
-    semaphore_post(&value_);
+    trigger_syscall(SyscallNumber::SYSCALL_SEMAPHORE_POST, &value_, NULL);
+    // semaphore_post(&value_);
     return true;
 }
 

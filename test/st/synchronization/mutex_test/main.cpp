@@ -30,50 +30,69 @@
 #include "msos/kernel/synchronization/mutex.hpp"
 
 #include <msos/kernel/process/spawn.hpp>
+#include <msos/kernel/process/context_switch.hpp>
 
 hal::UsartWriter writer;
 
-static msos::kernel::synchronization::Semaphore stdio_mutex_(1);
-
 msos::kernel::synchronization::Mutex mutex_;
+msos::kernel::synchronization::Mutex stdio_mutex_;
+
 
 void child_process(void *arg)
 {
+    /* wait before parent start */
+    hal::time::sleep(std::chrono::milliseconds(10));
+    stdio_mutex_.lock();
     writer << "Child is starting" << endl;
+    stdio_mutex_.unlock();
+
+    hal::time::sleep(std::chrono::milliseconds(10));
+
     mutex_.lock();
+    stdio_mutex_.lock();
     writer << "Child is going to sleep" << endl;
-    hal::time::sleep(std::chrono::milliseconds(150));
+    stdio_mutex_.unlock();
+    hal::time::sleep(std::chrono::milliseconds(15));
+    stdio_mutex_.lock();
     writer << "Child finished waiting" << endl;
+    stdio_mutex_.unlock();
 
     mutex_.unlock();
     while (true)
     {
-        hal::time::sleep(std::chrono::milliseconds(150));
-        stdio_mutex_.wait();
+        hal::time::sleep(std::chrono::milliseconds(15));
+        stdio_mutex_.lock();
         writer << "Child is working" << endl;
         writer << "[TEST DONE]" << endl;
-        stdio_mutex_.post();
+        stdio_mutex_.unlock();
     }
 }
 
 void kernel_process(void* arg)
 {
-    spawn(&child_process, NULL);
-    writer << "Parent is starting" << endl;
-
-
     mutex_.lock();
+    msos::process::change_context_switch_period(std::chrono::milliseconds(5));
+    spawn(&child_process, NULL);
+    stdio_mutex_.lock();
+    writer << "Parent is starting" << endl;
+    stdio_mutex_.lock();
+
 
     writer << "Parent is going to sleep" << endl;
 
-    hal::time::sleep(std::chrono::milliseconds(200));
+    hal::time::sleep(std::chrono::milliseconds(20));
+    stdio_mutex_.lock();
     writer << "Parent finished waiting" << endl;
+    stdio_mutex_.unlock();
+
     mutex_.unlock();
+    /* wait before child start */
+    hal::time::sleep(std::chrono::milliseconds(20));
     while (true)
     {
-        stdio_mutex_.wait();
+        stdio_mutex_.lock();
         writer << "Parent is working" << endl;
-        stdio_mutex_.post();
+        stdio_mutex_.unlock();
         hal::time::sleep(std::chrono::milliseconds(100));
     }
 }

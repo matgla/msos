@@ -32,35 +32,12 @@ namespace process
 
 void exit_handler()
 {
-    printf("Process exited\n");
     trigger_syscall(SyscallNumber::SYSCALL_EXIT, NULL, NULL);
 
     while(1);
 }
 
 constexpr uint32_t default_psr_status = 0x21000000;
-
-void print_stack(const uint32_t* stack, std::size_t length)
-{
-    for (std::size_t i = 0; i < length / 4; i+=4)
-    {
-        printf("%p: 0x%08x 0x%08x 0x%08x 0x%08x\n", &stack[i], stack[i], stack[i+1], stack[i+2], stack[i+3]);
-    }
-}
-
-uint32_t Process::patch_register(const Process& parent, uint32_t reg)
-{
-    uint32_t parent_stack = reinterpret_cast<uint32_t>(parent.stack_.get());
-    printf("Compare %x >= %x && < %x\n", reg, parent_stack, parent_stack + parent.stack_size_);
-
-    if (reg >= parent_stack - parent.stack_size_ && reg < parent_stack)
-    {
-        uint32_t stack = reinterpret_cast<uint32_t>(stack_.get());
-        printf("Patching register from 0x%x to 0x%x\n", reg, (stack + (reg - parent_stack)));
-        return stack + (reg - parent_stack);
-    }
-    return reg;
-}
 
 static pid_t pid_counter = 1;
 
@@ -97,7 +74,7 @@ Process::Process(const std::size_t process_entry, const std::size_t stack_size, 
     std::size_t required_stack_size = sizeof(HardwareStoredRegisters) + sizeof(SoftwareStoredRegisters);
     if (required_stack_size >= stack_size_)
     {
-        printf ("Not enough space on stack in child task, required %d bytes.\n", required_stack_size);
+        // assert
     }
 
     HardwareStoredRegisters* hw_registers = reinterpret_cast<HardwareStoredRegisters*>(stack_ptr + sizeof(SoftwareStoredRegisters));
@@ -123,7 +100,6 @@ Process::Process(const std::size_t process_entry, const std::size_t stack_size, 
     hw_registers->pc = process_entry;
     sw_registers->lr = return_to_thread_mode_psp;
     current_stack_pointer_ = reinterpret_cast<std::size_t*>(stack_ptr);
-    printf("Process created\n");
 }
 
 const std::size_t* Process::stack_pointer() const
@@ -163,7 +139,6 @@ void Process::current_stack_pointer(const std::size_t* stack_pointer)
 
 void Process::block()
 {
-    UsartWriter{} << "State set to blocked: " << pid_ << hex << ", 0x" <<  reinterpret_cast<uint32_t>(this) << endl;
     state_ = State::Blocked;
 }
 
