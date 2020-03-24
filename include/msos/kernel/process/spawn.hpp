@@ -18,8 +18,12 @@
 
 #include <sys/types.h>
 
+#include <msos/dynamic_linker/environment.hpp>
+
 extern "C"
 {
+    pid_t spawn_exec(const char* path, void *arg, SymbolEntry* entries, int number_of_entries);
     pid_t spawn(void (*start_routine) (void *), void *arg);
     pid_t spawn_root_process(void (*start_routine) (void *), void *arg);
+    void exec(const char* path, void *arg, SymbolEntry* entries, int number_of_entries);
 }

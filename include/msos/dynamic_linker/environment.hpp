@@ -20,6 +20,17 @@
 #include <array>
 #include <string_view>
 
+extern "C"
+{
+
+typedef struct SymbolEntry
+{
+    const char* name;
+    uint32_t address;
+} SymbolEntry;
+
+}
+
 namespace msos
 {
 namespace dl
@@ -30,33 +41,37 @@ class SymbolAddress
 public:
     template <typename R, typename... Args>
     SymbolAddress(const std::string_view& name, R(*function)(Args...))
-        : name_(name)
-        , address_(reinterpret_cast<uint32_t>(function))
+        : entry_{name.data(), reinterpret_cast<uint32_t>(function)}
     {
 
     }
 
     template <typename T>
     SymbolAddress(const std::string_view& name, const T* data)
-        : name_(name)
-        , address_(reinterpret_cast<uint32_t>(data))
+        : entry_{name.data(), reinterpret_cast<uint32_t>(data)}
     {
 
     }
 
-    const std::string_view name() const
+    template <typename T>
+    SymbolAddress(const std::string_view& name, const T data)
+        : entry_{name.data(), reinterpret_cast<uint32_t>(data)}
     {
-        return name_;
+
     }
 
-    const uint32_t address() const
+    std::string_view name() const
     {
-        return address_;
+        return entry_.name;
+    }
+
+    uint32_t address() const
+    {
+        return entry_.address;
     }
 
 private:
-    const std::string_view name_;
-    const uint32_t address_;
+    SymbolEntry entry_;
 };
 
 template <std::size_t N>
@@ -78,6 +93,11 @@ public:
             }
         }
         return nullptr;
+    }
+
+    std::array<SymbolAddress, N>& data()
+    {
+        return data_;
     }
 private:
     std::array<SymbolAddress, N> data_;

@@ -111,7 +111,6 @@ void write_to_stdin(char c)
 
 caddr_t _sbrk(int incr)
 {
-
     if (current_heap_end + incr > (&__heap_end))
     {
         errno = ENOMEM;

@@ -73,6 +73,7 @@ Process::Process(const std::size_t process_entry, const std::size_t stack_size, 
     , locks_{}
 {
     uint8_t* stack_ptr = reinterpret_cast<uint8_t*>(stack_.get()) + stack_size_ - sizeof(HardwareStoredRegisters) - sizeof(SoftwareStoredRegisters);
+
     std::size_t required_stack_size = sizeof(HardwareStoredRegisters) + sizeof(SoftwareStoredRegisters);
     if (required_stack_size >= stack_size_)
     {
@@ -80,7 +81,7 @@ Process::Process(const std::size_t process_entry, const std::size_t stack_size, 
     }
 
     HardwareStoredRegisters* hw_registers = reinterpret_cast<HardwareStoredRegisters*>(stack_ptr + sizeof(SoftwareStoredRegisters));
-    hw_registers->r0 = arg;
+    hw_registers->r0 = reinterpret_cast<uint32_t>(arg);
     hw_registers->r1 = 0;
     hw_registers->r2 = 0;
     hw_registers->r3 = 0;

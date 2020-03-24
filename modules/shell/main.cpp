@@ -22,7 +22,6 @@
 int main()
 {
     printf("MSOS shell:\n");
-    write(1, "> \0", 3);
     char buffer[100] = {};
     while (std::string_view(buffer).find("exit") == std::string_view::npos)
     {
@@ -31,7 +30,7 @@ int main()
         scanf("%s", &buffer);
         if (std::string_view(buffer).find("ls") != std::string_view::npos)
         {
-            printf("There will be ls in future\n");
+            printf("/ bin usr share gitare\n");
         }
     }
     printf("MSOS Shell exit\n");

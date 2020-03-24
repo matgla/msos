@@ -28,6 +28,7 @@
 #include "msos/dynamic_linker/symbol.hpp"
 #include "msos/dynamic_linker/relocation.hpp"
 #include "msos/dynamic_linker/module_data.hpp"
+#include "msos/dynamic_linker/environment.hpp"
 #include "msos/usart_printer.hpp"
 #include "msos/dynamic_linker/loaded_module.hpp"
 
@@ -146,6 +147,83 @@ public:
 
         return &loaded_module;
     }
+
+    const LoadedModule* load_module(const uint32_t module_address, const int mode, SymbolEntry* entries, int number_of_entries)
+    {
+        const ModuleHeader& header = *reinterpret_cast<const ModuleHeader*>(module_address);
+
+        if (header.cookie() != "MSDL")
+        {
+            return nullptr;//;LoadingStatus::ModuleCookieValidationFailed;
+        }
+
+        const uint32_t relocation_section_address = module_address + header.size();
+        const uint32_t relocation_section_size = get_relocations_size(header, relocation_section_address);
+        for (int i = 0; i < header.number_of_relocations(); ++i)
+        {
+            const Relocation& relocation = *(reinterpret_cast<const Relocation*>(relocation_section_address) + i);
+        }
+        const uint32_t symbol_section_address = relocation_section_address + relocation_section_size;
+        const uint32_t symbol_section_size = get_symbols_size(symbol_section_address, header.number_of_external_symbols() + header.number_of_exported_symbols());
+
+        const uint32_t not_aligned_code_address = symbol_section_address + symbol_section_size;
+        const uint32_t code_address = not_aligned_code_address % 16 ? not_aligned_code_address + (16 - (not_aligned_code_address % 16)) : not_aligned_code_address;
+        const uint32_t data_address = code_address + header.code_size();
+        const uint32_t size_of_lot = get_size_of_lot(header, relocation_section_address);
+
+        const auto* main = find_symbol(symbol_section_address, header.number_of_external_symbols() + header.number_of_exported_symbols(), "main");
+        modules_.emplace_back(header);
+        LoadedModule& loaded_module = modules_.back();
+        Module& module = loaded_module.get_module();
+        ModuleData& module_data = module.get_module_data();
+
+        if (mode & LoadingModeCopyText)
+        {
+            module.allocate_text();
+            std::memcpy(module.get_text().data(), reinterpret_cast<const uint8_t*>(code_address), header.code_size());
+        }
+        else
+        {
+            module.set_text(gsl::make_span(reinterpret_cast<uint8_t*>(code_address), header.code_size()));
+        }
+
+        module.allocate_data();
+        const uint8_t* dd = reinterpret_cast<const uint8_t*>(data_address);
+
+        std::memcpy(module.get_data().data(), reinterpret_cast<const uint8_t*>(data_address), header.data_size());
+        std::memset(module.get_data().data() + header.data_size(), 0, header.bss_size());
+
+        if (main)
+        {
+            const std::size_t main_function_address = (reinterpret_cast<uint32_t>(module.get_text().data()) + main->offset()) & (~0x01);
+            loaded_module.set_start_address(main_function_address);
+        }
+
+        if (!allocate_lot(loaded_module)) return nullptr;
+        if (!process_exported_relocations(relocation_section_address, loaded_module)) return nullptr;
+
+        const uint32_t external_relocations_address = relocation_section_address + header.number_of_exported_relocations() * sizeof(Relocation);
+        if (!process_external_relocations(external_relocations_address, entries, number_of_entries, loaded_module)) return nullptr;
+
+        const uint32_t local_relocations_address = external_relocations_address + sizeof(Relocation) * header.number_of_external_relocations();
+        if (!process_local_relocations(local_relocations_address, loaded_module))
+        {
+            return nullptr;
+        }
+
+        const uint32_t data_relocations_address = local_relocations_address + sizeof(Relocation) * header.number_of_local_relocations();
+        if (!process_data_relocations(local_relocations_address, loaded_module))
+        {
+            return nullptr;
+        }
+       // if (!process_relocations(relocation_section_address, environment, loaded_module))
+      //  {
+      //      return nullptr;
+      //  }
+
+        return &loaded_module;
+    }
+
 
     const Symbol* find_symbol(const uint32_t address, const uint32_t number_of_symbols, const std::string_view& symbol_name)
     {
@@ -284,6 +362,48 @@ private:
         }
         return true;
     }
+
+    SymbolEntry*  find_symbol(SymbolEntry* entries, int number_of_entries, std::string_view symbol)
+    {
+        printf("Searching %s\n", symbol.data());
+        for (int i = 0; i < number_of_entries; ++i)
+        {
+            printf("%s\n", entries[i].name);
+            if (std::string_view(entries[i].name) == symbol)
+            {
+                return &entries[i];
+            }
+        }
+        return nullptr;
+    }
+
+    bool process_external_relocations(uint32_t external_relocations_address, SymbolEntry* entries, int number_of_entries, LoadedModule& loaded_module)
+    {
+        Module& module = loaded_module.get_module();
+        const ModuleHeader& header = module.get_header();
+        auto& lot = module.get_lot();
+
+        for (int i = 0; i < header.number_of_external_relocations(); ++i)
+        {
+            const Relocation& relocation = *reinterpret_cast<const Relocation*>(external_relocations_address);
+
+            external_relocations_address += relocation.size();
+            const Symbol& symbol = relocation.symbol();
+            const auto* env_symbol = find_symbol(entries, number_of_entries, symbol.name());
+            if (env_symbol)
+            {
+                lot[relocation.index()] = env_symbol->address;
+            }
+            else
+            {
+                printf("Address for symbol %s not found!\n", symbol.name().data());
+
+                return false;
+            }
+        }
+        return true;
+    }
+
 
     template <typename Environment>
     bool process_relocations(uint32_t address, const Environment& env, LoadedModule& loaded_module)

@@ -66,7 +66,7 @@ public:
 
     Process() = default;
     Process(const Process& process);
-    Process(const std::size_t process_entry, const std::size_t stack_size, uint32_t arg = 0);
+    Process(const std::size_t process_entry, const std::size_t stack_size, uint32_t arg);
 
     pid_t pid() const;
     std::size_t stack_size() const;
