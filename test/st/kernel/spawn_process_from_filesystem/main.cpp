@@ -67,12 +67,11 @@ void trap()
 
 void child_process(void* arg)
 {
-    printf("Welcome in child process with arg %p\n", arg);
+    writer << "Welcome in child process with arg \n" << reinterpret_cast<uint32_t>(arg);
     auto& romfs = *reinterpret_cast<msos::fs::RomFs*>(arg);
     /* get raw file and execute */
-    printf ("Casted to %p\n", romfs);
     auto file = romfs.get("/interface_and_classes.bin");
-    printf("Get file\n");
+    writer << "Get file" << endl;
     if (!file)
     {
         writer << "Can't open file" << endl;
@@ -185,8 +184,6 @@ void kernel_process(void *)
         }
         fclose(romfs_file);
     }
-
-    printf("ROMFS ptr %p\n", &romfs);
 
     if (spawn(child_process, &romfs))
     {

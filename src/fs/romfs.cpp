@@ -67,39 +67,22 @@ int RomFs::stat(std::string_view path)
 
 std::unique_ptr<IFile> RomFs::get(std::string_view path)
 {
-    printf("Searching directory: %s\n", path.data());
     auto dir = disk_.get_directory(path);
     if (dir)
     {
-        printf("Found %s\n", path.data());
         return nullptr;
     }
     std::size_t last_slash = path.rfind("/");
-    printf("in %s last / is at %d\n", path.data(), last_slash);
     std::string_view filename = path.substr(last_slash + 1, path.size());
-    printf("Found directory %d\n", filename.size());
 
     path.remove_suffix(path.size() - last_slash);
     dir = disk_.get_directory(path);
     if (dir)
     {
-        printf("Found directory %s\n", path.data());
-        printf("Searching file %s\n", filename.data());
         auto file = dir->get_file(filename);
         if (file)
         {
-            printf("Got file: %p\n", file->data());
             return std::make_unique<RomFsFile>(*file);
-        }
-    }
-
-    dir = disk_.get_directory("/");
-    if (dir)
-    {
-        printf("Got root directory, files inside: \n");
-        for (const auto& file : *dir)
-        {
-            printf("%s\n", file.get_name().data());
         }
     }
 

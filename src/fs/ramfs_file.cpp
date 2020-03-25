@@ -35,7 +35,6 @@ ssize_t RamfsFile::read(DataType data)
 {
     if (position_ >= data_.size())
     {
-        printf("returning EOF\n");
         return 0;
     }
     size_t len = (data_.size() - position_) > static_cast<size_t>(data.size()) ? data.size() : data_.size() - position_;

@@ -36,7 +36,6 @@ ssize_t RomFsFile::read(DataType data)
 {
     if (position_ >= file_.get_size())
     {
-        printf("returning EOF\n");
         return 0;
     }
     size_t len = (file_.get_size() - position_) > static_cast<size_t>(data.size()) ? data.size() : file_.get_size() - position_;

@@ -23,14 +23,12 @@ namespace dl
 
 uint8_t* ModuleData::allocate_text(const std::size_t size)
 {
-    printf("Allocation of text\n");
     text_.reset(new uint8_t[size]);
     return text_.get();
 }
 
 uint8_t* ModuleData::allocate_data(const std::size_t size)
 {
-    printf("Allocation of data\n");
     data_.reset(new uint8_t[size]);
     return data_.get();
 }

@@ -54,17 +54,10 @@ ProcessManager::ContainerType& ProcessManager::get_processes()
 
 void ProcessManager::print() const
 {
-    printf("Process list\n");
-    printf("============\n");
-    for (const auto& process : processes_)
-    {
-        printf ("PID %d: stack = %p, current_stack = %p, stack_size = %d\n", process.pid(), process.stack_pointer(), process.current_stack_pointer(), process.stack_size());
-    }
 }
 
 void ProcessManager::delete_process(pid_t pid)
 {
-    printf("Deleting process with pid %d\n", pid);
     auto it = std::find_if(processes_.begin(), processes_.end(), [pid](const Process& process) {
         return process.pid() == pid;
     });

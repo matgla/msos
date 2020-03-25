@@ -36,7 +36,6 @@ void kernel_process(void*)
 {
     uint8_t* romfs_disk = reinterpret_cast<uint8_t*>(&_fs_flash_start);
     msos::fs::RomFs romfs(romfs_disk);
-    printf("Mouting file system");
     msos::fs::mount_points.mount_filesystem("/rom", &romfs);
 
     spawn_exec("/rom/bin/msos_shell.bin", NULL, NULL, 0);
@@ -58,7 +57,6 @@ int main()
         write_to_stdin(c);
     });
 
-    printf("Spawn root process\n");
     spawn_root_process(&kernel_process, NULL);
 
     while (true)

@@ -27,6 +27,7 @@ add_definitions("-DGSL_TERMINATE_ON_CONTRACT_VIOLATION=1 -DGSL_MSVC_USE_STL_NOEX
 
 if (BOARD)
     fetch_module_via_branch(lib/hal ${PROJECT_SOURCE_DIR}/lib/hal ${CMAKE_CURRENT_SOURCE_DIR} "master")
+    enable_language(ASM C CXX)
     fetch_module_via_branch(lib/msgui ${PROJECT_SOURCE_DIR}/lib/msgui ${CMAKE_CURRENT_SOURCE_DIR} "master")
     set (DISABLE_ROMFS_TESTS "1")
     set (romfs_cxx_compilation_flags ${hal_cxx_compilation_flags})
@@ -37,7 +38,9 @@ endif ()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 set(CMAKE_EXECUTABLE_SUFFIX "${CMAKE_EXECUTABLE_SUFFIX}")
 
-enable_language(ASM C CXX)
+if (NOT BOARD)
+    enable_language(ASM C CXX)
+endif ()
 
 if (BOARD)
     add_subdirectory(include/msos/drivers)

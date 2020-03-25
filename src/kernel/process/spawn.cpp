@@ -23,6 +23,8 @@
 #include <msos/dynamic_linker/dynamic_linker.hpp>
 #include <msos/dynamic_linker/environment.hpp>
 
+#include "msos/libc/printf.hpp"
+
 #include "msos/syscalls/syscalls.hpp"
 
 #include <hal/interrupt/systick.hpp>
@@ -52,7 +54,7 @@ static msos::dl::Environment<8> env{
         msos::dl::SymbolAddress{"strstr", &strstr},
         msos::dl::SymbolAddress{"write", &write},
         msos::dl::SymbolAddress{"scanf", reinterpret_cast<uint32_t*>(&scanf)},
-        msos::dl::SymbolAddress{"printf", reinterpret_cast<uint32_t*>(&printf)}
+        msos::dl::SymbolAddress{"printf", reinterpret_cast<uint32_t*>(&_printf)}
 };
 
 pid_t spawn(void (*start_routine) (void *), void *arg)
@@ -76,7 +78,6 @@ pid_t spawn_root_process(void (*start_routine) (void *), void *arg)
 
 int exec_process(ExecInfo* info)
 {
-    printf("Executing process: %s, with env: %p, size: %d\n", info->path, info->entries, info->number_of_entries);
     auto& mount_points = msos::fs::mount_points.get_mounted_points();
 
     msos::fs::IFileSystem* fs;
@@ -103,7 +104,6 @@ int exec_process(ExecInfo* info)
 
     if (fs == nullptr)
     {
-        printf("Fs not exists\n");
         return -1;
     }
 
@@ -111,7 +111,6 @@ int exec_process(ExecInfo* info)
 
     if (!file)
     {
-        printf("File not exists\n");
         return -1;
     }
 
@@ -130,7 +129,6 @@ int exec_process(ExecInfo* info)
     }
     if (module)
     {
-        printf("Execute1\n");
         return module->execute();
     }
     return -1;
