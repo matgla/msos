@@ -43,14 +43,7 @@
 
 // #include "msos/fs/"
 
-msos::dl::DynamicLinker dynamic_linker;
 hal::UsartWriter writer;
-
-uint32_t get_lot_at(uint32_t address)
-{
-    writer << "Getting address of LOT: 0x" << hex << address << endl;
-    return dynamic_linker.get_lot_for_module_at(address);
-}
 
 extern "C"
 {
@@ -90,12 +83,6 @@ void child_process(void* arg)
     writer << "Got file with binary: " << hex << module_address << endl;
     writer << "Got file with binary: " << file->name() << endl;
 
-    uint32_t address_of_lot_getter = reinterpret_cast<uint32_t>(&get_lot_at);
-    uint32_t* lot_in_memory = reinterpret_cast<uint32_t*>(0x20000000);
-    *lot_in_memory = address_of_lot_getter;
-    writer << "Address of lot getter: 0x" << hex << address_of_lot_getter << endl;
-    writer << "Address of lot in memory: 0x" << hex << reinterpret_cast<uint32_t>(lot_in_memory) << endl;
-
     int extern_data = 123;
     msos::dl::Environment<4> env{
         msos::dl::SymbolAddress{"usart_write", &usart_write},
@@ -104,19 +91,7 @@ void child_process(void* arg)
         msos::dl::SymbolAddress{"extern_1", &extern_data}
     };
 
-    const msos::dl::LoadedModule* module = dynamic_linker.load_module(module_address, msos::dl::LoadingModeCopyData, env);
-
-    if (module == nullptr)
-    {
-        writer << "Module not loaded properly" << endl;
-        writer << "[TEST DONE]" << endl;
-        while (true)
-        {
-        }
-    }
-    writer << "Module loaded" << endl;
-
-    module->execute();
+    exec("/rom/interface_and_classes.bin", NULL, reinterpret_cast<SymbolEntry*>(env.data().data()), env.data().size());
 
     writer << "[TEST DONE]" << endl;
 }
@@ -127,7 +102,7 @@ void kernel_process(void *)
 
     uint8_t* romfs_disk = reinterpret_cast<uint8_t*>(fs_flash_start);
 
-    msos::drivers::storage::RamBlockDevice bd(2048, 1, 1, 1);
+    msos::drivers::storage::RamBlockDevice bd(128, 1, 1, 1);
 
     int error = bd.init();
     if (error)

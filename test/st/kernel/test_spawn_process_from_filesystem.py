@@ -22,7 +22,7 @@ def test_module_with_classes():
     sut = utils.BinaryUnderTest(utils.find_binary("spawn_process_from_filesystem"))
     sut.start()
     sut.expect("Device geometry")
-    sut.expect("Size: 2048")
+    sut.expect("Size: 128")
     sut.expect("Read size: 1")
     sut.expect("Write size: 1")
     sut.expect("Erase size: 1")
