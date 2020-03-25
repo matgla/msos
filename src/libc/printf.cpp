@@ -14,27 +14,33 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "msos/dynamic_linker/module_data.hpp"
+#include <stdarg.h>
+#include <stddef.h>
 
-namespace msos
-{
-namespace dl
+extern "C"
 {
 
-uint8_t* ModuleData::allocate_text(const std::size_t size)
+typedef void (*out_fct_type)(char character, void* buffer, size_t idx, size_t maxlen);
+
+// internal vsnprintf
+static int _vsnprintf(out_fct_type out, char* buffer, const size_t maxlen, const char* format, va_list va)
 {
-    printf("Allocation of text\n");
-    text_.reset(new uint8_t[size]);
-    return text_.get();
+return 1;
 }
 
-uint8_t* ModuleData::allocate_data(const std::size_t size)
+static inline void _out_char(char character, void* buffer, size_t idx, size_t maxlen)
 {
-    printf("Allocation of data\n");
-    data_.reset(new uint8_t[size]);
-    return data_.get();
 }
 
-} // namespace dl
-} // namespace msos
+int __wrap_printf(const char* format, ...)
+{
+  va_list va;
+  va_start(va, format);
+  char buffer[1];
+  const int ret = _vsnprintf(_out_char, buffer, (size_t)-1, format, va);
+  va_end(va);
+  return ret;
+}
 
+
+}

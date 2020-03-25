@@ -1,5 +1,5 @@
 # This file is part of MSOS project. This is simple OS for embedded development devices.
-# Copyright (C) 2019 Mateusz Stadnik
+# Copyright (C) 2020 Mateusz Stadnik
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,6 +14,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_subdirectory(memory)
-add_subdirectory(process)
-add_subdirectory(synchronization)
+add_library(msos_libc)
+
+set (library_includes ${PROJECT_SOURCE_DIR}/include/msos/kernel/memory)
+
+target_sources(msos_libc
+   PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/printf.cpp
+)
+
+target_link_libraries(msos_libc
+    PUBLIC
+        hal
+)
+
+target_include_directories(msos_libc
+    PUBLIC
+        ${PROJECT_SOURCE_DIR}/include
+)
+

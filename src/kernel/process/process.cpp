@@ -72,6 +72,7 @@ Process::Process(const std::size_t process_entry, const std::size_t stack_size, 
     , fd_map_(0x7)
     , locks_{}
 {
+    printf("Constructor\n");
     uint8_t* stack_ptr = reinterpret_cast<uint8_t*>(stack_.get()) + stack_size_ - sizeof(HardwareStoredRegisters) - sizeof(SoftwareStoredRegisters);
 
     std::size_t required_stack_size = sizeof(HardwareStoredRegisters) + sizeof(SoftwareStoredRegisters);

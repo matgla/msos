@@ -24,6 +24,7 @@ add_subdirectory(utils)
 add_subdirectory(posix)
 add_subdirectory(fs)
 add_subdirectory(drivers)
+add_subdirectory(libc)
 
 set (library_includes ${PROJECT_SOURCE_DIR}/include/msos)
 
@@ -35,10 +36,12 @@ target_sources(msos
 target_link_libraries(msos
     PUBLIC
         msos_kernel_synchronization
+        msos_kernel_memory
         msos_syscalls
         msos_dynamic_linker
         msos_drivers_storage
         msos_fs
+        msos_libc
         hal
         # msos_posix
         msos_arch

@@ -269,6 +269,7 @@ private:
         Module& module = loaded_module.get_module();
         const ModuleHeader& header = module.get_header();
         auto& lot = module.get_lot();
+        printf("Allocation of LOT table\n");
         lot.reset(new uint32_t[header.number_of_external_relocations() + header.number_of_local_relocations()]);
         return lot != nullptr;
     }

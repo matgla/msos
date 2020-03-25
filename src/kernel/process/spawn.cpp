@@ -126,6 +126,7 @@ int exec_process(ExecInfo* info)
     else
     {
         module = dynamic_linker.load_module(module_address, msos::dl::LoadingModeCopyData, env);
+        delete info;
     }
     if (module)
     {
