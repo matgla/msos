@@ -32,8 +32,8 @@ namespace fs
 class IFile
 {
 public:
-    using DataType = gsl::span<uint8_t>;
-    using ConstDataType = gsl::span<const uint8_t>;
+    using DataType = gsl::span<char>;
+    using ConstDataType = gsl::span<const char>;
 
     virtual ~IFile() = default;
 
@@ -44,7 +44,7 @@ public:
     virtual int sync() = 0;
 
     /* for XIP filesystems pointer to memory must be returned somehow */
-    virtual ConstDataType data() const = 0;
+    virtual const char* data() const = 0;
 
     virtual off_t tell() const = 0;
     virtual ssize_t size() const = 0;

@@ -43,7 +43,7 @@
 
 // #include "msos/fs/"
 
-hal::UsartWriter writer;
+UsartWriter writer;
 
 extern "C"
 {
@@ -78,7 +78,7 @@ void child_process(void* arg)
         return;
     }
     trap();
-    std::size_t module_address = reinterpret_cast<uint32_t>(file->data().data());
+    std::size_t module_address = reinterpret_cast<uint32_t>(file->data());
     writer << "Got file with binary: " << hex << module_address << endl;
     writer << "Got file with binary: " << file->name() << endl;
 
@@ -204,7 +204,7 @@ int main()
     Usart::init(9600);
 
     writer << "[TEST START]" << endl;
-    spawn_root_process(&kernel_process, NULL);
+    spawn_root_process(&kernel_process, NULL, 1024);
 
     while (true)
     {

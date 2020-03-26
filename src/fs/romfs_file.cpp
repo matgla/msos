@@ -87,9 +87,9 @@ std::unique_ptr<IFile> RomFsFile::clone() const
     return std::make_unique<RomFsFile>(file_);
 }
 
-IFile::ConstDataType RomFsFile::data() const
+const char* RomFsFile::data() const
 {
-    return gsl::make_span<const uint8_t>(file_.data(), file_.get_size());
+    return reinterpret_cast<const char*>(file_.data());
 }
 
 } // namespace fs

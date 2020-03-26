@@ -31,7 +31,7 @@
 
 msos::kernel::process::ProcessManager processes;
 
-constexpr std::size_t default_stack_size = 1500;
+constexpr std::size_t default_stack_size = 728;
 msos::dl::DynamicLinker dynamic_linker;
 
 uint32_t get_lot_at(uint32_t address)
@@ -53,7 +53,7 @@ static msos::dl::Environment<8> env{
         msos::dl::SymbolAddress{"memset", &memset},
         msos::dl::SymbolAddress{"strstr", &strstr},
         msos::dl::SymbolAddress{"write", &write},
-        msos::dl::SymbolAddress{"scanf", reinterpret_cast<uint32_t*>(&scanf)},
+        msos::dl::SymbolAddress{"scanf", reinterpret_cast<uint32_t*>(&_scanf)},
         msos::dl::SymbolAddress{"printf", reinterpret_cast<uint32_t*>(&_printf)}
 };
 
@@ -64,11 +64,11 @@ pid_t spawn(void (*start_routine) (void *), void *arg)
     return child.pid();
 }
 
-pid_t spawn_root_process(void (*start_routine) (void *), void *arg)
+pid_t spawn_root_process(void (*start_routine) (void *), void *arg, std::size_t stack_size)
 {
     hal::interrupt::disable_systick();
     msos::kernel::process::Scheduler::get().set_process_manager(processes);
-    processes.create_process(reinterpret_cast<std::size_t>(start_routine), default_stack_size);
+    processes.create_process(reinterpret_cast<std::size_t>(start_routine), stack_size);
     msos::kernel::process::Scheduler::get().schedule_next();
 
     msos::process::initialize_context_switching();
@@ -114,7 +114,7 @@ int exec_process(ExecInfo* info)
         return -1;
     }
 
-    std::size_t module_address = reinterpret_cast<uint32_t>(file->data().data());
+    std::size_t module_address = reinterpret_cast<uint32_t>(file->data());
 
     const msos::dl::LoadedModule* module;
     if (info->entries)
@@ -129,6 +129,7 @@ int exec_process(ExecInfo* info)
     }
     if (module)
     {
+        msos::kernel::process::Scheduler::get().current_process().print();
         return module->execute();
     }
     return -1;
@@ -155,7 +156,7 @@ void exec(const char* path, void *arg, SymbolEntry* entries, int number_of_entri
     exec_process(info);
 }
 
-pid_t spawn_exec(const char* path, void *arg, SymbolEntry* entries, int number_of_entries)
+pid_t spawn_exec(const char* path, void *arg, SymbolEntry* entries, int number_of_entries, std::size_t stack_size)
 {
     if (is_first)
     {
@@ -172,6 +173,6 @@ pid_t spawn_exec(const char* path, void *arg, SymbolEntry* entries, int number_o
     };
 
     auto& child = processes.create_process(
-        reinterpret_cast<std::size_t>(exec_process), default_stack_size, reinterpret_cast<uint32_t>(info));
+        reinterpret_cast<std::size_t>(exec_process), stack_size, reinterpret_cast<uint32_t>(info));
     return child.pid();
 }

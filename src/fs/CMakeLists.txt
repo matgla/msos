@@ -28,12 +28,14 @@ target_sources(msos_fs
         ${library_includes}/romfs.hpp
         ${library_includes}/ramfs_file.hpp
         ${library_includes}/romfs_file.hpp
+        ${library_includes}/usart_file.hpp
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/mount_points.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ramfs.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/romfs.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ramfs_file.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/romfs_file.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/usart_file.cpp
 )
 
 target_include_directories(msos_fs
@@ -43,7 +45,7 @@ target_include_directories(msos_fs
 
 target_compile_options(msos_fs
     PRIVATE
-        $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a -Wall -Werror -Wextra -Wpedantic -Wconversion -Wcast-align -Wunused -Wshadow -Wold-style-cast -Wpointer-arith -Wcast-qual -Wno-missing-braces>
+        $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a -Wall -Wextra -Wpedantic -Wconversion -Wcast-align -Wunused -Wshadow -Wold-style-cast -Wpointer-arith -Wcast-qual -Wno-missing-braces>
         $<$<CONFIG:DEBUG>:-Og -g>
         $<$<CONFIG:RELEASE>:-Os>
 )
@@ -54,6 +56,8 @@ target_link_libraries(msos_fs
         eul
         msos_drivers_storage
         romfs
+    PRIVATE
+        hal
 )
 
 

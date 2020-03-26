@@ -16,17 +16,13 @@
 
 #include "child_implementation_a.hpp"
 
-#include <msos/usart_printer.hpp>
 
 ChildA::~ChildA()
 {
-    UsartWriter writer;
-//    writer << "~ChildA()" << endl;
 }
 
 void ChildA::print()
 {
-    UsartWriter writer;
-    writer << "ChildA is printing" << endl;
+    // writer << "ChildA is printing" << endl;
 }
 

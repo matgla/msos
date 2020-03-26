@@ -26,7 +26,7 @@
 
 #include "msos/drivers/storage/ram_block_device.hpp"
 
-hal::UsartWriter writer;
+UsartWriter writer;
 
 int main()
 {

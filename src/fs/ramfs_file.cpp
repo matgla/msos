@@ -86,9 +86,9 @@ std::unique_ptr<IFile> RamfsFile::clone() const
     return std::make_unique<RamfsFile>(filename_, data_);
 }
 
-IFile::ConstDataType RamfsFile::data() const
+const char* RamfsFile::data() const
 {
-    return data_;
+    return reinterpret_cast<const char*>(data_.data());
 }
 
 } // namespace fs

@@ -83,6 +83,8 @@ public:
     int add_file(std::unique_ptr<msos::fs::IFile>&& file);
     int remove_file(int fd);
     msos::fs::IFile* get_file(int fd) const;
+    void print() const;
+    bool validate_stack() const;
 private:
 
     uint32_t patch_register(const Process& parent, uint32_t reg);
@@ -90,8 +92,8 @@ private:
     pid_t pid_;
     std::size_t stack_size_;
     std::unique_ptr<std::size_t[]> stack_;
-    const std::size_t* current_stack_pointer_;
     uint8_t fd_map_;
+    const std::size_t* current_stack_pointer_;
     std::array<std::unique_ptr<msos::fs::IFile>, 8> fd_;
     std::vector<uint32_t> locks_;
 };

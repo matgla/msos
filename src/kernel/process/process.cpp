@@ -22,6 +22,7 @@
 #include "msos/kernel/process/process.hpp"
 #include "msos/kernel/process/registers.hpp"
 #include "msos/syscalls/syscalls.hpp"
+#include "msos/fs/usart_file.hpp"
 
 namespace msos
 {
@@ -40,6 +41,8 @@ void exit_handler()
 constexpr uint32_t default_psr_status = 0x21000000;
 
 static pid_t pid_counter = 1;
+
+static UsartWriter writer;
 
 Process::Process(const Process& process)
     : state_(process.state_)
@@ -72,6 +75,7 @@ Process::Process(const std::size_t process_entry, const std::size_t stack_size, 
     , fd_map_(0x7)
     , locks_{}
 {
+    stack_[0] = 0xdeadbeef;
     uint8_t* stack_ptr = reinterpret_cast<uint8_t*>(stack_.get()) + stack_size_ - sizeof(HardwareStoredRegisters) - sizeof(SoftwareStoredRegisters);
 
     std::size_t required_stack_size = sizeof(HardwareStoredRegisters) + sizeof(SoftwareStoredRegisters);
@@ -103,6 +107,9 @@ Process::Process(const std::size_t process_entry, const std::size_t stack_size, 
     hw_registers->pc = process_entry;
     sw_registers->lr = return_to_thread_mode_psp;
     current_stack_pointer_ = reinterpret_cast<std::size_t*>(stack_ptr);
+    fd_[0] = std::make_unique<msos::fs::UsartFile>();
+    fd_[1] = std::make_unique<msos::fs::UsartFile>();
+    fd_[2] = std::make_unique<msos::fs::UsartFile>();
 }
 
 const std::size_t* Process::stack_pointer() const
@@ -138,6 +145,11 @@ const std::size_t* Process::current_stack_pointer() const
 void Process::current_stack_pointer(const std::size_t* stack_pointer)
 {
     current_stack_pointer_ = stack_pointer;
+}
+
+void Process::print() const
+{
+    writer << "Process pid " << pid_ << ": " << (current_stack_pointer_ - stack_.get()) << "/" << stack_size_ << " bytes" << endl;
 }
 
 void Process::block(void* semaphore)
@@ -204,6 +216,12 @@ int Process::remove_file(int fd)
     }
     return -1;
 }
+
+bool Process::validate_stack() const
+{
+    return stack_[0] == 0xdeadbeef;
+}
+
 
 
 } // namespace process

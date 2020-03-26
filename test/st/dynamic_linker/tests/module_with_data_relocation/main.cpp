@@ -21,34 +21,32 @@
 #include <cstdint>
 
 #include "msos/utils/string.hpp"
-#include "msos/usart_printer.hpp"
 
 int global_integer = 177176;
 
 template <typename T, std::size_t N>
 void print_array(const T(&t)[N])
 {
-    UsartWriter writer;
+    // UsartWriter writer;
 
     for (std::size_t i = 0; i < N - 1; ++i)
     {
-       writer << t[i] << ", ";
+    //    writer << t[i] << ", ";
     }
-    writer << t[N - 1] << endl;
+    // writer << t[N - 1] << endl;
 }
 
 void print()
 {
-    UsartWriter writer;
     static uint32_t data[] = {1, 2, 3, 4};
     int data_2[] = {5, 6, 7, 8};
     data[3] = 8;
-    writer << "Local data 1: ";
+    // writer << "Local data 1: ";
     print_array(data);
 
     data[0] = -12;
 
-    writer << "Local data 2: ";
+    // writer << "Local data 2: ";
     print_array(data_2);
 }
 
@@ -58,32 +56,31 @@ extern int extern_2;
 
 int main()
 {
-    UsartWriter writer;
     global_integer = 177177;
     static const char* local_string = "Module started";
-    writer << local_string << endl;
+    // writer << local_string << endl;
 
     int local_int = -123456;
     constexpr int const_int = 21234;
     const char* integer_text = "Integer: ";
-    writer << integer_text << local_int << endl;
-    writer << "Constexpr integer: " << const_int << endl;
-    writer << "Global integer: " << global_integer << endl;
+    // writer << integer_text << local_int << endl;
+    // writer << "Constexpr integer: " << const_int << endl;
+    // writer << "Global integer: " << global_integer << endl;
 
     print();
 
     int *ptr = &global_integer;
 
     *ptr = 19;
-    writer << "Global integer: " << global_integer << endl;
-    writer << "Global integer ptr: " << *ptr << endl;
-    writer << "Extern 1: " << extern_1 << endl;
-    writer << "Extern 2: " << extern_2 << endl;
+    // writer << "Global integer: " << global_integer << endl;
+    // writer << "Global integer ptr: " << *ptr << endl;
+    // writer << "Extern 1: " << extern_1 << endl;
+    // writer << "Extern 2: " << extern_2 << endl;
     int* p_extern1 = &extern_1;
     *p_extern1 = extern_2;
 
 
-    writer << "Extern 1: " << extern_1 << endl;
-    writer << "Extern 2: " << extern_2 << endl;
+    // writer << "Extern 1: " << extern_1 << endl;
+    // writer << "Extern 2: " << extern_2 << endl;
 }
 

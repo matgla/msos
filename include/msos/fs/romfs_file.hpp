@@ -45,7 +45,7 @@ public:
 
     std::unique_ptr<IFile> clone() const override;
 
-    ConstDataType data() const override;
+    const char* data() const override;
 
 private:
     romfs::FileHeader file_;

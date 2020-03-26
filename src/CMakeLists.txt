@@ -35,6 +35,7 @@ target_sources(msos
 
 target_link_libraries(msos
     PUBLIC
+        hal
         msos_kernel_synchronization
         msos_kernel_memory
         msos_syscalls
@@ -42,7 +43,6 @@ target_link_libraries(msos
         msos_drivers_storage
         msos_fs
         msos_libc
-        hal
         # msos_posix
         msos_arch
 )

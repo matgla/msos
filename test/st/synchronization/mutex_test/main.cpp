@@ -32,7 +32,7 @@
 #include <msos/kernel/process/spawn.hpp>
 #include <msos/kernel/process/context_switch.hpp>
 
-hal::UsartWriter writer;
+UsartWriter writer;
 
 msos::kernel::synchronization::Mutex mutex_;
 msos::kernel::synchronization::Mutex stdio_mutex_;
@@ -104,7 +104,7 @@ int main()
 
     writer << "[TEST START]" << endl;
 
-    spawn_root_process(&kernel_process, NULL);
+    spawn_root_process(&kernel_process, NULL, 1024);
 
     while (true)
     {

@@ -31,7 +31,7 @@ target_compile_options(module_with_data_lib
 target_link_libraries(module_with_data_lib
     PUBLIC
         module_flags
-        msos_utils 
+        msos_utils
 )
 
 add_module(module_with_data module_with_data_lib)

@@ -269,7 +269,6 @@ private:
         Module& module = loaded_module.get_module();
         const ModuleHeader& header = module.get_header();
         auto& lot = module.get_lot();
-        printf("Allocation of LOT table\n");
         lot.reset(new uint32_t[header.number_of_external_relocations() + header.number_of_local_relocations()]);
         return lot != nullptr;
     }
@@ -356,8 +355,6 @@ private:
             }
             else
             {
-                printf("Address for symbol %s not found!\n", symbol.name().data());
-
                 return false;
             }
         }
@@ -366,10 +363,8 @@ private:
 
     SymbolEntry*  find_symbol(SymbolEntry* entries, int number_of_entries, std::string_view symbol)
     {
-        printf("Searching %s\n", symbol.data());
         for (int i = 0; i < number_of_entries; ++i)
         {
-            printf("%s\n", entries[i].name);
             if (std::string_view(entries[i].name) == symbol)
             {
                 return &entries[i];
@@ -397,8 +392,6 @@ private:
             }
             else
             {
-                printf("Address for symbol %s not found!\n", symbol.name().data());
-
                 return false;
             }
         }

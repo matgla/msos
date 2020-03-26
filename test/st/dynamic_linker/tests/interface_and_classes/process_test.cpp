@@ -16,8 +16,6 @@
 
 #include "process_test.hpp"
 
-#include <msos/usart_printer.hpp>
-
 #include "i_some_interface.hpp"
 #include "implementation_a.hpp"
 #include "implementation_b.hpp"
@@ -28,19 +26,18 @@ namespace test_processor
 
 void test()
 {
-    UsartWriter writer;
-
     ImplementationA a;
     ImplementationB b(15, "I_AM_B");
     ChildA a_c;
 
     ISomeInterface* i  = &a;
 
-    writer << "ImplementationA value: " << a.get_value() << endl;
-    writer << "ImplementationB value: " << b.get_value() << endl;
-    writer << "ChildA value: " << a_c.get_value() << endl;
-    writer << "Interface value: " << i->get_value() << endl;
-    writer << "Printing tests :)" << endl;
+    // To be fixed with printf
+    // writer << "ImplementationA value: " << a.get_value() << endl;
+    // writer << "ImplementationB value: " << b.get_value() << endl;
+    // writer << "ChildA value: " << a_c.get_value() << endl;
+    // writer << "Interface value: " << i->get_value() << endl;
+    // writer << "Printing tests :)" << endl;
     a.print();
 
     b.print();
@@ -48,10 +45,10 @@ void test()
     i->print();
 
     i = &a_c;
-    writer << "Interface value: " << i->get_value() << endl;
+    // writer << "Interface value: " << i->get_value() << endl;
     i->print();
 
-    writer << "Hello from Module" << endl;
+    // writer << "Hello from Module" << endl;
 }
 
 } // namespace test_processor

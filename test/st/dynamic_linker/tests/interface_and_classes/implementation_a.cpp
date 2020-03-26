@@ -16,20 +16,14 @@
 
 #include "implementation_a.hpp"
 
-#include <msos/usart_printer.hpp>
-
-
 ImplementationA::~ImplementationA()
 {
-    UsartWriter writer;
-//    writer << "~ImplementationA()" << endl;
 }
 
 void ImplementationA::print()
 {
-    UsartWriter writer;
     const char* data = "ImplementationA is printing";
-    writer << data << endl;
+    // writer << data << endl;
 }
 
 int ImplementationA::get_value()

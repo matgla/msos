@@ -16,9 +16,10 @@
 
 #pragma once
 
-#include <common/utils/usart_printer.hpp> 
+#include <common/utils/usart_printer.hpp>
+#include <board.hpp>
 
-using UsartWriter = hal::UsartWriter;
+using UsartWriter = hal::UsartWriter<board::interfaces::Usart1>;
 constexpr auto endl = hal::endl;
 constexpr auto dec = hal::dec;
 constexpr auto hex = hal::hex;

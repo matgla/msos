@@ -24,13 +24,17 @@
 #include "msos/fs/romfs.hpp"
 #include "msos/fs/mount_points.hpp"
 #include "msos/kernel/process/spawn.hpp"
+#include "msos/kernel/process/scheduler.hpp"
 #include "msos/syscalls/syscalls.hpp"
+#include "msos/usart_printer.hpp"
+#include "msos/libc/printf.hpp"
 
 extern "C"
 {
 extern uint32_t _fs_flash_start;
 }
 
+static UsartWriter writer;
 
 void kernel_process(void*)
 {
@@ -38,7 +42,7 @@ void kernel_process(void*)
     msos::fs::RomFs romfs(romfs_disk);
     msos::fs::mount_points.mount_filesystem("/rom", &romfs);
 
-    spawn_exec("/rom/bin/msos_shell.bin", NULL, NULL, 0);
+    spawn_exec("/rom/bin/msos_shell.bin", NULL, NULL, 0, 1024);
 
     while (true)
     {
@@ -57,7 +61,7 @@ int main()
         write_to_stdin(c);
     });
 
-    spawn_root_process(&kernel_process, NULL);
+    spawn_root_process(&kernel_process, NULL, 512);
 
     while (true)
     {

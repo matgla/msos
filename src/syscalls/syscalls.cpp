@@ -35,8 +35,6 @@
 
 #include "msos/usart_printer.hpp"
 
-static hal::UsartWriter writer;
-
 extern "C"
 {
     int _gettimeofday(struct timeval* tv, void* tzvp);
@@ -54,6 +52,8 @@ extern "C"
     pid_t _fork();
 
 }
+
+static UsartWriter writer;
 
 extern "C"
 {
@@ -94,9 +94,19 @@ volatile bool new_line_readed = false;
 
 void write_to_stdin(char c)
 {
-    if (index >= 254)
+    if (index >= 99)
     {
         index = 0;
+    }
+    if (c == 127)
+    {
+        --index;
+        char backspace = '\b';
+        char space = ' ';
+        write(1, &backspace, 1);
+        write(1, &space, 1);
+        write(1, &backspace, 1);
+        return;
     }
     if (c == '\n' || c == '\r')
     {
@@ -114,7 +124,7 @@ caddr_t _sbrk(int incr)
     if (current_heap_end + incr > (&__heap_end))
     {
         errno = ENOMEM;
-        printf("Heap overflow!\n");
+        // printf("Heap overflow!\n");
         return NULL;
     }
 
@@ -125,18 +135,10 @@ caddr_t _sbrk(int incr)
 
 int _write(int fd, const char* ptr, int len)
 {
-    // TODO: temporary hack, this also should, write to process descriptor
-    if (fd == 0 || fd == 1 || fd == 2)
-    {
-        board::interfaces::Usart1 usart;
-        usart.write(std::string_view(ptr, len));
-        return 0;
-    }
-
     msos::fs::IFile* file = msos::kernel::process::Scheduler::get().current_process().get_file(fd);
     if (file)
     {
-        return file->write(gsl::make_span<const uint8_t>(reinterpret_cast<const uint8_t*>(ptr), len));
+        return file->write(std::string_view(ptr, len));
     }
 
     return 0;
@@ -158,7 +160,7 @@ int _read(int fd, char* ptr, int len)
 
     if (file)
     {
-        return file->read(gsl::make_span<uint8_t>(reinterpret_cast<uint8_t*>(ptr), len));
+        return file->read(gsl::make_span<char>(ptr, len));
     }
 
     return 0;

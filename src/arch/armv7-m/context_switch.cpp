@@ -22,10 +22,12 @@
 
 #include "msos/kernel/process/context_switch.hpp"
 #include "msos/kernel/process/scheduler.hpp"
+#include "msos/usart_printer.hpp"
 
 #include "arch/armv7-m/pendsv_handler.hpp"
 #include "arch/armv7-m/systick_handler.hpp"
 #include "arch/armv7-m/svc_handler.hpp"
+
 
 namespace msos
 {
@@ -48,8 +50,14 @@ void initialize_context_switching()
 } // namespace process
 } // namespace msos
 
+static UsartWriter writer;
+
 const std::size_t* get_next_task()
 {
+    if (!msos::kernel::process::Scheduler::get().current_process().validate_stack())
+    {
+        writer << "Detected stack overflow, data of rest tasks may be corrupted" << endl;
+    }
     return msos::kernel::process::Scheduler::get().schedule_next();
 }
 

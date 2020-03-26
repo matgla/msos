@@ -16,14 +16,33 @@
 
 #pragma once
 
-#include <sys/types.h>
+#include <string_view>
 
-#include <msos/dynamic_linker/environment.hpp>
+#include "msos/fs/i_filesystem.hpp"
 
-extern "C"
+namespace msos
 {
-    pid_t spawn_exec(const char* path, void *arg, SymbolEntry* entries, int number_of_entries, std::size_t stack_size);
-    pid_t spawn(void (*start_routine) (void *), void *arg);
-    pid_t spawn_root_process(void (*start_routine) (void *), void *arg, std::size_t stack_size);
-    void exec(const char* path, void *arg, SymbolEntry* entries, int number_of_entries);
-}
+namespace fs
+{
+
+struct UsartFile : public IFile
+{
+public:
+    ssize_t read(DataType data) override;
+    ssize_t write(const ConstDataType data) override;
+    off_t seek(off_t offset, int base) const override;
+    int close() override;
+    int sync() override;
+
+    off_t tell() const override;
+    ssize_t size() const override;
+
+    std::string_view name() const override;
+
+    std::unique_ptr<IFile> clone() const override;
+
+    const char* data() const override;
+};
+
+} // namespace fs
+} // namespace msos
