@@ -16,6 +16,8 @@
 
 #include "implementation_b.hpp"
 
+#include <cstdio>
+
 ImplementationB::ImplementationB(int value, const std::string_view& name)
     : value_(value)
     , name_(name)
@@ -29,8 +31,8 @@ ImplementationB::~ImplementationB()
 
 void ImplementationB::print()
 {
-    // static const char* name = "I am working! ";
-    // writer << name << name_ << endl;
+    static const char* name = "I am working! ";
+    printf("%s\n", name);
 }
 
 int ImplementationB::get_value()

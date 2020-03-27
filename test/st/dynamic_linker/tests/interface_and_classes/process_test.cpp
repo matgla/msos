@@ -16,6 +16,8 @@
 
 #include "process_test.hpp"
 
+#include <cstdio>
+
 #include "i_some_interface.hpp"
 #include "implementation_a.hpp"
 #include "implementation_b.hpp"
@@ -33,22 +35,20 @@ void test()
     ISomeInterface* i  = &a;
 
     // To be fixed with printf
-    // writer << "ImplementationA value: " << a.get_value() << endl;
-    // writer << "ImplementationB value: " << b.get_value() << endl;
-    // writer << "ChildA value: " << a_c.get_value() << endl;
-    // writer << "Interface value: " << i->get_value() << endl;
-    // writer << "Printing tests :)" << endl;
+    printf("ImplementationA value: %d\n", a.get_value());
+    printf("ImplementationB value: %d\n", b.get_value());
+    printf("ChildA value: %d\n", a_c.get_value());
+    printf("Interface value: %d\n", i->get_value());
+    printf("Printing tests :)\n");
     a.print();
-
     b.print();
     a_c.print();
     i->print();
 
     i = &a_c;
-    // writer << "Interface value: " << i->get_value() << endl;
+    printf("Interface value: %d\n", i->get_value());
     i->print();
-
-    // writer << "Hello from Module" << endl;
+    printf("Hello from module\n");
 }
 
 } // namespace test_processor

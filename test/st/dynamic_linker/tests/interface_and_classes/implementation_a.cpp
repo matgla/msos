@@ -16,6 +16,8 @@
 
 #include "implementation_a.hpp"
 
+#include <cstdio>
+
 ImplementationA::~ImplementationA()
 {
 }
@@ -23,7 +25,7 @@ ImplementationA::~ImplementationA()
 void ImplementationA::print()
 {
     const char* data = "ImplementationA is printing";
-    // writer << data << endl;
+    printf("%s\n", data);
 }
 
 int ImplementationA::get_value()

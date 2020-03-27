@@ -16,6 +16,7 @@
 
 #include "child_implementation_a.hpp"
 
+#include <cstdio>
 
 ChildA::~ChildA()
 {
@@ -23,6 +24,6 @@ ChildA::~ChildA()
 
 void ChildA::print()
 {
-    // writer << "ChildA is printing" << endl;
+    printf("ChildA is printing\n");
 }
 

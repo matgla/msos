@@ -135,6 +135,7 @@ caddr_t _sbrk(int incr)
 
 int _write(int fd, const char* ptr, int len)
 {
+    writer << "Fd: " << fd << ", ptr: " << ptr << endl;
     msos::fs::IFile* file = msos::kernel::process::Scheduler::get().current_process().get_file(fd);
     if (file)
     {

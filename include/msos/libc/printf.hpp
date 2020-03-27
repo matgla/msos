@@ -17,4 +17,5 @@
 #pragma once
 
 int _printf(const char* format, ...);
+int _printf_via_usart(const char* format, ...);
 int _scanf(const char* format, ...);

@@ -35,6 +35,7 @@ ssize_t UsartFile::read(DataType data)
 
 ssize_t UsartFile::write(const ConstDataType data)
 {
+    writer << "Hej, data below: " << endl;
     writer << std::string_view(data.data(), data.size());
     return data.size();
 }

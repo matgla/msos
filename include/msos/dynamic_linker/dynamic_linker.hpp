@@ -53,6 +53,8 @@ struct ModuleInfo
 constexpr int LoadingModeCopyData = 0x01;
 constexpr int LoadingModeCopyText = 0x02;
 
+static UsartWriter writer;
+
 class DynamicLinker
 {
 public:
@@ -208,12 +210,14 @@ public:
         const uint32_t local_relocations_address = external_relocations_address + sizeof(Relocation) * header.number_of_external_relocations();
         if (!process_local_relocations(local_relocations_address, loaded_module))
         {
+            writer << "Local relocations failed" << endl;
             return nullptr;
         }
 
         const uint32_t data_relocations_address = local_relocations_address + sizeof(Relocation) * header.number_of_local_relocations();
         if (!process_data_relocations(local_relocations_address, loaded_module))
         {
+            writer << "Data relocations failed" << endl;
             return nullptr;
         }
        // if (!process_relocations(relocation_section_address, environment, loaded_module))
@@ -392,6 +396,7 @@ private:
             }
             else
             {
+                writer << "Can't find symbol: " << symbol.name() << endl;
                 return false;
             }
         }

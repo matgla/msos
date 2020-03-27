@@ -19,6 +19,7 @@
 #include <cstring>
 
 #include <msos/usart_printer.hpp>
+#include <msos/libc/printf.hpp>
 
 #include <msos/dynamic_linker/dynamic_linker.hpp>
 #include <msos/dynamic_linker/environment.hpp>
@@ -64,11 +65,12 @@ int main()
     std::size_t module_address = 0x08000000;
     module_address += 32 * 1024;
     int extern_data = 123;
-    msos::dl::Environment<4> env{
+    msos::dl::Environment<5> env{
         msos::dl::SymbolAddress{"usart_write", &usart_write},
         msos::dl::SymbolAddress{"strlen", &strlen},
         msos::dl::SymbolAddress{"write", &write},
-        msos::dl::SymbolAddress{"extern_1", &extern_data}
+        msos::dl::SymbolAddress{"extern_1", &extern_data},
+        msos::dl::SymbolAddress{"printf", &_printf_via_usart},
     };
     writer << "[TEST START]" << endl;
 
