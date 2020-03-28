@@ -1,5 +1,5 @@
-// This file is part of MSOS project. This is simple OS for embedded development devices.
-// Copyright (C) 2019 Mateusz Stadnik
+// This file is part of MSOS project.
+// Copyright (C) 2020 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,29 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "implementation_b.hpp"
+#include <gtest/gtest.h>
 
-#include <cstdio>
-
-ImplementationB::ImplementationB(int value, std::string_view name)
-    : value_(value)
-    , name_(name)
+TEST(TestRamFs, Pass)
 {
-}
-
-
-ImplementationB::~ImplementationB()
-{
-}
-
-void ImplementationB::print()
-{
-    static const char* text = "I am working! ";
-    printf("%s%s\n", text, name_.data());
-}
-
-int ImplementationB::get_value()
-{
-    return value_;
+    EXPECT_EQ(1, 1);
 }
 

@@ -22,7 +22,7 @@
 class ImplementationB : public ISomeInterface
 {
 public:
-    ImplementationB(int value, const std::string_view& name);
+    ImplementationB(int value, std::string_view name);
     ~ImplementationB();
 
     int get_value() override;

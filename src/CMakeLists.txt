@@ -52,6 +52,8 @@ target_include_directories(msos
         ${PROJECT_SOURCE_DIR}/include
 )
 
+if (${vendor} STREQUAL "STM32")
+
 add_executable(msos_test)
 
 target_sources(msos_test
@@ -89,4 +91,6 @@ add_custom_command(
     COMMAND cat ${executable_file}.tmp ${PROJECT_BINARY_DIR}/rootfs.img > ${executable_file}
     VERBATIM
 )
+
+endif ()
 

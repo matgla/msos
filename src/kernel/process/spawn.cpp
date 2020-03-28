@@ -60,7 +60,7 @@ static msos::dl::Environment<8> env{
 pid_t spawn(void (*start_routine) (void *), void *arg)
 {
     auto& child = processes.create_process(
-        reinterpret_cast<std::size_t>(start_routine), default_stack_size, reinterpret_cast<std::uint32_t>(arg));
+        reinterpret_cast<std::size_t>(start_routine), default_stack_size, reinterpret_cast<std::size_t>(arg));
     return child.pid();
 }
 
@@ -114,7 +114,7 @@ int exec_process(ExecInfo* info)
         return -1;
     }
 
-    std::size_t module_address = reinterpret_cast<uint32_t>(file->data());
+    std::size_t module_address = reinterpret_cast<std::size_t>(file->data());
 
     const msos::dl::LoadedModule* module;
     if (info->entries)
@@ -141,8 +141,8 @@ void exec(const char* path, void *arg, SymbolEntry* entries, int number_of_entri
 {
     if (is_first)
     {
-        uint32_t address_of_lot_getter = reinterpret_cast<uint32_t>(&get_lot_at);
-        uint32_t* lot_in_memory = reinterpret_cast<uint32_t*>(0x20000000);
+        std::size_t address_of_lot_getter = reinterpret_cast<std::size_t>(&get_lot_at);
+        std::size_t* lot_in_memory = reinterpret_cast<std::size_t*>(0x20000000);
         *lot_in_memory = address_of_lot_getter;
         is_first = false;
     }
@@ -160,8 +160,8 @@ pid_t spawn_exec(const char* path, void *arg, SymbolEntry* entries, int number_o
 {
     if (is_first)
     {
-        uint32_t address_of_lot_getter = reinterpret_cast<uint32_t>(&get_lot_at);
-        uint32_t* lot_in_memory = reinterpret_cast<uint32_t*>(0x20000000);
+        std::size_t address_of_lot_getter = reinterpret_cast<std::size_t>(&get_lot_at);
+        std::size_t* lot_in_memory = reinterpret_cast<std::size_t*>(0x20000000);
         *lot_in_memory = address_of_lot_getter;
         is_first = false;
     }
@@ -173,6 +173,6 @@ pid_t spawn_exec(const char* path, void *arg, SymbolEntry* entries, int number_o
     };
 
     auto& child = processes.create_process(
-        reinterpret_cast<std::size_t>(exec_process), stack_size, reinterpret_cast<uint32_t>(info));
+        reinterpret_cast<std::size_t>(exec_process), stack_size, reinterpret_cast<std::size_t>(info));
     return child.pid();
 }

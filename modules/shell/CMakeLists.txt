@@ -30,11 +30,19 @@ target_link_libraries(msos_shell_lib
 
 add_module(msos_shell msos_shell_lib)
 
+if (${arch} STREQUAL "ARM")
+    set (suffix ".bin")
+    set (prefix "")
+else ()
+    set (suffix ".so")
+    set (prefix "lib")
+endif ()
+
 add_custom_command(
     TARGET msos_shell
     POST_BUILD
     COMMAND mkdir -p ${PROJECT_BINARY_DIR}/rootfs/bin
     COMMAND rm -f ${PROJECT_BINARY_DIR}/rootfs.img
-    COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/msos_shell.bin ${PROJECT_BINARY_DIR}/rootfs/bin
+    COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/${prefix}msos_shell${suffix} ${PROJECT_BINARY_DIR}/rootfs/bin
     COMMAND genromfs -f ${PROJECT_BINARY_DIR}/rootfs.img -d ${PROJECT_BINARY_DIR}/rootfs -v -V msos_romfs
 )

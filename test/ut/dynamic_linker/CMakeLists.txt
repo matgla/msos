@@ -14,16 +14,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-cmake_minimum_required(VERSION 3.10)
-project(msos_unit_tests CXX)
+add_executable (dynamic_linker_tests)
 
-get_filename_component(root_dir ${PROJECT_SOURCE_DIR}/../.. ABSOLUTE)
+target_sources(dynamic_linker_tests
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/module_tests.cpp
+)
 
-include (${root_dir}/cmake/GitModules.cmake)
-if (NOT TARGET gtest)
-    fetch_module_via_tag(test/ut/lib/googletest ${root_dir}/test/ut/lib/googletest ${root_dir} "release-1.10.0")
-endif()
+target_link_libraries(dynamic_linker_tests
+    PRIVATE
+        gtest
+        gmock
+        gtest_main
+        msos_dynamic_linker
+)
 
-add_subdirectory(dynamic_linker)
-add_subdirectory(fs)
+add_custom_command(
+    TARGET dynamic_linker_tests
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:dynamic_linker_tests> ${PROJECT_BINARY_DIR})
+
 

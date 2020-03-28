@@ -121,7 +121,7 @@ public:
 
         if (main)
         {
-            const std::size_t main_function_address = (reinterpret_cast<uint32_t>(module.get_text().data()) + main->offset()) & (~0x01);
+            const std::size_t main_function_address = (reinterpret_cast<std::size_t>(module.get_text().data()) + main->offset()) & (~0x01);
             loaded_module.set_start_address(main_function_address);
         }
 
@@ -197,7 +197,7 @@ public:
 
         if (main)
         {
-            const std::size_t main_function_address = (reinterpret_cast<uint32_t>(module.get_text().data()) + main->offset()) & (~0x01);
+            const std::size_t main_function_address = (reinterpret_cast<std::size_t>(module.get_text().data()) + main->offset()) & (~0x01);
             loaded_module.set_start_address(main_function_address);
         }
 
@@ -250,10 +250,10 @@ public:
         for (const auto& loaded_module : modules_)
         {
             const Module& module = loaded_module.get_module();
-            const uint32_t text_address = reinterpret_cast<uint32_t>(module.get_text().data());
+            const uint32_t text_address = reinterpret_cast<std::size_t>(module.get_text().data());
             if (address >= text_address && address < text_address + module.get_header().code_size())
             {
-                return reinterpret_cast<uint32_t>(module.get_lot().get());
+                return reinterpret_cast<std::size_t>(module.get_lot().get());
             }
         }
 
@@ -290,12 +290,12 @@ private:
             const Symbol& symbol = relocation.symbol();
             if (symbol.section() == Section::code)
             {
-                const uint32_t relocated = reinterpret_cast<const uint32_t>(module.get_text().data()) + symbol.offset();
+                const std::size_t relocated = reinterpret_cast<const std::size_t>(module.get_text().data()) + symbol.offset();
                 lot[relocation.index()] = relocated;
             }
             else if (symbol.section() == Section::data)
             {
-                const uint32_t relocated = reinterpret_cast<const uint32_t>(module.get_data().data()) + symbol.offset();
+                const std::size_t relocated = reinterpret_cast<const std::size_t>(module.get_data().data()) + symbol.offset();
                 lot[relocation.index()] = relocated;
             }
             else
@@ -321,12 +321,12 @@ private:
             Section section = static_cast<Section>(section_value);
             if (section == Section::code)
             {
-                const uint32_t relocated = reinterpret_cast<const uint32_t>(module.get_text().data()) + relocation.offset();
+                const uint32_t relocated = reinterpret_cast<const std::size_t>(module.get_text().data()) + relocation.offset();
                 lot[lot_index] = relocated;
             }
             else if (section == Section::data)
             {
-                const uint32_t relocated = reinterpret_cast<const uint32_t>(module.get_data().data()) + relocation.offset();
+                const uint32_t relocated = reinterpret_cast<const std::size_t>(module.get_data().data()) + relocation.offset();
                 lot[lot_index] = relocated;
             }
             else
@@ -486,9 +486,9 @@ private:
             const Relocation& relocation = *reinterpret_cast<const Relocation*>(data_relocations_address);
             data_relocations_address += relocation.size();
 
-            uint32_t *to_relocate = reinterpret_cast<uint32_t*>(reinterpret_cast<uint32_t>(module.get_data().data())) + relocation.index();
+            std::size_t *to_relocate = reinterpret_cast<std::size_t*>(reinterpret_cast<std::size_t>(module.get_data().data())) + relocation.index();
 
-            uint32_t relocated = reinterpret_cast<uint32_t>(module.get_data().data()) + relocation.offset();
+            std::size_t relocated = reinterpret_cast<std::size_t>(module.get_data().data()) + relocation.offset();
             *to_relocate = relocated;
 
         }

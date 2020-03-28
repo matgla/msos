@@ -30,6 +30,7 @@ def test_module_with_classes():
     sut.expect("ChildA is printing", 1)
     sut.expect("ImplementationA is printing", 1)
     sut.expect("Interface value: 10", 1)
-    sut.expect("Hello from Module", 1)
+    sut.expect("ChildA is printing", 1)
+    sut.expect("Hello from module", 1)
     sut.stop(1)
 

@@ -89,18 +89,18 @@ extern char __heap_end;
 static char* current_heap_end = &__heap_start;
 
 char stdin_data[100];
-int index = 0;
+int writer_position = 0;
 volatile bool new_line_readed = false;
 
 void write_to_stdin(char c)
 {
-    if (index >= 99)
+    if (writer_position >= 99)
     {
-        index = 0;
+        writer_position = 0;
     }
     if (c == 127)
     {
-        --index;
+        --writer_position;
         char backspace = '\b';
         char space = ' ';
         write(1, &backspace, 1);
@@ -112,11 +112,11 @@ void write_to_stdin(char c)
     {
         new_line_readed = true;
         c = '\n';
-        stdin_data[index + 1] = 0;
+        stdin_data[writer_position + 1] = 0;
     }
-    stdin_data[index] = c;
-    write(1, stdin_data + index, 1);
-    ++index;
+    stdin_data[writer_position] = c;
+    write(1, stdin_data + writer_position, 1);
+    ++writer_position;
 }
 
 caddr_t _sbrk(int incr)
@@ -135,7 +135,6 @@ caddr_t _sbrk(int incr)
 
 int _write(int fd, const char* ptr, int len)
 {
-    writer << "Fd: " << fd << ", ptr: " << ptr << endl;
     msos::fs::IFile* file = msos::kernel::process::Scheduler::get().current_process().get_file(fd);
     if (file)
     {
@@ -150,10 +149,10 @@ int _read(int fd, char* ptr, int len)
     if (fd == 0)
     {
         while (!new_line_readed) {}
-        std::memcpy(ptr, stdin_data, index + 1);
-        auto ind = index;
+        std::memcpy(ptr, stdin_data, writer_position + 1);
+        auto ind = writer_position;
         new_line_readed = false;
-        index = 0;
+        writer_position = 0;
         return ind ;
     }
 
@@ -195,7 +194,7 @@ int _fstat(int file, struct stat* st)
     // {
     //     st->st_mode = S_IFCHR;
     //     st->st_blksize = 255;
-    //     st->st_size = index;
+    //     st->st_size = writer_position;
     // }
     return 0;
 }
@@ -212,8 +211,8 @@ int _open(const char* filename, int flags)
 
     for (auto& point : mount_points)
     {
-        std::size_t index = path.find(point.point);
-        if (index != std::string_view::npos)
+        std::size_t position = path.find(point.point);
+        if (position != std::string_view::npos)
         {
             if (point.point.size() > best_mount_point.size())
             {

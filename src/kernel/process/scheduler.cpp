@@ -19,7 +19,6 @@
 #include "msos/kernel/process/process_manager.hpp"
 
 #include <cstdio>
-#include <stm32f10x.h>
 
 namespace msos
 {

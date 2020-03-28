@@ -1,5 +1,5 @@
 # This file is part of MSOS project. This is simple OS for embedded development devices.
-# Copyright (C) 2019 Mateusz Stadnik
+# Copyright (C) 2020 Mateusz Stadnik
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,40 +15,40 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 function(get_device_info mcu mcu_family arch vendor)
-    message(STATUS "Configuration of board: KeychainGamer")
-    set(${mcu} "STM32F103C8T6" PARENT_SCOPE)
-    set(${mcu_family} "STM32F1xx" PARENT_SCOPE)
-    set(${arch} "ARM" PARENT_SCOPE)
-    set(${vendor} "STM32" PARENT_SCOPE)
-endfunction()
-
-
-function(get_linker_script linker_script linker_scripts_directory)
-    set (${linker_script} ${user_boards_path}/Stm32_Black_Pill/linker_script.ld PARENT_SCOPE)
-    set (${linker_scripts_directory} ${user_boards_path}/Stm32_Black_Pill PARENT_SCOPE)
+    message(STATUS "Configuration of board: x86_unittest")
+    set(${mcu} "none" PARENT_SCOPE)
+    set(${mcu_family} "none" PARENT_SCOPE)
+    set(${arch} "x86" PARENT_SCOPE)
+    set(${vendor} "none" PARENT_SCOPE)
 endfunction()
 
 function(add_device_hal_library hal_device_library)
-    message(STATUS "Configuring STM32_Black_Pill")
-    set(${hal_device_library} "black_pill_board_library")
+    set(${hal_device_library} "x86_unittest")
     set(hal_device_library ${hal_device_library} PARENT_SCOPE)
     add_library(${hal_device_library} STATIC)
 
+    set(source_path "${PROJECT_SOURCE_DIR}/boards/x86/mock")
     target_sources(${hal_device_library} PUBLIC
-        ${user_boards_path}/Stm32_Black_Pill/board.hpp
-        ${user_boards_path}/Stm32_Black_Pill/board.cpp
+        ${user_boards_path}/unittest/board.hpp
+        ${user_boards_path}/unittest/board.cpp
     )
 
     target_include_directories(${hal_device_library} PUBLIC
-        ${user_boards_path}/Stm32_Black_Pill)
+        ${user_boards_path}/unittest)
 
-    include(${PROJECT_SOURCE_DIR}/devices/arm/stm32/stm32f1/stm32f103c8t6/configure_stm32f103c8t6.cmake)
+    include(${PROJECT_SOURCE_DIR}/devices/x86/mock/configure_mock.cmake)
     configure_device()
 
     target_link_libraries(${hal_device_library}
         PUBLIC
             hal_interface
-            hal_devices_arm_stm32f103c8t6
+            hal_x86_mock
+    )
+
+    target_compile_options(${hal_device_library} PUBLIC
+        $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a>
+        $<$<CONFIG:DEBUG>:-Og -g>
+        $<$<CONFIG:RELEASE>:-Os>
     )
 
 endfunction()

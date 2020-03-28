@@ -14,29 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "implementation_b.hpp"
+#pragma once
 
-#include <cstdio>
+#include <devices/x86/mock/usart.hpp>
 
-ImplementationB::ImplementationB(int value, std::string_view name)
-    : value_(value)
-    , name_(name)
+namespace board
+{
+
+void board_init();
+
+namespace gpio
 {
 }
 
-
-ImplementationB::~ImplementationB()
+namespace interfaces
 {
+using Usart1 = hal::devices::interfaces::Usart1;
 }
 
-void ImplementationB::print()
-{
-    static const char* text = "I am working! ";
-    printf("%s%s\n", text, name_.data());
 }
-
-int ImplementationB::get_value()
-{
-    return value_;
-}
-

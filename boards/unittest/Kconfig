@@ -1,5 +1,5 @@
 # This file is part of MSOS project. This is simple OS for embedded development devices.
-# Copyright (C) 2020 Mateusz Stadnik
+# Copyright (C) 2019 Mateusz Stadnik
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,16 +14,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-cmake_minimum_required(VERSION 3.10)
-project(msos_unit_tests CXX)
+if unittest
 
-get_filename_component(root_dir ${PROJECT_SOURCE_DIR}/../.. ABSOLUTE)
+config BOARD
+    string
+    default "unittest"
 
-include (${root_dir}/cmake/GitModules.cmake)
-if (NOT TARGET gtest)
-    fetch_module_via_tag(test/ut/lib/googletest ${root_dir}/test/ut/lib/googletest ${root_dir} "release-1.10.0")
-endif()
+COMPILER_PREFIX := ""
 
-add_subdirectory(dynamic_linker)
-add_subdirectory(fs)
+endif
 

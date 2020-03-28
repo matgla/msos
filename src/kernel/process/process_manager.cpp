@@ -22,7 +22,6 @@
 #include <hal/core/criticalSection.hpp>
 
 #include "msos/kernel/process/process.hpp"
-#include <stm32f10x.h>
 
 
 namespace msos

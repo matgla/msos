@@ -103,7 +103,7 @@ Process::Process(const std::size_t process_entry, const std::size_t stack_size, 
 
     //uint32_t psp = get_psp();
     hw_registers->psr = default_psr_status;
-    hw_registers->lr = reinterpret_cast<uint32_t>(&exit_handler);
+    hw_registers->lr = reinterpret_cast<std::size_t>(&exit_handler);
     hw_registers->pc = process_entry;
     sw_registers->lr = return_to_thread_mode_psp;
     current_stack_pointer_ = reinterpret_cast<std::size_t*>(stack_ptr);
@@ -154,17 +154,17 @@ void Process::print() const
 
 void Process::block(void* semaphore)
 {
-    auto lock = std::find(locks_.begin(), locks_.end(), reinterpret_cast<uint32_t>(semaphore));
+    auto lock = std::find(locks_.begin(), locks_.end(), reinterpret_cast<std::size_t>(semaphore));
     if (lock == locks_.end())
     {
-        locks_.push_back(reinterpret_cast<uint32_t>(semaphore));
+        locks_.push_back(reinterpret_cast<std::size_t>(semaphore));
     }
     state_ = State::Blocked;
 }
 
 void Process::unblock(void* semaphore)
 {
-    auto lock = std::find(locks_.begin(), locks_.end(), reinterpret_cast<uint32_t>(semaphore));
+    auto lock = std::find(locks_.begin(), locks_.end(), reinterpret_cast<std::size_t>(semaphore));
     if (lock != locks_.end())
     {
         locks_.erase(lock);

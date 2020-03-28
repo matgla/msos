@@ -67,7 +67,7 @@ void trap()
 
 void child_process(void* arg)
 {
-    writer << "Welcome in child process with arg \n" << reinterpret_cast<uint32_t>(arg);
+    writer << "Welcome in child process with arg " << reinterpret_cast<uint32_t>(arg);
     auto& romfs = *reinterpret_cast<msos::fs::RomFs*>(arg);
     /* get raw file and execute */
     auto file = romfs.get("/interface_and_classes.bin");

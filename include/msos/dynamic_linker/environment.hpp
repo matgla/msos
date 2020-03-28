@@ -26,7 +26,7 @@ extern "C"
 typedef struct SymbolEntry
 {
     const char* name;
-    uint32_t address;
+    std::size_t address;
 } SymbolEntry;
 
 }
@@ -40,22 +40,29 @@ class SymbolAddress
 {
 public:
     template <typename R, typename... Args>
-    SymbolAddress(const std::string_view& name, R(*function)(Args...))
-        : entry_{name.data(), reinterpret_cast<uint32_t>(function)}
+    SymbolAddress(const std::string_view& name, const R*(*function)(Args...)) noexcept
+        : entry_{name.data(), reinterpret_cast<std::size_t>(function)}
+    {
+
+    }
+
+    template <typename R, typename... Args>
+    SymbolAddress(const std::string_view& name, R*(*function)(Args...)) noexcept
+        : entry_{name.data(), reinterpret_cast<std::size_t>(function)}
     {
 
     }
 
     template <typename T>
-    SymbolAddress(const std::string_view& name, const T* data)
-        : entry_{name.data(), reinterpret_cast<uint32_t>(data)}
+    SymbolAddress(const std::string_view& name, const T* data) noexcept
+        : entry_{name.data(), reinterpret_cast<std::size_t>(data)}
     {
 
     }
 
     template <typename T>
-    SymbolAddress(const std::string_view& name, const T data)
-        : entry_{name.data(), reinterpret_cast<uint32_t>(data)}
+    SymbolAddress(const std::string_view& name, T* data) noexcept
+        : entry_{name.data(), reinterpret_cast<std::size_t>(data)}
     {
 
     }

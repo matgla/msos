@@ -23,6 +23,7 @@ target_sources(msos_arch_armv7m
         ${CMAKE_CURRENT_SOURCE_DIR}/svc_handler.hpp
 
         ${CMAKE_CURRENT_SOURCE_DIR}/context_switch.s
+        ${CMAKE_CURRENT_SOURCE_DIR}/call_external.s
         ${CMAKE_CURRENT_SOURCE_DIR}/semaphore.s
         ${CMAKE_CURRENT_SOURCE_DIR}/semaphore.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/context_switch.cpp

@@ -14,16 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-if (BOARD)
+if (${BUILD_MSOS_UT})
+    add_subdirectory(ut)
+else (${BUILD_MSOS_UT})
     add_subdirectory(st)
 endif ()
-
-include(ExternalProject)
-ExternalProject_Add(msos_unit_tests
-    DEPENDS 
-    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ut 
-    BUILD_COMMAND make
-    INSTALL_COMMAND ""
-    UPDATE_COMMAND ""
-)
-

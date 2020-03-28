@@ -31,7 +31,7 @@ void* __real__malloc_r (struct _reent *r, size_t sz);
 void* __wrap__malloc_r (struct _reent *r, size_t sz)
 {
     void* mem = __real__malloc_r(r, sz);
-    writer << "Allocated " << dec << sz << " bytes at: 0x" << hex << reinterpret_cast<uint32_t>(mem) << endl;
+    writer << "Allocated " << dec << sz << " bytes at: 0x" << hex << reinterpret_cast<std::size_t>(mem) << endl;
     return mem;
 }// This file is part of MSOS project. This is simple OS for embedded development devices.
 // Copyright (C) 2019 Mateusz Stadnik
@@ -53,7 +53,7 @@ void* __real__free_r (struct _reent *r, void* data);
 
 void* __wrap__free_r (struct _reent *r, void* data)
 {
-    writer << "Free called at: 0x" << hex << reinterpret_cast<uint32_t>(data) << endl;
+    writer << "Free called at: 0x" << hex << reinterpret_cast<std::size_t>(data) << endl;
     return __real__free_r(r, data);
 }
 

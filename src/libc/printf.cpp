@@ -270,32 +270,47 @@ int __vfprintf_(T& writer, int fd, const char* format, va_list argptr,
     //     return read(fd, buffer, 0);
     // }
     std::string_view data(format);
-    int position = data.find("%");
-    if (position == std::string_view::npos)
+    int position = 0, previous_position = 0, size = 0;
+    //  %[flags][width][.precision][length]specifier
+    do
     {
-        writer << data;
-    }
-    else
-    {
-        writer << std::string_view(data.begin(), position);
-        if (data.length() < position + 2)
+        int position = data.find("%");
+        if (position == std::string_view::npos)
         {
-            return 1;
+            writer << std::string_view(data.data() + previous_position, data.length());
+            return size + data.length();
         }
+        if (position > 0)
+        {
+            writer << data.substr(previous_position, position);
+            size += data.substr(previous_position, position).length();
+        }
+        if (position + 1 >= data.length())
+        {
+            return size + data.length();
+        }
+        ++position;
+        char specifier = data[position];
+        switch (specifier)
+        {
+            case 's': {
+                const char* data = va_arg(argptr, const char*);
+                writer << data;
+            } break;
+            case 'd': {
+                int data = va_arg(argptr, int);
+                writer << data;
+            }
+        }
+        if (position + 1 >= data.length())
+        {
+            return size + data.length();
+        }
+        ++position;
 
-        std::string_view tag(data.data() + position, 2);
-        if (tag == "%d")
-        {
-            int data = va_arg(argptr, int);
-            writer << data;
-        }
-        else if (tag == "%s")
-        {
-            int data = va_arg(argptr, int);
-            writer << data;
-        }
-    }
-
+        data = data.substr(position, data.length());
+    } while (position != std::string_view::npos);
+    return size;
 }
 
 
@@ -314,7 +329,7 @@ int _printf_via_usart(const char* format, ...)
     va_start (arg, format);
     int done = __vfprintf_(writer_b_, 1, format, arg, 0);
     va_end (arg);
-    return done;
+    return 1;
 }
 
 

@@ -23,56 +23,57 @@ namespace kernel
 namespace atomic
 {
 
-static inline void __dmb()
-{
-    asm volatile inline("dmb");
-}
+// // static inline void __dmb()
+// // {
+// //     asm volatile inline("dmb");
+// // }
 
-static inline int __strex(uint32_t value, volatile int* destination)
-{
-    volatile uint32_t output;
-    asm volatile inline("strex %[result], %[val], [%[dest]]" : [result] "=&r"(output) : [dest] "r"(destination), [val] "r"(value) : "cc", "memory");
-    return output;
-}
+// // static inline int __strex(uint32_t value, volatile int* destination)
+// // {
+// //     volatile uint32_t output;
+// //     asm volatile inline("strex %[result], %[val], [%[dest]]" : [result] "=&r"(output) : [dest] "r"(destination), [val] "r"(value) : "cc", "memory");
+// //     return output;
+// // }
 
-static inline int __ldrex(volatile int* from)
-{
-    volatile uint32_t output;
-    asm volatile inline("ldrex %[result], [%[source]]" : [result] "=&r"(output) : [source] "r"(from) : "cc", "memory");
-    return output;
-}
+// // static inline int __ldrex(volatile int* from)
+// // {
+// //     volatile uint32_t output;
+// //     asm volatile inline("ldrex %[result], [%[source]]" : [result] "=&r"(output) : [source] "r"(from) : "cc", "memory");
+// //     return output;
+// // }
 
 
 template <typename T>
 static inline T increment(volatile T& source, const T value)
 {
-    asm volatile inline(
-        "post_loop:\n\t"
-        "ldrex r1, [%[from]]\n\t"
-        "add r1, %[offset]\n\t"
-        "strex r2, r1, [%[from]]\n\t"
-        "cmp r2, #0\n\t"
-        "bne post_loop\n\t"
-        "dmb\n\t"
-        :
-        : [from] "r" (&source), [offset] "r" (value)
-        );
-
+    // asm volatile inline(
+    //     "post_loop:\n\t"
+    //     "ldrex r1, [%[from]]\n\t"
+    //     "add r1, %[offset]\n\t"
+    //     "strex r2, r1, [%[from]]\n\t"
+    //     "cmp r2, #0\n\t"
+    //     "bne post_loop\n\t"
+    //     "dmb\n\t"
+    //     :
+    //     : [from] "r" (&source), [offset] "r" (value)
+    //     );
+    source += value;
     return true;
 }
 
 template <typename T>
 static inline T decrement(volatile T& source, const T value)
 {
-    asm volatile inline("wait_loop:\n\t"
-        "ldrex r1, [%[from]]\n\t"
-        "sub r1, %[offset]\n\t"
-        "strex r2, r1, [%[from]]\n\t"
-        "cmp r2, #0\n\t"
-        "bne wait_loop\n\t"
-        "dmb\n\t"
-        :
-        : [from] "r" (&source), [offset] "r" (value));
+//     asm volatile inline("wait_loop:\n\t"
+//         "ldrex r1, [%[from]]\n\t"
+//         "sub r1, %[offset]\n\t"
+//         "strex r2, r1, [%[from]]\n\t"
+//         "cmp r2, #0\n\t"
+//         "bne wait_loop\n\t"
+//         "dmb\n\t"
+//         :
+//         : [from] "r" (&source), [offset] "r" (value));
+    source -= value;
 
     return true;
 }

@@ -14,29 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "implementation_b.hpp"
-
-#include <cstdio>
-
-ImplementationB::ImplementationB(int value, std::string_view name)
-    : value_(value)
-    , name_(name)
-{
-}
+.thumb
+.syntax unified
+.arch armv7-m
 
 
-ImplementationB::~ImplementationB()
-{
-}
-
-void ImplementationB::print()
-{
-    static const char* text = "I am working! ";
-    printf("%s%s\n", text, name_.data());
-}
-
-int ImplementationB::get_value()
-{
-    return value_;
-}
-
+.global call_external
+.thumb_func
+.align 1
+.type call_external, %function
+call_external:
+    mov     pc, r0

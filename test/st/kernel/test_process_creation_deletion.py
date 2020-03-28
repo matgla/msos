@@ -34,7 +34,6 @@ def test_process_creation_deletion():
     sut.expect("Child B", 1)
     sut.expect("B finished", 1)
     sut.expect("Child C is starting: a", 1)
-    sut.expect("Parent:", 1)
 
     sut.stop(1)
 
