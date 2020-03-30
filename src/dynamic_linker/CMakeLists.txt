@@ -49,5 +49,6 @@ target_link_libraries(msos_dynamic_linker
     PUBLIC
         hal
         gsl
+        msos_arch
 )
 

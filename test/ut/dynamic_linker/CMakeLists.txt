@@ -18,7 +18,12 @@ add_executable (dynamic_linker_tests)
 
 target_sources(dynamic_linker_tests
     PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/module_tests.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/utils.hpp
+
+        ${CMAKE_CURRENT_SOURCE_DIR}/utils.cpp
+
+        ${CMAKE_CURRENT_SOURCE_DIR}/dynamic_linker_tests.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/header_tests.cpp
 )
 
 target_link_libraries(dynamic_linker_tests
@@ -29,9 +34,19 @@ target_link_libraries(dynamic_linker_tests
         msos_dynamic_linker
 )
 
+target_include_directories(dynamic_linker_tests
+    PRIVATE
+        ${PROJECT_SOURCE_DIR}
+)
+
 add_custom_command(
     TARGET dynamic_linker_tests
     POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:dynamic_linker_tests> ${PROJECT_BINARY_DIR})
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:dynamic_linker_tests> ${PROJECT_BINARY_DIR}
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/test_binary.bin ${CMAKE_CURRENT_BINARY_DIR}/test_binary.bin
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/test_binary.bin ${PROJECT_BINARY_DIR}/test_binary.bin
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/test_module_with_data.bin ${PROJECT_BINARY_DIR}/test_module_with_data.bin
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/test_bss_section.bin ${PROJECT_BINARY_DIR}/test_bss_section.bin
+)
 
 

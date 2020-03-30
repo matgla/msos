@@ -106,6 +106,11 @@ public:
     {
         return data_;
     }
+
+    const std::array<SymbolAddress, N>& data() const
+    {
+        return data_;
+    }
 private:
     std::array<SymbolAddress, N> data_;
 };

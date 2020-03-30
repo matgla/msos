@@ -114,7 +114,7 @@ int exec_process(ExecInfo* info)
         return -1;
     }
 
-    std::size_t module_address = reinterpret_cast<std::size_t>(file->data());
+    const std::size_t* module_address = reinterpret_cast<const std::size_t*>(file->data());
 
     const msos::dl::LoadedModule* module;
     if (info->entries)

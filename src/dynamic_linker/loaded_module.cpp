@@ -20,7 +20,7 @@
 
 extern "C"
 {
-int call_external(uint32_t address);
+int call_external(std::size_t address);
 }
 
 namespace msos

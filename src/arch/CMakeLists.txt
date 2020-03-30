@@ -14,10 +14,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-if (${arch} STREQUAL "ARM")
-    add_subdirectory(armv7-m)
-endif()
-
 add_library(msos_arch INTERFACE)
 
-target_link_libraries(msos_arch INTERFACE msos_arch_armv7m)
+if (${arch} STREQUAL "ARM")
+    add_subdirectory(armv7-m)
+    target_link_libraries(msos_arch INTERFACE msos_arch_armv7m)
+endif()
+
+if (${arch} STREQUAL "x86")
+    add_subdirectory(unittest)
+    target_link_libraries(msos_arch INTERFACE msos_arch_unittest)
+endif ()
+
+

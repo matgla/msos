@@ -90,7 +90,7 @@ void child_process(void* arg)
         msos::dl::SymbolAddress{"extern_1", &extern_data}
     };
 
-    exec("/rom/interface_and_classes.bin", NULL, reinterpret_cast<SymbolEntry*>(env.data().data()), env.data().size());
+    exec("/rom/interface_and_classes.bin", NULL, reinterpret_cast<const SymbolEntry*>(env.data().data()), env.data().size());
 
     writer << "[TEST DONE]" << endl;
 }

@@ -14,10 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <gtest/gtest.h>
+#include <cstdint>
+#include <vector>
+#include <string_view>
 
-TEST(TestRamFs, Pass)
+namespace test
 {
-    EXPECT_EQ(1, 1);
-}
+namespace ut
+{
+namespace dynamic_linker
+{
+
+std::vector<uint8_t> load_test_binary(const std::string_view& path);
+
+} // namespace dynamic_linker
+} // namespace ut
+} // namespace test
 
