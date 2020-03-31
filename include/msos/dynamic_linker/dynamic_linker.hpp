@@ -55,14 +55,6 @@ constexpr int LoadingModeCopyText = 0x02;
 
 static UsartWriter writer;
 
-class ErrorCode
-{
-public:
-    virtual ~ErrorCode() = default;
-    virtual bool operator bool() const;
-    virtual std::string_view message() const;
-};
-
 class DynamicLinker
 {
 public:
