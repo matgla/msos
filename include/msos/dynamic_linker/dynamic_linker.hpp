@@ -20,6 +20,8 @@
 #include <cstring>
 #include <optional>
 #include <eul/container/static_vector.hpp>
+#include <eul/error/error_code.hpp>
+#include <eul/error/error_category.hpp>
 
 #include <gsl/span>
 
@@ -55,6 +57,44 @@ constexpr int LoadingModeCopyText = 0x02;
 
 static UsartWriter writer;
 
+enum class DynamicLinkerErrors
+{
+    CookieValidationFailure = 1,
+    TextAllocationFailure,
+    DataAllocationFailure,
+    LotAllocationFailure,
+    ExternalRelocationFailure,
+};
+
+class DynamicLinkerErrorCategory : public eul::error::error_category
+{
+public:
+    std::string_view name() const noexcept override
+    {
+        return "DynamicLinker";
+    }
+
+    std::string_view message(int id) const noexcept override
+    {
+        switch (static_cast<DynamicLinkerErrors>(id))
+        {
+            case DynamicLinkerErrors::CookieValidationFailure: return "Wrong cookie";
+            case DynamicLinkerErrors::TextAllocationFailure: return "Out of memory";
+            case DynamicLinkerErrors::DataAllocationFailure: return "Out of memory";
+            case DynamicLinkerErrors::LotAllocationFailure: return "Out of memory";
+            case DynamicLinkerErrors::ExternalRelocationFailure: return "External relocation";
+            default: return "Unknown";
+        }
+    }
+};
+
+DynamicLinkerErrorCategory category_;
+
+eul::error::error_code make_error_code(DynamicLinkerErrors e)
+{
+    return eul::error::error_code(static_cast<int>(e), category_);
+}
+
 class DynamicLinker
 {
 public:
@@ -74,18 +114,19 @@ public:
     }
 
     template <typename Environment>
-    const LoadedModule* load_module(const std::size_t* module_address, const int mode, const Environment& environment)
+    const LoadedModule* load_module(const std::size_t* module_address, const int mode, const Environment& environment, eul::error::error_code& ec)
     {
-        return load_module(module_address, mode, reinterpret_cast<const SymbolEntry*>(environment.data().data()), environment.data().size());
+        return load_module(module_address, mode, reinterpret_cast<const SymbolEntry*>(environment.data().data()), environment.data().size(), ec);
     }
 
-    const LoadedModule* load_module(const std::size_t* module_address, const int mode, const SymbolEntry* entries, int number_of_entries)
+    const LoadedModule* load_module(const std::size_t* module_address, const int mode, const SymbolEntry* entries, int number_of_entries, eul::error::error_code& ec)
     {
         const ModuleHeader& header = *reinterpret_cast<const ModuleHeader*>(module_address);
 
         if (header.cookie() != "MSDL")
         {
-            return nullptr;//;LoadingStatus::ModuleCookieValidationFailed;
+            ec = DynamicLinkerErrors::CookieValidationFailure;
+            return nullptr;
         }
 
         const std::size_t relocation_section_address = reinterpret_cast<const std::size_t>(module_address) + header.size();
@@ -110,7 +151,11 @@ public:
 
         if (mode & LoadingModeCopyText)
         {
-            module.allocate_text();
+            if (!module.allocate_text())
+            {
+                ec = DynamicLinkerErrors::TextAllocationFailure;
+                return nullptr;
+            }
             std::memcpy(module.get_text().data(), reinterpret_cast<const uint8_t*>(code_address), header.code_size());
         }
         else
@@ -118,7 +163,11 @@ public:
             module.set_text(gsl::make_span(reinterpret_cast<uint8_t*>(code_address), header.code_size()));
         }
 
-        module.allocate_data();
+        if (!module.allocate_data())
+        {
+            ec = DynamicLinkerErrors::DataAllocationFailure;
+            return nullptr;
+        }
         const uint8_t* dd = reinterpret_cast<const uint8_t*>(data_address);
 
         std::memcpy(module.get_data().data(), reinterpret_cast<const uint8_t*>(data_address), header.data_size());
@@ -130,25 +179,26 @@ public:
             loaded_module.set_start_address(main_function_address);
         }
 
-        if (!allocate_lot(loaded_module)) return nullptr;
-        if (!process_exported_relocations(relocation_section_address, loaded_module)) return nullptr;
+        if (!allocate_lot(loaded_module))
+        {
+            ec = DynamicLinkerErrors::LotAllocationFailure;
+            return nullptr;
+        }
+
+        process_exported_relocations(relocation_section_address, loaded_module);
 
         const std::size_t external_relocations_address = relocation_section_address + header.number_of_exported_relocations() * sizeof(Relocation);
-        if (!process_external_relocations(external_relocations_address, entries, number_of_entries, loaded_module)) return nullptr;
+        if(!process_external_relocations(external_relocations_address, entries, number_of_entries, loaded_module))
+        {
+            ec = DynamicLinkerErrors::ExternalRelocationFailure;
+            return nullptr;
+        }
 
         const std::size_t local_relocations_address = external_relocations_address + sizeof(Relocation) * header.number_of_external_relocations();
-        if (!process_local_relocations(local_relocations_address, loaded_module))
-        {
-            writer << "Local relocations failed" << endl;
-            return nullptr;
-        }
+        process_local_relocations(local_relocations_address, loaded_module);
 
         const std::size_t data_relocations_address = local_relocations_address + sizeof(Relocation) * header.number_of_local_relocations();
-        if (!process_data_relocations(local_relocations_address, loaded_module))
-        {
-            writer << "Data relocations failed" << endl;
-            return nullptr;
-        }
+        process_data_relocations(local_relocations_address, loaded_module);
 
         return &loaded_module;
     }
@@ -168,7 +218,7 @@ public:
         return nullptr;
     }
 
-    uint32_t get_lot_for_module_at(std::size_t address)
+    std::optional<uint32_t> get_lot_for_module_at(std::size_t address)
     {
         auto* backm = &modules_.front();
 
@@ -182,7 +232,7 @@ public:
             }
         }
 
-        return 0x0;
+        return;
     }
 
 
@@ -202,7 +252,7 @@ private:
         return lot != nullptr;
     }
 
-    bool process_exported_relocations(std::size_t exported_relocations_address, LoadedModule& loaded_module)
+    void process_exported_relocations(std::size_t exported_relocations_address, LoadedModule& loaded_module)
     {
         Module& module = loaded_module.get_module();
         const ModuleHeader& header = module.get_header();
@@ -218,20 +268,15 @@ private:
                 const std::size_t relocated = reinterpret_cast<const std::size_t>(module.get_text().data()) + symbol.offset();
                 lot[relocation.index()] = relocated;
             }
-            else if (symbol.section() == Section::data)
+            else
             {
                 const std::size_t relocated = reinterpret_cast<const std::size_t>(module.get_data().data()) + symbol.offset();
                 lot[relocation.index()] = relocated;
             }
-            else
-            {
-                return false;
-            }
         }
-        return true;
     }
 
-    bool process_local_relocations(std::size_t local_relocations_address, LoadedModule& loaded_module)
+    void process_local_relocations(std::size_t local_relocations_address, LoadedModule& loaded_module)
     {
         Module& module = loaded_module.get_module();
         const ModuleHeader& header = module.get_header();
@@ -249,18 +294,12 @@ private:
                 const uint32_t relocated = reinterpret_cast<const std::size_t>(module.get_text().data()) + relocation.offset();
                 lot[lot_index] = relocated;
             }
-            else if (section == Section::data)
+            else
             {
                 const uint32_t relocated = reinterpret_cast<const std::size_t>(module.get_data().data()) + relocation.offset();
                 lot[lot_index] = relocated;
             }
-            else
-            {
-                return false;
-            }
         }
-        return true;
-
     }
 
 
@@ -284,6 +323,7 @@ private:
             }
             else
             {
+                writer << "Can't find symbol: " << symbol.name() << endl;
                 return false;
             }
         }
@@ -328,81 +368,7 @@ private:
         return true;
     }
 
-
-    template <typename Environment>
-    bool process_relocations(uint32_t address, const Environment& env, LoadedModule& loaded_module)
-    {
-       //  Module& module = loaded_module.get_module();
-       //  const ModuleHeader& header = module.get_header();
-       //  auto& lot = module.get_lot();
-
-       //  lot.reset(new uint32_t[header.number_of_relocations()]);
-
-       //  for (int i = 0; i < header.number_of_relocations(); ++i)
-       //  {
-       //      const Relocation& relocation = *reinterpret_cast<const Relocation*>(address);
-       //      address += relocation.size();
-       //      const Symbol& symbol = relocation.symbol();
-
-       //      if (symbol.visibility() == SymbolVisibility::internal || symbol.visibility() == SymbolVisibility::exported)
-       //      {
-       //          if (symbol.section() == Section::code)
-       //          {
-       //              uint32_t relocated = reinterpret_cast<uint32_t>(loaded_module.get_module().get_text().data()) + symbol.offset();
-       //              lot[i] = relocated;
-       //              writer_ << "Symbol " << symbol.name() << ", relocated in table[0x" << hex << i << "], to 0x" << lot[i] << endl;
-       //          }
-       //          if (symbol.section() == Section::data)
-       //          {
-       //              uint32_t relocated = reinterpret_cast<uint32_t>(loaded_module.get_module().get_data().data()) + symbol.offset();
-       //              lot[i] = relocated;
-       //              writer_ << "Symbol " << symbol.name() << ", relocated in table[0x" << hex << i << "], to 0x" << lot[i] << endl;
-       //          }
-       //      }
-       //      else if (symbol.visibility() == SymbolVisibility::external)
-       //      {
-       //          writer_ << "Searching symbol address for: " << symbol.name() << endl;
-       //          const auto* env_symbol = env.find_symbol(symbol.name());
-       //          if (env_symbol)
-       //          {
-       //              writer_ << "Symbol found in env at address 0x" << hex << env_symbol->address();
-       //              lot[i] = env_symbol->address();
-       //          }
-       //          else
-       //          {
-       //              writer_ << "Address for symbol: " << symbol.name() << " not found!" << endl;
-       //              return false;
-       //          }
-       //      }
-       //  }
-
-       //  for (int i = header.number_of_relocations(); i < header.total_relocations(); ++i)
-       //  {
-       //      writer_ << "Data relocation:" << endl;
-       //      const Relocation& relocation = *reinterpret_cast<const Relocation*>(address);
-       //      address += relocation.size();
-       //      const Symbol& symbol = relocation.symbol();
-
-       //      uint32_t *to_relocate = reinterpret_cast<uint32_t*>(reinterpret_cast<uint32_t>(module.get_data().data())) + relocation.index();
-       //      if (symbol.section() == Section::code)
-       //      {
-       //          uint32_t relocated = reinterpret_cast<uint32_t>(module.get_text().data()) + symbol.offset();
-       //          *to_relocate = relocated;
-       //          writer_ << "Symbol with offest: 0x" << hex << symbol.offset() << symbol.name() << ", relocated on 0x" << hex << reinterpret_cast<uint32_t>(to_relocate) << ", index: " << dec << i << ", to 0x" << hex << relocated << endl;
-       //      }
-
-       //      else if (symbol.section() == Section::data)
-       //      {
-       //          uint32_t relocated = reinterpret_cast<uint32_t>(module.get_data().data()) + (symbol.offset() & ~(0x01));
-       //          *to_relocate = relocated;
-       //          writer_ << "Symbol " << symbol.name() << ", relocated on 0x" << hex << reinterpret_cast<uint32_t>(to_relocate) << ", index: " << dec << i << ", to 0x" << hex << relocated << endl;
-       //      }
-
-       //  }
-        return true;
-    }
-
-    bool process_data_relocations(std::size_t data_relocations_address, LoadedModule& loaded_module)
+    void process_data_relocations(std::size_t data_relocations_address, LoadedModule& loaded_module)
     {
         Module& module = loaded_module.get_module();
         const ModuleHeader& header = module.get_header();
@@ -417,7 +383,6 @@ private:
             *to_relocate = relocated;
 
         }
-        return true;
     }
 
     uint32_t get_relocations_size(const ModuleHeader& header, const uint32_t address)

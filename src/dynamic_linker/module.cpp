@@ -74,14 +74,16 @@ void Module::set_data(const Module::DataSpan& data)
     data_ = data.data();
 }
 
-void Module::allocate_text()
+bool Module::allocate_text()
 {
     text_ = module_data_.allocate_text(module_header_.code_size());
+    return text_ != nullptr;
 }
 
-void Module::allocate_data()
+bool Module::allocate_data()
 {
     data_ = module_data_.allocate_data(module_header_.data_size() + module_header_.bss_size());
+    return data_ != nullptr;
 }
 
 } // namespace dl

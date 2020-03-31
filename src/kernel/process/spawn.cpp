@@ -22,6 +22,7 @@
 #include "msos/fs/mount_points.hpp"
 #include <msos/dynamic_linker/dynamic_linker.hpp>
 #include <msos/dynamic_linker/environment.hpp>
+#include <eul/error/error_code.hpp>
 
 #include "msos/libc/printf.hpp"
 
@@ -117,14 +118,16 @@ int exec_process(ExecInfo* info)
     const std::size_t* module_address = reinterpret_cast<const std::size_t*>(file->data());
 
     const msos::dl::LoadedModule* module;
+    eul::error::error_code ec;
+
     if (info->entries)
     {
-        module = dynamic_linker.load_module(module_address, msos::dl::LoadingModeCopyData, info->entries, info->number_of_entries);
+        module = dynamic_linker.load_module(module_address, msos::dl::LoadingModeCopyData, info->entries, info->number_of_entries, ec);
         delete info;
     }
     else
     {
-        module = dynamic_linker.load_module(module_address, msos::dl::LoadingModeCopyData, env);
+        module = dynamic_linker.load_module(module_address, msos::dl::LoadingModeCopyData, env, ec);
         delete info;
     }
     if (module)

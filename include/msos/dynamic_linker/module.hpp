@@ -10,7 +10,7 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
@@ -47,8 +47,8 @@ public:
     void set_text(const DataSpan& text);
     void set_data(const DataSpan& data);
 
-    void allocate_text();
-    void allocate_data();
+    bool allocate_text();
+    bool allocate_data();
 
 private:
     const ModuleHeader& module_header_;

@@ -18,6 +18,8 @@
 
 #include <cstdio>
 
+#include <eul/error/error_code.hpp>
+
 #include <msos/dynamic_linker/dynamic_linker.hpp>
 #include <msos/dynamic_linker/environment.hpp>
 
@@ -37,8 +39,37 @@ TEST(DynamicLinkerShould, ProcessBinaryFileWithExecuteInPlace)
     msos::dl::Environment<1> env{
         msos::dl::SymbolAddress{"printf", &printf}
     };
-    auto* module = sut.load_module(reinterpret_cast<const std::size_t*>(data.data()), msos::dl::LoadingModeCopyData, env);
+    eul::error::error_code ec;
+    auto* module = sut.load_module(reinterpret_cast<const std::size_t*>(data.data()), msos::dl::LoadingModeCopyData, env, ec);
     EXPECT_NE(module, nullptr);
+    EXPECT_FALSE(ec);
+}
+
+TEST(DynamicLinkerShould, FailWhenCookieMismatch)
+{
+    auto data = load_test_binary("test_binary.bin");
+    msos::dl::DynamicLinker sut;
+    msos::dl::Environment<1> env{
+        msos::dl::SymbolAddress{"printf", &printf}
+    };
+    data[3] = 'a';
+    eul::error::error_code ec;
+    auto* module = sut.load_module(reinterpret_cast<const std::size_t*>(data.data()), msos::dl::LoadingModeCopyData, env, ec);
+    EXPECT_EQ(module, nullptr);
+    EXPECT_EQ(ec, msos::dl::DynamicLinkerErrors::CookieValidationFailure);
+}
+
+TEST(DynamicLinkerShould, FailWhenExternalSymbolNotResolved)
+{
+    auto data = load_test_binary("test_binary.bin");
+    msos::dl::DynamicLinker sut;
+    msos::dl::Environment<1> env{
+        msos::dl::SymbolAddress{"scanf", &scanf}
+    };
+    eul::error::error_code ec;
+    auto* module = sut.load_module(reinterpret_cast<const std::size_t*>(data.data()), msos::dl::LoadingModeCopyData, env, ec);
+    EXPECT_EQ(module, nullptr);
+    EXPECT_EQ(ec, msos::dl::DynamicLinkerErrors::ExternalRelocationFailure);
 }
 
 } // namespace dynamic_linker

@@ -18,6 +18,8 @@
 #include <board.hpp>
 #include <cstring>
 
+#include <eul/error/error_code.hpp>
+
 #include <msos/usart_printer.hpp>
 #include <msos/libc/printf.hpp>
 
@@ -74,7 +76,8 @@ int main()
     };
     writer << "[TEST START]" << endl;
 
-    const msos::dl::LoadedModule* module = dynamic_linker.load_module(module_address, msos::dl::LoadingModeCopyData, env);
+    eul::error::error_code ec;
+    const msos::dl::LoadedModule* module = dynamic_linker.load_module(module_address, msos::dl::LoadingModeCopyData, env, ec);
 
     if (module == nullptr)
     {
