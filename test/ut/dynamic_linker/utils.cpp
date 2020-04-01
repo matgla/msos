@@ -22,6 +22,7 @@
 #include <iostream>
 #include <filesystem>
 #include <fstream>
+#include <cstring>
 
 extern const char* parent_path;
 
@@ -35,20 +36,16 @@ namespace dynamic_linker
 std::vector<uint8_t> load_test_binary(const std::string& path)
 {
     std::ifstream binary_loader;
-    std::cerr << "AAA: " << path << std::endl;
-    std::string path_in_system = "./";
-    path_in_system += std::filesystem::path(parent_path).parent_path();
-    std::cerr << path_in_system << std::endl;
-    path_in_system += "/";
-    path_in_system += std::string(path.data());
-    std::cerr << "Opening: " << path_in_system << std::endl;
-    binary_loader.open(path_in_system, std::ifstream::in | std::ifstream::binary);
     std::vector<uint8_t> data;
+    std::string binary_path = parent_path;
+    binary_path = binary_path.substr(0, binary_path.find_last_of("/") + 1);
+    binary_path += path;
+    binary_loader.open(binary_path, std::ifstream::in | std::ifstream::binary);
     if (!binary_loader.is_open())
     {
         std::cerr << "Throw" << std::endl;
         std::string err = "Can't open: ";
-        err += path_in_system;
+        err += std::filesystem::absolute(binary_path);
         throw std::runtime_error(err);
     }
     while (binary_loader.good())

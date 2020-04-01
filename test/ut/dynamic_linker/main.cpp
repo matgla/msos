@@ -1,9 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <filesystem>
-#include <string>
-
-const char* parent_path = "";
+const char* parent_path;
 
 int main(int argc, char **argv)
 {

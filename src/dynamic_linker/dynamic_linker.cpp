@@ -284,11 +284,10 @@ void DynamicLinker::process_data_relocations(std::size_t data_relocations_addres
         const Relocation& relocation = *reinterpret_cast<const Relocation*>(data_relocations_address);
         data_relocations_address += relocation.size();
 
-        std::size_t *to_relocate = reinterpret_cast<std::size_t*>(reinterpret_cast<std::size_t>(module.get_data().data())) + relocation.index();
+        std::uint32_t *to_relocate = reinterpret_cast<std::uint32_t*>(reinterpret_cast<std::size_t>(module.get_data().data())) + relocation.index();
 
-        std::size_t relocated = reinterpret_cast<std::size_t>(module.get_data().data()) + relocation.offset();
+        uint32_t relocated = reinterpret_cast<std::size_t>(module.get_data().data()) + relocation.offset();
         *to_relocate = relocated;
-
     }
 }
 

@@ -87,7 +87,6 @@ TEST(HeaderShould, ProcessModuleHeaderWithBss)
     EXPECT_EQ(sut.size(), 48);
 }
 
-
 } // namespace dynamic_linker
 } // namespace ut
 } // namespace test

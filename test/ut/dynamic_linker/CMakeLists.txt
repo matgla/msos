@@ -30,6 +30,7 @@ target_sources(dynamic_linker_tests
 target_link_libraries(dynamic_linker_tests
     PRIVATE
         gtest
+        # gtest_main
         gmock
         msos_dynamic_linker
 )
@@ -44,11 +45,11 @@ add_custom_command(
     POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:dynamic_linker_tests> ${PROJECT_BINARY_DIR}
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/test_binary.bin ${CMAKE_CURRENT_BINARY_DIR}/test_binary.bin
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/test_binary.bin ${PROJECT_BINARY_DIR}/test_binary.bin
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/test_module_with_data.bin ${PROJECT_BINARY_DIR}/test_module_with_data.bin
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/test_bss_section.bin ${PROJECT_BINARY_DIR}/test_bss_section.bin
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/test_module_with_data.bin ${CMAKE_CURRENT_BINARY_DIR}/test_module_with_data.bin
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/test_bss_section.bin ${CMAKE_CURRENT_BINARY_DIR}/test_bss_section.bin
 )
 
-add_test(dynamic_linker dynamic_linker_tests)
+add_test(dynamic_linker dynamic_linker_tests
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
 
 
