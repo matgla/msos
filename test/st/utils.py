@@ -37,7 +37,7 @@ class BinaryUnderTest:
                                          " -machine stm32_black_pill -serial mon:stdio -nographic")
     def stop(self, timeout):
         if (self.executable):
-            self.executable.expect("TEST DONE", timeout)
+            self.executable.expect("TEST DONE", timeout, async_=True)
             self.executable.sendline("quit")
         else:
             raise "Executable not started"
@@ -45,5 +45,11 @@ class BinaryUnderTest:
     def expect(self, expectation, timeout = 1):
         if (self.executable):
             self.executable.expect(expectation, timeout)
+        else:
+            raise "Executable not started"
+
+    def expect_async(self, expectation, timeout = 1):
+        if (self.executable):
+            self.executable.expect(expectation, timeout, async_=True)
         else:
             raise "Executable not started"

@@ -21,6 +21,7 @@ target_sources(dynamic_linker_tests
         ${CMAKE_CURRENT_SOURCE_DIR}/utils.hpp
 
         ${CMAKE_CURRENT_SOURCE_DIR}/utils.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 
         ${CMAKE_CURRENT_SOURCE_DIR}/dynamic_linker_tests.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/header_tests.cpp
@@ -30,7 +31,6 @@ target_link_libraries(dynamic_linker_tests
     PRIVATE
         gtest
         gmock
-        gtest_main
         msos_dynamic_linker
 )
 
@@ -48,5 +48,7 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/test_module_with_data.bin ${PROJECT_BINARY_DIR}/test_module_with_data.bin
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/test_bss_section.bin ${PROJECT_BINARY_DIR}/test_bss_section.bin
 )
+
+add_test(dynamic_linker dynamic_linker_tests)
 
 

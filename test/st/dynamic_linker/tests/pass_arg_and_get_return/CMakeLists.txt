@@ -51,7 +51,6 @@ set (run_st_deps "${run_st_deps}" module_with_args_generate_test_image CACHE INT
 list(FIND BINARIES_FOR_ST "module_with_args:${CMAKE_CURRENT_BINARY_DIR}/test_binary.bin" test_in_list)
 
 if (${test_in_list} EQUAL -1)
-    message (STATUS "Adding binary for test environment: ${CMAKE_CURRENT_BINARY_DIR}/test_binary.bin")
     set(BINARIES_FOR_ST "${BINARIES_FOR_ST}" "module_with_args:${CMAKE_CURRENT_BINARY_DIR}/test_binary.bin" CACHE INTERNAL "")
 endif()
 

@@ -16,7 +16,7 @@
 
 #include <cstdint>
 #include <vector>
-#include <string_view>
+#include <string>
 
 namespace test
 {
@@ -25,7 +25,7 @@ namespace ut
 namespace dynamic_linker
 {
 
-std::vector<uint8_t> load_test_binary(const std::string_view& path);
+std::vector<uint8_t> load_test_binary(const std::string& path);
 
 } // namespace dynamic_linker
 } // namespace ut

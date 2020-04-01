@@ -10,14 +10,13 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import sys
 import configparser
 
-print ("Generating config file for ST")
 data = sys.argv[1]
 
 binaries = data.split(";")
@@ -32,7 +31,6 @@ for binary in binaries:
     binary_data = binary.split(":")
     name = binary_data[0]
     path = binary_data[1]
-    print("Adding {", name, ": ", path, "}")
     config["BINARIES"].update({name: path})
 
 

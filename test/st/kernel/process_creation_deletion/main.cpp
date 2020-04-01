@@ -51,17 +51,12 @@ void b_finish()
 
 void child_process_b(void* arg)
 {
+    hal::time::sleep(std::chrono::milliseconds(10));
     int i = *reinterpret_cast<int*>(arg);
-    while (i < 3)
-    {
-        hal::time::sleep(std::chrono::milliseconds(4));
-        stdio_mutex_.lock();
-        writer << "Child B " << i << endl;
-        stdio_mutex_.unlock();
-
-        i++;
-    }
-
+    hal::time::sleep(std::chrono::milliseconds(4));
+    stdio_mutex_.lock();
+    writer << "Child B " << i << endl;
+    stdio_mutex_.unlock();
     b_finish();
 }
 
@@ -83,11 +78,9 @@ void child_fun(void* arg)
     hal::time::sleep(std::chrono::milliseconds(20));
     stdio_mutex_.lock();
     writer << "Child Done" << endl;
-    stdio_mutex_.unlock();
     printa();
+    stdio_mutex_.unlock();
     mutex_.unlock();
-    /* allow parent to do something before next step */
-    hal::time::sleep(std::chrono::milliseconds(15));
     int dump = 123;
 
     spawn(&child_process_b, &i);
@@ -158,7 +151,7 @@ void kernel_process(void *arg)
 
     int i = 0;
     while (i < 11) {
-        hal::time::sleep(std::chrono::milliseconds(20));
+        hal::time::sleep(std::chrono::milliseconds(10));
         stdio_mutex_.lock();
         writer << "Parent: " << hex << i << endl;
         stdio_mutex_.unlock();

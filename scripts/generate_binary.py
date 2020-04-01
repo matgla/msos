@@ -45,8 +45,9 @@ def change_visibility_of_wrapped_symbols(symbols, objcopy_executable, elf_filena
     for symbol_name in symbols:
         if symbol_name.endswith("_dl_original"):
             print_debug(ind_4 + "-> " + symbol_name)
+            FNULL = open(os.devnull, 'w')
             subprocess.run([objcopy_executable + " -L " + symbol_name \
-                            + " " + str(elf_filename)], shell=True)
+                            + " " + str(elf_filename)], shell=True, stdout=FNULL, stderr=FNULL)
 
 def process_symbols_visiblity(processed, symbols):
     for name, data in symbols.items():
@@ -334,7 +335,6 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         offset = relocation[1]
         old = struct.unpack_from("<I", code_data, offset)[0]
         new = relocation[2] * 4
-        print ("patching: ", relocation[0], "(", hex(offset), ")", " from: ", hex(old), ", to: ", hex(new))
         struct.pack_into("<I", code_data, offset, new)
 
     index = number_of_lot_relocations
@@ -403,7 +403,6 @@ def generate_module(module_name, elf_filename, objcopy_executable):
                          len(external_relocations_to_image), \
         len(local_relocations_to_image), len(data_relocations_to_image))
 
-    print("Symbols size: ", len(external_symbols), len(exported_symbols))
     image += struct.pack("<HH", len(external_symbols), len(exported_symbols))
 
     # pack image name
@@ -533,8 +532,6 @@ def generate_module(module_name, elf_filename, objcopy_executable):
 
     if (len(image) % 16):
         image += bytearray('\0' * (16 - (len(image) % 16)), "ascii")
-
-    print ("code starts at: ", hex(len(image)))
 
     image += code_data
     image += data_data

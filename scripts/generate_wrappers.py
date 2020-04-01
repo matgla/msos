@@ -120,35 +120,35 @@ import subprocess
 def wrap_symbols(symbol_names, filename, objcopy_executable):
     symbols_to_generate = {}
     for symbol in symbol_names:
-        print ("Processing: ", symbol)
+        # print ("Processing: ", symbol)
         symbol_name = symbol
 
         if (symbol_name.endswith("_dl_original")):
             symbol_name = symbol_name.replace("_dl_original", "")
 
         wrapped_symbol = symbol_name + "_dl_original"
-        print (Fore.YELLOW + "[INF]" + Style.RESET_ALL + "          Renaming " + symbol + " -> " + wrapped_symbol)
+        # print (Fore.YELLOW + "[INF]" + Style.RESET_ALL + "          Renaming " + symbol + " -> " + wrapped_symbol)
 
         symbols_to_generate.update({symbol_name: wrapped_symbol})
         if symbol.endswith("_dl_original"):
             continue
         command = objcopy_executable + " --redefine-sym " + symbol + "=" + symbol + "_dl_original " + str(filename)
-        print ("Execute: ", command)
+        # print ("Execute: ", command)
         subprocess.run([command], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     return symbols_to_generate
 
 def generate_wrapper_file(symbols_to_generate, output_directory):
     output_filename = output_directory + "/wrapped_symbols.s"
-    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "          Generating function calls wrappers: ", output_filename)
+    # print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "          Generating function calls wrappers: ", output_filename)
     if not os.path.exists(output_directory):
-        print (Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Creating directory for output")
+        # print (Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Creating directory for output")
         os.makedirs(output_directory)
 
     current_path = os.path.dirname(os.path.abspath(__file__))
     template_loader = FileSystemLoader(current_path)
     env = Environment(loader = template_loader)
     t = env.get_template("wrapped_symbols.s.template")
-    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "          Generated wrapper for public symbols")
+    # print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "          Generated wrapper for public symbols")
 
     with open(output_filename, "w+") as file:
         file.write(t.render(wrapped_symbols = symbols_to_generate))
@@ -169,41 +169,41 @@ def main():
 
     symbols_to_generate = {}
 
-    print(Fore.CYAN + "==========================================")
-    print(Fore.CYAN + "=           WRAPPERS_GENERATOR           =")
-    print(Fore.CYAN + "==========================================")
-    print(Style.RESET_ALL)
+    # print(Fore.CYAN + "==========================================")
+    # print(Fore.CYAN + "=           WRAPPERS_GENERATOR           =")
+    # print(Fore.CYAN + "==========================================")
+    # print(Style.RESET_ALL)
 
-    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + " STEP 1. Initialization")
+    # print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + " STEP 1. Initialization")
 
-    if not args.input_directory:
-        print(Fore.RED + "[ERR] Please provide directory with .o files (--input_directory=<path_to_directory>)")
-        return
+    # if not args.input_directory:
+    #     print(Fore.RED + "[ERR] Please provide directory with .o files (--input_directory=<path_to_directory>)")
+    #     return
 
-    if not args.objcopy_executable:
-        print(Fore.RED + "[ERR] Please objcopy executable (--objcopy=<path_to_objcopy>)")
-        return
+    # if not args.objcopy_executable:
+    #     print(Fore.RED + "[ERR] Please objcopy executable (--objcopy=<path_to_objcopy>)")
+    #     return
 
     files = list(Path(args.input_directory).rglob("*.o"))
 
-    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + " STEP 2. Wrapping symbols in files")
+    # print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + " STEP 2. Wrapping symbols in files")
     file_number = 1
     for file in files:
         if (str(file).endswith("wrapped_symbols.s.o")):
             continue
-        print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "   [" + str(file_number) + "/" + str(len(files)) + "] " + str(file))
+        # print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "   [" + str(file_number) + "/" + str(len(files)) + "] " + str(file))
         symbols = get_symbols(file)
 
         public_symbols = get_public_functions_from_symbols(symbols)
         symbols_to_rename = get_symbol_names(public_symbols)
         symbols_to_generate.update(wrap_symbols(symbols_to_rename, file, args.objcopy_executable))
 
-    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + " STEP 3. Generating wrapper file")
+    # print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + " STEP 3. Generating wrapper file")
 
     generate_wrapper_file(symbols_to_generate, args.output_directory)
-    print(Fore.GREEN + "=========================================" + Style.RESET_ALL)
-    print(Fore.GREEN + "[SUCCESS]" + "All steps succeeded" + Style.RESET_ALL)
-    print()
+    # print(Fore.GREEN + "=========================================" + Style.RESET_ALL)
+    # print(Fore.GREEN + "[SUCCESS]" + "All steps succeeded" + Style.RESET_ALL)
+    # print()
 
 
 main()

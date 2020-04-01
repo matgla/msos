@@ -18,8 +18,12 @@
 
 #include <exception>
 
+#include <string>
 #include <iostream>
+#include <filesystem>
 #include <fstream>
+
+extern const char* parent_path;
 
 namespace test
 {
@@ -28,19 +32,31 @@ namespace ut
 namespace dynamic_linker
 {
 
-std::vector<uint8_t> load_test_binary(const std::string_view& path)
+std::vector<uint8_t> load_test_binary(const std::string& path)
 {
     std::ifstream binary_loader;
-    binary_loader.open(path.data(), std::ifstream::in | std::ifstream::binary);
+    std::cerr << "AAA: " << path << std::endl;
+    std::string path_in_system = "./";
+    path_in_system += std::filesystem::path(parent_path).parent_path();
+    std::cerr << path_in_system << std::endl;
+    path_in_system += "/";
+    path_in_system += std::string(path.data());
+    std::cerr << "Opening: " << path_in_system << std::endl;
+    binary_loader.open(path_in_system, std::ifstream::in | std::ifstream::binary);
     std::vector<uint8_t> data;
     if (!binary_loader.is_open())
     {
-        throw std::runtime_error("Can't open test_binary.bin file");
+        std::cerr << "Throw" << std::endl;
+        std::string err = "Can't open: ";
+        err += path_in_system;
+        throw std::runtime_error(err);
     }
     while (binary_loader.good())
     {
         data.push_back(binary_loader.get());
     }
+
+    binary_loader.close();
 
     return data;
 }

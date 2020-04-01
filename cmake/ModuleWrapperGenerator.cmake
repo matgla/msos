@@ -40,13 +40,12 @@ function (add_module module_name module_library)
 
         add_custom_command(
             OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/wrapped_symbols.s
-            COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/pip install -r ${PROJECT_SOURCE_DIR}/scripts/requirements.txt --upgrade
+            COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/pip install -r ${PROJECT_SOURCE_DIR}/scripts/requirements.txt --upgrade -q -q -q
             COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/python3 ${PROJECT_SOURCE_DIR}/scripts/generate_wrappers.py
             generate_wrapper_code --output ${CMAKE_CURRENT_BINARY_DIR} --input
             ${CMAKE_CURRENT_BINARY_DIR} --objcopy=${CMAKE_OBJCOPY}
-            --module_name=${module_library}
+            --module_name=${module_library} --disable_logs
             DEPENDS ${module_library} $<TARGET_OBJECTS:${module_library}> ${VIRTUALENV_FILE} ${PROJECT_SOURCE_DIR}/scripts/requirements.txt
-            VERBATIM
         )
 
         add_library(${module_name}_wrapper OBJECT)
@@ -78,11 +77,10 @@ function (add_module module_name module_library)
             TARGET ${module_name}
             POST_BUILD
             COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/python3 ${PROJECT_SOURCE_DIR}/scripts/generate_binary.py
-            generate_wrapper_code --elf_filename=$<TARGET_FILE:${module_name}> --module_name=${module_name}
+            generate_wrapper_code --disable_logs --elf_filename=$<TARGET_FILE:${module_name}> --module_name=${module_name}
             --objcopy=${CMAKE_OBJCOPY} --as_executable
             COMMAND cmake -E touch ${CMAKE_CURRENT_BINARY_DIR}/${module_name}_generate_bin.stamp
             DEPENDS ${PROJECT_SOURCE_DIR}/scripts/generate_binary.py
-            VERBATIM
         )
     elseif (${arch} STREQUAL "x86")
         add_library(${module_name} SHARED empty.cpp)

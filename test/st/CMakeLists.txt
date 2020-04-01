@@ -34,7 +34,7 @@ endif ()
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/system_tests_env.stamp
     DEPENDS ${ST_TESTS_VIRTUALENV_FILE} ${PROJECT_SOURCE_DIR}/test/st/requirements.txt
-    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/system_tests_env/bin/pip install -r ${PROJECT_SOURCE_DIR}/test/st/requirements.txt --upgrade
+    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/system_tests_env/bin/pip install -r ${PROJECT_SOURCE_DIR}/test/st/requirements.txt --upgrade -q -q -q
     COMMAND cmake -E touch ${CMAKE_CURRENT_BINARY_DIR}/system_tests_env.stamp
 )
 
@@ -65,4 +65,20 @@ add_custom_target(run_st
     VERBATIM
 )
 
+ADD_TEST(
+        NAME ctest_build_test_code
+        COMMAND cmake --build ${CMAKE_BINARY_DIR} --target run_st)
+# ADD_TEST(ctest_run_test_code test_code)
+# SET_TESTS_PROPERTIES(ctest_run_test_code
+                    #  PROPERTIES DEPENDS ctest_build_test_code)
 
+add_test(
+    NAME run_system_tests_a
+    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/system_tests_env/bin/py.test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+set_tests_properties(run_system_tests_a PROPERTIES DEPENDS generate_config_file)
+
+# add_dependencies(ctest_build_test_code ${CMAKE_CURRENT_BINARY_DIR}/system_tests_env.stamp ${run_st_deps} generate_config_file)
+
+# add_test(execute_st run_st)

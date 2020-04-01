@@ -20,22 +20,27 @@ enable_debugs = False
 enable_logs = True
 
 def print_debug(text):
-    if enable_debugs:
+    global enable_debugs
+    if enable_debugs and enable_logs:
         print(Fore.BLUE + "[DBG] " + Style.RESET_ALL + text)
 
 def print_error(text):
     print(Fore.RED + "[ERR] " + text + Style.RESET_ALL)
 
 def print_step(text):
+    global enable_logs
     if enable_logs:
         print(Fore.YELLOW + "[INF] " + Style.RESET_ALL + text)
 
 def print_menu(text):
+    global enable_logs
     if enable_logs:
         print(Fore.CYAN + text + Style.RESET_ALL)
 
 def enable_debugs():
+    global enable_debugs
     enable_debugs = True
 
 def disable_prints():
+    global enable_logs
     enable_logs = False

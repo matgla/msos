@@ -36,12 +36,14 @@ namespace dynamic_linker
 TEST(DynamicLinkerShould, ProcessBinaryFileWithExecuteInPlace)
 {
     auto data = load_test_binary("test_binary.bin");
+    std::cerr << "Binary loaded" << std::endl;
     msos::dl::DynamicLinker sut;
     msos::dl::Environment<1> env{
         msos::dl::SymbolAddress{"printf", &printf}
     };
     eul::error::error_code ec;
     auto* module = sut.load_module(reinterpret_cast<const std::size_t*>(data.data()), msos::dl::LoadingModeCopyData, env, ec);
+    std::cerr << "ELO" << std::endl;
     EXPECT_NE(module, nullptr);
     EXPECT_FALSE(ec);
 }
