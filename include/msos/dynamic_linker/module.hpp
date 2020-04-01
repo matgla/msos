@@ -33,6 +33,7 @@ namespace dl
 class Module
 {
 public:
+    Module();
     using DataSpan = gsl::span<uint8_t>;
     Module(const ModuleHeader& module_header);
 
@@ -51,7 +52,7 @@ public:
     bool allocate_data();
 
 private:
-    const ModuleHeader& module_header_;
+    const ModuleHeader* module_header_;
     uint8_t* text_;
     uint8_t* data_;
     std::unique_ptr<uint32_t[]> lot_;

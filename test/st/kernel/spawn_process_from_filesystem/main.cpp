@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <cstdlib>
+#include <cstring>
 
 #include <board.hpp>
 #include <hal/time/sleep.hpp>

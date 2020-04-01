@@ -16,9 +16,9 @@
 
 #include <unistd.h>
 #include <board.hpp>
-#include <cstring>
 
 #include <eul/error/error_code.hpp>
+#include <eul/utils/math.hpp>
 
 #include <msos/usart_printer.hpp>
 #include <msos/libc/printf.hpp>
@@ -28,23 +28,12 @@
 #include <hal/core/backupRegisters.hpp>
 #include <hal/core/core.hpp>
 
+
 msos::dl::DynamicLinker dynamic_linker;
 UsartWriter writer;
 
-extern "C"
-{
-void usart_write(const char* data);
-
-}
-
-void usart_write(const char* data)
-{
-    writer << data;
-}
-
 uint32_t get_lot_at(uint32_t address)
 {
-    writer << "Getting address of LOT: 0x" << hex << address << endl;
     return dynamic_linker.get_lot_for_module_at(address);
 }
 
@@ -56,23 +45,14 @@ int main()
     board::interfaces::Usart1::init(115200);
 
     uint32_t address_of_lot_getter = reinterpret_cast<uint32_t>(&get_lot_at);
-    // hal::core::BackupRegisters::init();
-    // hal::core::BackupRegisters::write(1, address_of_lot_getter >> 16);
-    // hal::core::BackupRegisters::write(2, address_of_lot_getter);
     uint32_t* lot_in_memory = reinterpret_cast<uint32_t*>(0x20000000);
     *lot_in_memory = address_of_lot_getter;
-    writer << "Address of lot getter: 0x" << hex << address_of_lot_getter << endl;
-    writer << "Address of lot in memory: 0x" << hex << reinterpret_cast<uint32_t>(lot_in_memory) << endl;
 
     std::size_t module_address = 0x08000000;
     module_address += 32 * 1024;
-    int extern_data = 123;
-    msos::dl::Environment<5> env{
-        msos::dl::SymbolAddress{"usart_write", &usart_write},
-        msos::dl::SymbolAddress{"strlen", &strlen},
-        msos::dl::SymbolAddress{"write", &write},
-        msos::dl::SymbolAddress{"extern_1", &extern_data},
-        msos::dl::SymbolAddress{"printf", &_printf_via_usart},
+    msos::dl::Environment<2> env{
+        msos::dl::SymbolAddress{"atoi", &atoi},
+        msos::dl::SymbolAddress{"printf", &_printf_via_usart}
     };
     writer << "[TEST START]" << endl;
 
@@ -85,11 +65,19 @@ int main()
         writer << "[TEST DONE]" << endl;
         while (true)
         {
+
         }
     }
-    writer << "Module loaded" << endl;
+    writer << "Execute binary" << endl;
 
-    module->execute();
+    const char *args[2] {
+        "110",
+        "11"
+    };
+
+    int rc = module->execute(2, args);
+
+    writer << "Returned " << dec << rc << endl;
 
     writer << "[TEST DONE]" << endl;
 

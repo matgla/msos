@@ -21,6 +21,7 @@
 #include <eul/error/error_code.hpp>
 
 #include <msos/dynamic_linker/dynamic_linker.hpp>
+#include <msos/dynamic_linker/dynamic_linker_errors.hpp>
 #include <msos/dynamic_linker/environment.hpp>
 
 #include "test/ut/dynamic_linker/utils.hpp"

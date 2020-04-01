@@ -43,7 +43,7 @@ uint32_t get_lot_at(uint32_t address)
 struct ExecInfo
 {
     const char* path;
-    SymbolEntry* entries;
+    const SymbolEntry* entries;
     int number_of_entries;
 };
 
@@ -140,7 +140,7 @@ int exec_process(ExecInfo* info)
 
 static bool is_first = true;
 
-void exec(const char* path, void *arg, SymbolEntry* entries, int number_of_entries)
+void exec(const char* path, void *arg, const SymbolEntry* entries, int number_of_entries)
 {
     if (is_first)
     {
@@ -159,7 +159,7 @@ void exec(const char* path, void *arg, SymbolEntry* entries, int number_of_entri
     exec_process(info);
 }
 
-pid_t spawn_exec(const char* path, void *arg, SymbolEntry* entries, int number_of_entries, std::size_t stack_size)
+pid_t spawn_exec(const char* path, void *arg, const SymbolEntry* entries, int number_of_entries, std::size_t stack_size)
 {
     if (is_first)
     {

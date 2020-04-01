@@ -14,7 +14,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_subdirectory(host)
-add_subdirectory(host_with_args)
-add_subdirectory(tests)
+import pytest
+
+import utils
+
+def test_verify_args():
+    sut = utils.BinaryUnderTest(utils.find_binary("module_with_args"))
+    sut.start()
+    sut.expect("Execute binary", 1)
+    sut.expect("Returned 123", 1)
+    sut.stop(1)
 

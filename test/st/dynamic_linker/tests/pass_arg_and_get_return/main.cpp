@@ -14,21 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-.thumb
-.syntax unified
-.arch armv7-m
+#include <cstdio>
+#include <cmath>
 
+int main(int argc, char *argv[])
+{
+    printf("Hello from module\n");
 
-.global call_external
-.thumb_func
-.align 1
-.type call_external, %function
-call_external:
-    mov     pc, r0
+    printf("Args size %d, %s, %s\n", argc, argv[0], argv[1]);
+    return argc + atoi(argv[0]) + atoi(argv[1]);
+}
 
-.global call_external_with_args
-.thumb_func
-.align 1
-.type call_external_with_args, %function
-call_external_with_args:
-    mov     pc, r2

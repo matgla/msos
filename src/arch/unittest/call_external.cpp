@@ -19,9 +19,14 @@
 extern "C"
 {
 
-void call_external(std::size_t address)
+int call_external(std::size_t address)
 {
+    return 0;
+}
 
+int call_external_with_args(int argc, char *argv[], std::size_t address)
+{
+    return 0;
 }
 
 }

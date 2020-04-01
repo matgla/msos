@@ -22,8 +22,8 @@
 
 extern "C"
 {
-    pid_t spawn_exec(const char* path, void *arg, SymbolEntry* entries, int number_of_entries, std::size_t stack_size);
+    pid_t spawn_exec(const char* path, void *arg, const SymbolEntry* entries, int number_of_entries, std::size_t stack_size);
     pid_t spawn(void (*start_routine) (void *), void *arg);
     pid_t spawn_root_process(void (*start_routine) (void *), void *arg, std::size_t stack_size);
-    void exec(const char* path, void *arg, SymbolEntry* entries, int number_of_entries);
+    void exec(const char* path, void *arg, const SymbolEntry* entries, int number_of_entries);
 }

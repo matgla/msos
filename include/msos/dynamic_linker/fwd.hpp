@@ -14,21 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-.thumb
-.syntax unified
-.arch armv7-m
+#pragma once
+
+extern "C"
+{
+class SymbolEntry;
+}
+
+namespace msos
+{
+namespace dl
+{
+
+class Module;
+class LoadedModule;
+class Symbol;
+class Relocation;
+
+} // namespace dl
+} // namespace msos
 
 
-.global call_external
-.thumb_func
-.align 1
-.type call_external, %function
-call_external:
-    mov     pc, r0
 
-.global call_external_with_args
-.thumb_func
-.align 1
-.type call_external_with_args, %function
-call_external_with_args:
-    mov     pc, r2

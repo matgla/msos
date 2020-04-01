@@ -14,21 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-.thumb
-.syntax unified
-.arch armv7-m
+#pragma once
 
+#include <eul/error/error_code.hpp>
 
-.global call_external
-.thumb_func
-.align 1
-.type call_external, %function
-call_external:
-    mov     pc, r0
+namespace msos
+{
+namespace dl
+{
 
-.global call_external_with_args
-.thumb_func
-.align 1
-.type call_external_with_args, %function
-call_external_with_args:
-    mov     pc, r2
+enum class DynamicLinkerErrors
+{
+    CookieValidationFailure = 1,
+    TextAllocationFailure,
+    DataAllocationFailure,
+    LotAllocationFailure,
+    ExternalRelocationFailure,
+};
+
+eul::error::error_code make_error_code(DynamicLinkerErrors e);
+
+} // namespace dl
+} // namespace msos
+
