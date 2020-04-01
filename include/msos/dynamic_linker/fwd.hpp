@@ -30,6 +30,8 @@ class Module;
 class LoadedModule;
 class Symbol;
 class Relocation;
+class ModuleHeader;
+class ModuleData;
 
 } // namespace dl
 } // namespace msos

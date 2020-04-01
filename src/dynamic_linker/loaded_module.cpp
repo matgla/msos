@@ -18,6 +18,9 @@
 
 #include <utility>
 
+#include "msos/dynamic_linker/module_data.hpp"
+
+
 extern "C"
 {
 int call_external(std::size_t address);

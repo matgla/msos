@@ -16,6 +16,8 @@
 
 #include "msos/dynamic_linker/relocation.hpp"
 
+#include "msos/dynamic_linker/symbol.hpp"
+
 namespace msos
 {
 namespace dl
@@ -33,7 +35,7 @@ const Symbol& Relocation::symbol() const
     return reinterpret_cast<const Symbol&>(*ptr);
 }
 
-uint32_t Relocation::offset() const 
+uint32_t Relocation::offset() const
 {
     return symbol_offset_;
 }

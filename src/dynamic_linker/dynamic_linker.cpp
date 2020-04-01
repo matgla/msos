@@ -21,6 +21,8 @@
 #include "msos/dynamic_linker/dynamic_linker_errors.hpp"
 #include "msos/dynamic_linker/environment.hpp"
 #include "msos/dynamic_linker/module.hpp"
+#include "msos/dynamic_linker/module_header.hpp"
+#include "msos/dynamic_linker/module_data.hpp"
 #include "msos/dynamic_linker/relocation.hpp"
 #include "msos/dynamic_linker/symbol.hpp"
 

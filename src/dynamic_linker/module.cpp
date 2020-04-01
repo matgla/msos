@@ -18,6 +18,9 @@
 
 #include <gsl/span>
 
+#include "msos/dynamic_linker/module_header.hpp"
+#include "msos/dynamic_linker/module_data.hpp"
+
 namespace msos
 {
 namespace dl
