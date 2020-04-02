@@ -139,9 +139,9 @@ def wrap_symbols(symbol_names, filename, objcopy_executable):
 
 def generate_wrapper_file(symbols_to_generate, output_directory):
     output_filename = output_directory + "/wrapped_symbols.s"
-    # print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "          Generating function calls wrappers: ", output_filename)
+    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "          Generating function calls wrappers: ", output_filename)
     if not os.path.exists(output_directory):
-        # print (Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Creating directory for output")
+        print (Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Creating directory for output")
         os.makedirs(output_directory)
 
     current_path = os.path.dirname(os.path.abspath(__file__))
@@ -161,6 +161,7 @@ def main():
     parser.add_argument("-i", "--input", dest="input_directory", action="store", help="Path to input file")
     parser.add_argument("-o", "--output", dest="output_directory", action="store", help="Path to output file")
     parser.add_argument("--objcopy", dest="objcopy_executable", action="store", help="Path to objcopy executable")
+    parser.add_argument("--ar", dest="ar", action="store", help="Path to ar executable")
     parser.add_argument("--print_dependencies", dest="print_dependencies", action="store_true", help="Prints only generated files")
     parser.add_argument("--module_name", dest="module_name", action="store", help="Module name")
     parser.add_argument("--elf_filename", dest="elf_filename", action="store", help="Path to module ELF file")
@@ -201,8 +202,18 @@ def main():
     # print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + " STEP 3. Generating wrapper file")
 
     generate_wrapper_file(symbols_to_generate, args.output_directory)
-    # print(Fore.GREEN + "=========================================" + Style.RESET_ALL)
-    # print(Fore.GREEN + "[SUCCESS]" + "All steps succeeded" + Style.RESET_ALL)
+    output_filename = args.output_directory + "/lib" + args.module_name + "_wrapped.a"
+
+    files = list(Path(args.output_directory).rglob("*.o"))
+    to_lib = ""
+    for file in files:
+        to_lib += str(file) + " "
+    command = args.ar + " -crs " + output_filename + " " + to_lib
+    subprocess.run([command], shell=True, stdout=subprocess.PIPE)
+
+    print(Fore.GREEN + "=========================================" + Style.RESET_ALL)
+
+    print(Fore.GREEN + "[SUCCESS]" + "All steps succeeded" + Style.RESET_ALL)
     # print()
 
 

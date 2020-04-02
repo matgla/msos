@@ -35,7 +35,7 @@ def test_module_with_classes():
     sut.expect("Content of file")
     sut.expect("This is simple file")
     sut.expect("Spawned child process")
-    sut.expect("ImplementationA value: 10")
+    sut.expect("ImplementationA value: 10", 2)
     sut.expect("ImplementationB value: 15")
     sut.expect("ChildA value: 10")
     sut.expect("ImplementationA is printing")

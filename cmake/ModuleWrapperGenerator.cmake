@@ -38,40 +38,49 @@ function (add_module module_name module_library)
         configure_virtual_env()
         find_file (VIRTUALENV_FILE venv.stamp ${PROJECT_BINARY_DIR}/)
 
-        add_custom_command(
-            TARGET ${module_library}
-            POST_BUILD
-            COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/pip install -r ${PROJECT_SOURCE_DIR}/scripts/requirements.txt --upgrade -q -q -q
-            COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/python3 ${PROJECT_SOURCE_DIR}/scripts/generate_wrappers.py
-            generate_wrapper_code --output ${CMAKE_CURRENT_BINARY_DIR} --input
-            ${CMAKE_CURRENT_BINARY_DIR} --objcopy=${CMAKE_OBJCOPY}
-            --module_name=${module_library} --disable_logs
-            DEPENDS $<TARGET_OBJECTS:${module_library}> ${VIRTUALENV_FILE} ${PROJECT_SOURCE_DIR}/scripts/requirements.txt
-        )
+        set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/objects/wrapped_symbols.s PROPERTIES GENERATED 1)
 
-        add_library(${module_name}_wrapper STATIC)
-        set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/wrapped_symbols.s PROPERTIES GENERATED 1)
+        add_library(${module_name}_wrapper)
 
         target_sources(${module_name}_wrapper
             PUBLIC
-                ${CMAKE_CURRENT_BINARY_DIR}/wrapped_symbols.s
+                ${CMAKE_CURRENT_BINARY_DIR}/objects/wrapped_symbols.s
         )
 
+        add_custom_command(
+            OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/objects/wrapped_symbols.s
+            COMMAND echo "Gerating wrappers !!!!!!!!!!!"
+            COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/objects
+            # COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/objects
+            COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/objects
+            COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/pip install -r ${PROJECT_SOURCE_DIR}/scripts/requirements.txt --upgrade -q -q -q
+            COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/python3 ${PROJECT_SOURCE_DIR}/scripts/generate_wrappers.py
+            generate_wrapper_code --output ${CMAKE_CURRENT_BINARY_DIR}/objects --input
+            ${CMAKE_CURRENT_BINARY_DIR}/objects --objcopy=${CMAKE_OBJCOPY} --ar=${CMAKE_AR}
+            --module_name=${module_library} --disable_logs
+            DEPENDS ${module_library} ${VIRTUALENV_FILE} ${PROJECT_SOURCE_DIR}/scripts/requirements.txt ${PROJECT_SOURCE_DIR}/scripts/wrapped_symbols.s.template ${PROJECT_SOURCE_DIR}/scripts/generate_wrappers.py
+            VERBATIM
+        )
+
+        # message("objects: $<TARGET_OBJECTS:${module_library}>")
         add_dependencies(${module_name}_wrapper ${module_library})
 
     #target_compile_options(${module_name}_wrapper PUBLIC -x assembler-with-cpp)
+        link_directories(${CMAKE_CURRENT_BINARY_DIR}/objects)
         target_link_libraries(${module_name}_wrapper
             PUBLIC
-                $<TARGET_OBJECTS:${module_library}>
+                # $<TARGET_OBJECTS:${module_library}>
+                # ${module_library}
+                lib${module_library}_wrapped.a
                 module_flags
         )
 
-        file (TOUCH empty.cpp)
-        add_executable(${module_name} empty.cpp)
+        file (TOUCH ${CMAKE_CURRENT_BINARY_DIR}/empty.cpp)
+        add_executable(${module_name} ${CMAKE_CURRENT_BINARY_DIR}/empty.cpp)
         target_link_libraries(${module_name}
             PUBLIC
                 ${module_name}_wrapper
-                ${module_library}
+                # ${module_library}
                 module_flags
         )
         # add_dependencies(${module_name} ${module_name}_wrapper)
