@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(test_bss_section_library OBJECT)
+add_library(test_bss_section_library STATIC)
 
 target_compile_options(test_bss_section_library
     PUBLIC

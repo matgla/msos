@@ -36,7 +36,7 @@ function run_tests {
     fi
     cd ..
     cd test_st
-    ninja run_st
+    ninja run_st -d explain -v
     if [ $? -ne 0 ]; then
         return_code=1
         failures=("ST tests failed" "${failures[@]}")

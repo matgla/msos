@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(module_with_args_lib OBJECT)
+add_library(module_with_args_lib STATIC)
 
 target_sources(module_with_args_lib
     PRIVATE

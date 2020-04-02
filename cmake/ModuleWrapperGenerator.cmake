@@ -39,22 +39,25 @@ function (add_module module_name module_library)
         find_file (VIRTUALENV_FILE venv.stamp ${PROJECT_BINARY_DIR}/)
 
         add_custom_command(
-            OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/wrapped_symbols.s
+            TARGET ${module_library}
+            POST_BUILD
             COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/pip install -r ${PROJECT_SOURCE_DIR}/scripts/requirements.txt --upgrade -q -q -q
             COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/python3 ${PROJECT_SOURCE_DIR}/scripts/generate_wrappers.py
             generate_wrapper_code --output ${CMAKE_CURRENT_BINARY_DIR} --input
             ${CMAKE_CURRENT_BINARY_DIR} --objcopy=${CMAKE_OBJCOPY}
             --module_name=${module_library} --disable_logs
-            DEPENDS ${module_library} $<TARGET_OBJECTS:${module_library}> ${VIRTUALENV_FILE} ${PROJECT_SOURCE_DIR}/scripts/requirements.txt
+            DEPENDS $<TARGET_OBJECTS:${module_library}> ${VIRTUALENV_FILE} ${PROJECT_SOURCE_DIR}/scripts/requirements.txt
         )
 
-        add_library(${module_name}_wrapper OBJECT)
-        # set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/wrapped_symbols.s PROPERTIES GENERATED 1)
+        add_library(${module_name}_wrapper STATIC)
+        set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/wrapped_symbols.s PROPERTIES GENERATED 1)
 
         target_sources(${module_name}_wrapper
             PUBLIC
                 ${CMAKE_CURRENT_BINARY_DIR}/wrapped_symbols.s
         )
+
+        add_dependencies(${module_name}_wrapper ${module_library})
 
     #target_compile_options(${module_name}_wrapper PUBLIC -x assembler-with-cpp)
         target_link_libraries(${module_name}_wrapper
@@ -67,19 +70,19 @@ function (add_module module_name module_library)
         add_executable(${module_name} empty.cpp)
         target_link_libraries(${module_name}
             PUBLIC
-                $<TARGET_OBJECTS:${module_name}_wrapper>
-                $<TARGET_OBJECTS:${module_library}>
+                ${module_name}_wrapper
+                ${module_library}
                 module_flags
         )
-        add_dependencies(${module_name} ${module_name}_wrapper)
-        add_dependencies(module_flags ${PROJECT_SOURCE_DIR}/scripts/generate_binary.py)
+        # add_dependencies(${module_name} ${module_name}_wrapper)
+        # add_dependencies(module_flags ${PROJECT_SOURCE_DIR}/scripts/generate_binary.py)
         add_custom_command(
             TARGET ${module_name}
             POST_BUILD
             COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/python3 ${PROJECT_SOURCE_DIR}/scripts/generate_binary.py
             generate_wrapper_code --disable_logs --elf_filename=$<TARGET_FILE:${module_name}> --module_name=${module_name}
             --objcopy=${CMAKE_OBJCOPY} --as_executable
-            COMMAND cmake -E touch ${CMAKE_CURRENT_BINARY_DIR}/${module_name}_generate_bin.stamp
+            # COMMAND cmake -E touch ${CMAKE_CURRENT_BINARY_DIR}/${module_name}_generate_bin.stamp
             DEPENDS ${PROJECT_SOURCE_DIR}/scripts/generate_binary.py
         )
     elseif (${arch} STREQUAL "x86")

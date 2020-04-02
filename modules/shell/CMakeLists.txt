@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(msos_shell_lib OBJECT)
+add_library(msos_shell_lib STATIC)
 
 target_sources(msos_shell_lib
     PRIVATE

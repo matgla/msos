@@ -10,11 +10,11 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(simple_module_library OBJECT)
+add_library(simple_module_library STATIC)
 
 target_sources(simple_module_library
     PRIVATE
@@ -24,7 +24,7 @@ target_sources(simple_module_library
 target_link_libraries(simple_module_library
     PRIVATE
         module_flags
-        msos_utils 
+        msos_utils
 )
 
 add_module(simple_module simple_module_library)

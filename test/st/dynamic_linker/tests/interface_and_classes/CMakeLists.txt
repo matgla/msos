@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(interface_and_classes_lib OBJECT)
+add_library(interface_and_classes_lib STATIC)
 
 target_sources(interface_and_classes_lib
     PRIVATE
