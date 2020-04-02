@@ -14,27 +14,29 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <cstdio>
-#include <cstring>
-#include <unistd.h>
-#include <string_view>
+#include <cstdint>
 
-#include "msos/kernel/process/spawn.hpp"
-
-int main()
+extern "C"
 {
-    printf("MSOS shell:\n");
-    char buffer[100] = {};
-    while (std::string_view(buffer).find("exit") == std::string_view::npos)
-    {
-        write(1, "> \0", 3);
-        // buffer[0] = 0;
-        scanf("%s", &buffer);
-        if (std::string_view(buffer).find("ls") != std::string_view::npos)
-        {
-            exec("/rom/bin/msos_ls.bin", NULL, NULL, 0);
-        }
-    }
-    printf("MSOS Shell exit\n");
-}
 
+typedef struct dirent {
+    uint32_t d_ino;
+    uint32_t d_off;
+    uint16_t d_reclen;
+    uint32_t d_namlen;
+    int d_type;
+    char d_name[128];
+} dirent;
+
+struct DIRImpl;
+
+typedef struct DIR {
+    struct dirent ent;
+    struct DIRImpl *impl;
+} DIR;
+
+DIR* opendir(const char* dirname);
+dirent* readdir(DIR *dirp);
+int closedir(DIR *dirp);
+
+}

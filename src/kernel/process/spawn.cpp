@@ -16,6 +16,7 @@
 
 #include "msos/kernel/process/spawn.hpp"
 
+#include "msos/posix/dirent.h"
 #include "msos/kernel/process/process.hpp"
 #include "msos/kernel/process/context_switch.hpp"
 #include "msos/kernel/process/scheduler.hpp"
@@ -47,7 +48,7 @@ struct ExecInfo
     int number_of_entries;
 };
 
-static msos::dl::Environment<8> env{
+static msos::dl::Environment<13> env{
         msos::dl::SymbolAddress{"strlen", &strlen},
         msos::dl::SymbolAddress{"memcpy", &memcpy},
         msos::dl::SymbolAddress{"memcmp", &memcmp},
@@ -55,7 +56,12 @@ static msos::dl::Environment<8> env{
         msos::dl::SymbolAddress{"strstr", &strstr},
         msos::dl::SymbolAddress{"write", &write},
         msos::dl::SymbolAddress{"scanf", reinterpret_cast<uint32_t*>(&_scanf)},
-        msos::dl::SymbolAddress{"printf", reinterpret_cast<uint32_t*>(&_printf)}
+        msos::dl::SymbolAddress{"printf", reinterpret_cast<uint32_t*>(&_printf)},
+        msos::dl::SymbolAddress{"spawn_exec", reinterpret_cast<uint32_t*>(&spawn_exec)},
+        msos::dl::SymbolAddress{"exec", reinterpret_cast<uint32_t*>(&exec)},
+        msos::dl::SymbolAddress{"opendir", reinterpret_cast<uint32_t*>(&opendir)},
+        msos::dl::SymbolAddress{"readdir", reinterpret_cast<uint32_t*>(&readdir)},
+        msos::dl::SymbolAddress{"closedir", reinterpret_cast<uint32_t*>(&closedir)},
 };
 
 pid_t spawn(void (*start_routine) (void *), void *arg)
@@ -79,29 +85,13 @@ pid_t spawn_root_process(void (*start_routine) (void *), void *arg, std::size_t 
 
 int exec_process(ExecInfo* info)
 {
-    auto& mount_points = msos::fs::mount_points.get_mounted_points();
-
-    msos::fs::IFileSystem* fs;
-    std::string_view best_mount_point;
     std::string_view path_to_executable(info->path);
-    for (auto& point : mount_points)
+    msos::fs::IFileSystem* fs = msos::fs::mount_points.get_mounted_filesystem(path_to_executable);
+    const msos::fs::MountPoint* mp = msos::fs::mount_points.get_mount_point(fs);
+    if (mp->point != "/")
     {
-        std::size_t index = path_to_executable.find(point.point);
-        if (index != std::string_view::npos)
-        {
-            if (point.point.size() > best_mount_point.size())
-            {
-                best_mount_point = point.point;
-            }
-        }
+        path_to_executable.remove_prefix(mp->point.size());
     }
-
-    if (best_mount_point != "/")
-    {
-        path_to_executable.remove_prefix(best_mount_point.size());
-    }
-
-    fs = msos::fs::mount_points.get_mounted_filesystem(best_mount_point);
 
     if (fs == nullptr)
     {
@@ -132,7 +122,6 @@ int exec_process(ExecInfo* info)
     }
     if (module)
     {
-        msos::kernel::process::Scheduler::get().current_process().print();
         return module->execute();
     }
     return -1;

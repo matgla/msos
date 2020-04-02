@@ -58,6 +58,8 @@ public:
     std::unique_ptr<IFile> get(std::string_view path) override;
     std::unique_ptr<IFile> create(std::string_view path) override;
 
+    std::vector<std::unique_ptr<IFile>> list(std::string_view path) override;
+
 protected:
     static bool mounted_;
     std::vector<RamFsData> files_;

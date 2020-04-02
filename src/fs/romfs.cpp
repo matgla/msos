@@ -95,5 +95,23 @@ std::unique_ptr<IFile> RomFs::create(std::string_view path)
     return nullptr;
 }
 
+
+std::vector<std::unique_ptr<IFile>> RomFs::list(std::string_view path)
+{
+    std::vector<std::unique_ptr<IFile>> files;
+    auto dir = disk_.get_directory(path);
+    if (!dir)
+    {
+        return {};
+    }
+
+    for (auto& file : *dir)
+    {
+        files.push_back(std::make_unique<RomFsFile>(file));
+    }
+
+    return files;
+}
+
 } // namespace fs
 } // namespace msos

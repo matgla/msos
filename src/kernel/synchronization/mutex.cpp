@@ -1,4 +1,4 @@
-// This file is part of MSOS project. 
+// This file is part of MSOS project.
 // Copyright (C) 2020 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
@@ -18,16 +18,16 @@
 
 namespace msos
 {
-namespace kernel 
+namespace kernel
 {
 namespace synchronization
 {
 
-Mutex::Mutex() : semaphore_(1) 
+Mutex::Mutex() : semaphore_(1)
 {
 }
 
-void Mutex::lock() 
+void Mutex::lock()
 {
     semaphore_.wait();
 }
@@ -37,7 +37,7 @@ void Mutex::unlock()
     semaphore_.post();
 }
 
-} // namespace synchronization     
+} // namespace synchronization
 } // namespace kernel
-} // namespace msos 
+} // namespace msos
 

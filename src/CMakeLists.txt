@@ -43,13 +43,21 @@ target_link_libraries(msos
         msos_drivers_storage
         msos_fs
         msos_libc
-        # msos_posix
+        msos_posix
         msos_arch
 )
 
 target_include_directories(msos
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
+)
+
+add_library(msos_interface INTERFACE)
+target_include_directories(msos_interface
+    INTERFACE
+        ${PROJECT_SOURCE_DIR}/include)
+target_include_directories(msos_interface SYSTEM BEFORE
+    INTERFACE ${PROJECT_SOURCE_DIR}/include/msos/posix
 )
 
 if (${vendor} STREQUAL "STM32")

@@ -49,9 +49,7 @@ function (add_module module_name module_library)
 
         add_custom_command(
             OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/objects/wrapped_symbols.s
-            COMMAND echo "Gerating wrappers !!!!!!!!!!!"
             COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/objects
-            # COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/objects
             COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/objects
             COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/pip install -r ${PROJECT_SOURCE_DIR}/scripts/requirements.txt --upgrade -q -q -q
             COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/python3 ${PROJECT_SOURCE_DIR}/scripts/generate_wrappers.py
@@ -62,15 +60,11 @@ function (add_module module_name module_library)
             VERBATIM
         )
 
-        # message("objects: $<TARGET_OBJECTS:${module_library}>")
         add_dependencies(${module_name}_wrapper ${module_library})
 
-    #target_compile_options(${module_name}_wrapper PUBLIC -x assembler-with-cpp)
         link_directories(${CMAKE_CURRENT_BINARY_DIR}/objects)
         target_link_libraries(${module_name}_wrapper
             PUBLIC
-                # $<TARGET_OBJECTS:${module_library}>
-                # ${module_library}
                 lib${module_library}_wrapped.a
                 module_flags
         )
@@ -80,18 +74,14 @@ function (add_module module_name module_library)
         target_link_libraries(${module_name}
             PUBLIC
                 ${module_name}_wrapper
-                # ${module_library}
                 module_flags
         )
-        # add_dependencies(${module_name} ${module_name}_wrapper)
-        # add_dependencies(module_flags ${PROJECT_SOURCE_DIR}/scripts/generate_binary.py)
         add_custom_command(
             TARGET ${module_name}
             POST_BUILD
             COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/python3 ${PROJECT_SOURCE_DIR}/scripts/generate_binary.py
             generate_wrapper_code --disable_logs --elf_filename=$<TARGET_FILE:${module_name}> --module_name=${module_name}
             --objcopy=${CMAKE_OBJCOPY} --as_executable
-            # COMMAND cmake -E touch ${CMAKE_CURRENT_BINARY_DIR}/${module_name}_generate_bin.stamp
             DEPENDS ${PROJECT_SOURCE_DIR}/scripts/generate_binary.py
         )
     elseif (${arch} STREQUAL "x86")

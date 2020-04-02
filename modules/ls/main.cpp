@@ -15,26 +15,19 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <cstdio>
-#include <cstring>
-#include <unistd.h>
-#include <string_view>
-
-#include "msos/kernel/process/spawn.hpp"
+#include <dirent.h>
 
 int main()
 {
-    printf("MSOS shell:\n");
-    char buffer[100] = {};
-    while (std::string_view(buffer).find("exit") == std::string_view::npos)
-    {
-        write(1, "> \0", 3);
-        // buffer[0] = 0;
-        scanf("%s", &buffer);
-        if (std::string_view(buffer).find("ls") != std::string_view::npos)
-        {
-            exec("/rom/bin/msos_ls.bin", NULL, NULL, 0);
+    DIR *d;
+    struct dirent *dir;
+    d = opendir("/");
+    if (d) {
+        while ((dir = readdir(d)) != NULL) {
+            printf("%s\n", dir->d_name);
         }
+        closedir(d);
     }
-    printf("MSOS Shell exit\n");
+    return(0);
 }
 

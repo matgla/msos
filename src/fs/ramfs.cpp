@@ -76,5 +76,10 @@ std::unique_ptr<IFile> RamFs::create(std::string_view path)
     return std::make_unique<RamfsFile>(path, files_.back().data);
 }
 
+std::vector<std::unique_ptr<IFile>> RamFs::list(std::string_view path)
+{
+    return {};
+}
+
 } // namespace fs
 } // namespace msos

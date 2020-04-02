@@ -14,22 +14,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(msos_shell_lib STATIC)
+add_library(msos_ls_lib STATIC)
 
-target_sources(msos_shell_lib
+target_sources(msos_ls_lib
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 
 
 # TODO: smarter way to inherit flags
-target_link_libraries(msos_shell_lib
+target_link_libraries(msos_ls_lib
     PRIVATE
         module_flags
-        msos_interface
 )
 
-add_module(msos_shell msos_shell_lib)
+add_module(msos_ls msos_ls_lib)
 
 if (${arch} STREQUAL "ARM")
     set (suffix ".bin")
@@ -40,10 +39,10 @@ else ()
 endif ()
 
 add_custom_command(
-    TARGET msos_shell
+    TARGET msos_ls
     POST_BUILD
     COMMAND mkdir -p ${PROJECT_BINARY_DIR}/rootfs/bin
     COMMAND rm -f ${PROJECT_BINARY_DIR}/rootfs.img
-    COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/${prefix}msos_shell${suffix} ${PROJECT_BINARY_DIR}/rootfs/bin
+    COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/${prefix}msos_ls${suffix} ${PROJECT_BINARY_DIR}/rootfs/bin
     COMMAND genromfs -f ${PROJECT_BINARY_DIR}/rootfs.img -d ${PROJECT_BINARY_DIR}/rootfs -v -V msos_romfs
 )

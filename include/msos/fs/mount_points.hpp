@@ -31,8 +31,10 @@ class MountPoints
 {
 public:
     const std::vector<MountPoint> get_mounted_points() const;
-    IFileSystem* get_mounted_filesystem(const std::string_view& point);
+    const std::vector<MountPoint> get_mounted_points_under(const std::string_view& path) const;
+    IFileSystem* get_mounted_filesystem(const std::string_view& path);
     bool mount_filesystem(const std::string_view& point, IFileSystem* filesystem);
+    const MountPoint* get_mount_point(IFileSystem* filesystem) const;
 
 private:
     std::vector<MountPoint> points_;

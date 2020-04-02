@@ -44,6 +44,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 set(CMAKE_EXECUTABLE_SUFFIX "${CMAKE_EXECUTABLE_SUFFIX}")
 
 add_subdirectory(include/msos/drivers)
+include_directories(BEFORE SYSTEM ${PROJECT_SOURCE_DIR}/include/msos/posix)
 add_subdirectory(src)
 add_subdirectory(modules)
 

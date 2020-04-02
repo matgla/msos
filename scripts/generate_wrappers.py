@@ -139,9 +139,9 @@ def wrap_symbols(symbol_names, filename, objcopy_executable):
 
 def generate_wrapper_file(symbols_to_generate, output_directory):
     output_filename = output_directory + "/wrapped_symbols.s"
-    print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "          Generating function calls wrappers: ", output_filename)
+    # print(Fore.YELLOW + "[INF]" + Style.RESET_ALL + "          Generating function calls wrappers: ", output_filename)
     if not os.path.exists(output_directory):
-        print (Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Creating directory for output")
+        # print (Fore.YELLOW + "[INF]" + Style.RESET_ALL + "      Creating directory for output")
         os.makedirs(output_directory)
 
     current_path = os.path.dirname(os.path.abspath(__file__))
@@ -211,9 +211,9 @@ def main():
     command = args.ar + " -crs " + output_filename + " " + to_lib
     subprocess.run([command], shell=True, stdout=subprocess.PIPE)
 
-    print(Fore.GREEN + "=========================================" + Style.RESET_ALL)
+    # print(Fore.GREEN + "=========================================" + Style.RESET_ALL)
 
-    print(Fore.GREEN + "[SUCCESS]" + "All steps succeeded" + Style.RESET_ALL)
+    # print(Fore.GREEN + "[SUCCESS]" + "All steps succeeded" + Style.RESET_ALL)
     # print()
 
 
