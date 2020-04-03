@@ -1,5 +1,5 @@
 # This file is part of MSOS project. This is simple OS for embedded development devices.
-# Copyright (C) 2019 Mateusz Stadnik
+# Copyright (C) 2020 Mateusz Stadnik
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,26 +14,27 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(msos_posix)
+add_executable (posix_tests)
 
-set (library_includes ${PROJECT_SOURCE_DIR}/include/msos/posix)
-
-target_sources(msos_posix
+target_sources(posix_tests
     PUBLIC
-        ${library_includes}/dirent.h
-        ${library_includes}/dirent_utils.hpp
-
-        ${CMAKE_CURRENT_SOURCE_DIR}/dirent.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/dirent_utils.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/dirent_utils_tests.cpp
 )
 
-target_include_directories(msos_posix
-    PUBLIC
-        ${library_includes}
-        ${PROJECT_SOURCE_DIR}/include
+target_link_libraries(posix_tests
+    PRIVATE
+        gtest
+        gtest_main
+        gmock
+        msos_posix
 )
 
-target_link_libraries(msos_posix
-    PUBLIC
-        hal
+target_include_directories(posix_tests
+    PRIVATE
+        ${PROJECT_SOURCE_DIR}
 )
+
+add_test(posix posix_tests
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
+
+

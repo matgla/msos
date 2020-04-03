@@ -85,7 +85,8 @@ function (add_module module_name module_library)
             DEPENDS ${PROJECT_SOURCE_DIR}/scripts/generate_binary.py
         )
     elseif (${arch} STREQUAL "x86")
-        add_library(${module_name} SHARED empty.cpp)
+        file (TOUCH ${CMAKE_CURRENT_BINARY_DIR}/empty.cpp)
+        add_library(${module_name} SHARED ${CMAKE_CURRENT_BINARY_DIR}/empty.cpp)
         target_link_libraries(${module_name}
             PUBLIC
                 $<TARGET_OBJECTS:${module_library}>
@@ -110,7 +111,7 @@ function (add_module_flags_target)
     else ()
     target_compile_options(module_flags
         INTERFACE
-            $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a>
+            $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a;-fPIC>
             $<$<CONFIG:DEBUG>:-Og -g>
             $<$<CONFIG:RELEASE>:-Os>
     )

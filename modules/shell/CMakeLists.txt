@@ -29,6 +29,11 @@ target_link_libraries(msos_shell_lib
         msos_interface
 )
 
+target_link_options(msos_shell_lib
+    PUBLIC
+        "-static-libgcc"
+)
+
 add_module(msos_shell msos_shell_lib)
 
 if (${arch} STREQUAL "ARM")

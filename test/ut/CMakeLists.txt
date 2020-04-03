@@ -22,5 +22,6 @@ if (NOT TARGET gtest)
 endif()
 
 add_subdirectory(dynamic_linker)
+add_subdirectory(posix)
 add_subdirectory(fs)
 

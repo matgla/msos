@@ -48,7 +48,15 @@ struct ExecInfo
     int number_of_entries;
 };
 
-static msos::dl::Environment<13> env{
+extern "C"
+{
+    void* memchr_wrapper(const void* s, int c, size_t n)
+    {
+        return const_cast<void*>(memchr(s, c, n));
+    }
+}
+
+static msos::dl::Environment<16> env{
         msos::dl::SymbolAddress{"strlen", &strlen},
         msos::dl::SymbolAddress{"memcpy", &memcpy},
         msos::dl::SymbolAddress{"memcmp", &memcmp},
@@ -62,6 +70,11 @@ static msos::dl::Environment<13> env{
         msos::dl::SymbolAddress{"opendir", reinterpret_cast<uint32_t*>(&opendir)},
         msos::dl::SymbolAddress{"readdir", reinterpret_cast<uint32_t*>(&readdir)},
         msos::dl::SymbolAddress{"closedir", reinterpret_cast<uint32_t*>(&closedir)},
+        msos::dl::SymbolAddress{"memchr", reinterpret_cast<uint32_t*>(&memchr_wrapper)},
+        msos::dl::SymbolAddress{"_ZSt24__throw_out_of_range_fmtPKcz", reinterpret_cast<uint32_t*>(&std::__throw_out_of_range_fmt)},
+        msos::dl::SymbolAddress{"isspace", reinterpret_cast<uint32_t*>(&isspace)},
+
+
 };
 
 pid_t spawn(void (*start_routine) (void *), void *arg)
