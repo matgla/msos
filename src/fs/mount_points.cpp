@@ -117,5 +117,19 @@ const MountPoint* MountPoints::get_mount_point(IFileSystem* filesystem) const
     return nullptr;
 }
 
+const MountPoint* MountPoints::get_mount_point(const std::string_view& point) const
+{
+    auto mount_point = std::find_if(points_.begin(), points_.end(), [point](const MountPoint& mp){
+        return mp.point == point;
+    });
+
+    if (mount_point != points_.end())
+    {
+        return &(*mount_point);
+    }
+
+    return nullptr;
+}
+
 } // namespace fs
 } // namespace msos

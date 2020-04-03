@@ -27,7 +27,6 @@
 
 void ls_command(const char* path)
 {
-    printf("Open path: %s\n", path);
     DIR *d;
     struct dirent *dir;
     d = opendir(path);
@@ -40,30 +39,60 @@ void ls_command(const char* path)
     }
 }
 
+void remove_whitespace_from_start(std::string_view& path)
+{
+    int first_char = path.find_first_not_of(" ");
+    if (first_char != 0 && first_char != std::string_view::npos)
+    {
+        path = path.substr(first_char, path.length());
+    }
+}
+
+bool is_absolute_path(const std::string_view& path)
+{
+    if (path.empty())
+    {
+        return false;
+    }
+    return path[0] == '/';
+}
+
 void cd_command(std::string_view path, char* pwd)
 {
     DIR *d;
     struct dirent *dir;
-    char buf[100];
-    int last_slash = path.find_last_of("/");
-    if (last_slash != 0 && last_slash != std::string_view::npos)
+    remove_whitespace_from_start(path);
+
+    if (is_absolute_path(path))
     {
-        std::string_view parent = path.substr(0, last_slash);
-
-        std::memcpy(buf, parent.data(), parent.length());
-        buf[parent.length() + 1] = 0;
-    }
-
-    d = opendir(buf);
-    if (d) {
-        while ((dir = readdir(d)) != NULL) {
-            std::string_view filename = path.substr(path.find_last_of("/"), path.length());
-            if (filename == std::string_view(dir->d_name))
-            {
-                std::memcpy(pwd + strlen(pwd) - 1, dir->d_name, dir->d_namlen);
-            }
+        DIR *dir = opendir(path.data());
+        if (dir != nullptr)
+        {
+            std::memcpy(pwd, path.data(), path.length());
+            closedir(dir);
+            return;
         }
-        closedir(d);
+    }
+    else
+    {
+        char absolute_path[100];
+        int pwd_length = strlen(pwd);
+        if (pwd_length + path.length() + 2 >= 100)
+        {
+            return;
+        }
+        std::memcpy(absolute_path, pwd, pwd_length);
+        absolute_path[pwd_length] = '/';
+        std::memcpy(absolute_path + pwd_length + 1, path.data(), path.length());
+        absolute_path[path.length() + pwd_length + 1] = 0;
+        printf("absolute path: %s\n", absolute_path);
+        DIR *dir = opendir(absolute_path);
+        if (dir != nullptr)
+        {
+            closedir(dir);
+            std::memcpy(pwd, absolute_path, strlen(absolute_path));
+            return;
+        }
     }
 }
 
@@ -76,11 +105,57 @@ void remove_spaces(char* s) {
     } while (*s++ = *d++);
 }
 
+std::string_view get_next_argument(std::string_view& arglist)
+{
+    // ignore slashes at start
+    int dirname_start = arglist.find_first_not_of(" ");
+    if (dirname_start == std::string_view::npos)
+    {
+        arglist = {};
+        return {};
+    }
+    arglist = arglist.substr(dirname_start, arglist.length());
+    int next_slash = arglist.find(" ");
+    std::string_view part;
+    if (next_slash != std::string_view::npos)
+    {
+        part = arglist.substr(0, next_slash);
+        arglist = arglist.substr(next_slash, arglist.length());
+    }
+    else
+    {
+        part = arglist;
+        arglist = {};
+    }
+    return part;
+}
+
+void remove_newlines(char* str, size_t len)
+{
+    int number_of_newlines = 0;
+    for (size_t i = 0; i < len; i++)
+    {
+        if (str[i] == '\n' || str[i] == '\r')
+        {
+            ++number_of_newlines;
+        }
+        if (i + number_of_newlines >= len)
+        {
+            str[i] = 0;
+        }
+        else
+        {
+            str[i] = str[i + number_of_newlines];
+        }
+
+    }
+}
+
 int main()
 {
     printf("MSOS shell:\n");
     char buffer[100] = {};
-    char pwd[255] = {'/', '\0'};
+    char pwd[100] = {'/', '\0'};
 
     while (std::string_view(buffer).find("exit") == std::string_view::npos)
     {
@@ -91,16 +166,44 @@ int main()
         {
             ls_command(pwd);
         }
-        if (std::string_view(buffer).find("pwd") == 0)
+        else if (std::string_view(buffer).find("pwd") == 0)
         {
             printf("%s\n", pwd);
         }
-        if (std::string_view(buffer).find("cd") == 0)
+        else if (std::string_view(buffer).find("cd") == 0)
         {
-            remove_spaces(buffer + 3);
-            int current_pwd = strlen(pwd);
+            remove_newlines(buffer, strlen(buffer));
+            std::string_view arglist(buffer);
+            std::string_view arg = get_next_argument(arglist); // first argument is command name
+            arg = get_next_argument(arglist);
+            cd_command(arg, pwd);
+        }
+        else
+        {
+            remove_newlines(buffer, strlen(buffer));
+            std::string_view path(buffer);
+            if (is_absolute_path(buffer))
+            {
+                printf("executing %s\n", path);
+                exec(buffer, NULL, NULL, NULL);
+            }
+            else
+            {
+                char absolute_path[100];
+                int pwd_length = strlen(pwd);
+                if (pwd_length + path.length() + 2 >= 100)
+                {
+                    continue;
+                }
+                std::memcpy(absolute_path, pwd, pwd_length);
+                absolute_path[pwd_length] = '/';
+                std::memcpy(absolute_path + pwd_length + 1, path.data(), path.length());
+                absolute_path[path.length() + pwd_length + 1] = 0;
+                printf("executing %s\n", absolute_path);
+                exec(absolute_path, NULL, NULL, NULL);
 
-            cd_command(buffer + 3, pwd);
+            }
+
         }
     }
     printf("MSOS Shell exit\n");

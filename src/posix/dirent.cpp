@@ -21,26 +21,24 @@
 
 #include "msos/fs/mount_points.hpp"
 #include "msos/usart_printer.hpp"
+#include "msos/posix/dirent_utils.hpp"
 
 extern "C"
 {
 
 struct DIRImpl
 {
-    uint32_t parent_namlen;
-    char parent[100];
-    msos::fs::IFileSystem* matched_filesystem;
-    std::vector<msos::fs::MountPoint> mounted_points;
-    bool first;
+    char* path;
+    msos::fs::IFileSystem* filesystem;
 };
 
 }
 
-static UsartWriter writer;
+// static UsartWriter writer;
 
 void process_next_directory(std::string_view dir)
 {
-    writer << "Next: " << dir << endl;
+    // writer << "Next: " << dir << endl;
 }
 
 void find_path(const char* path)
@@ -50,144 +48,76 @@ void find_path(const char* path)
 
 DIR* opendir(const char* dirname)
 {
-    writer << "Opening: " << dirname  << "." << endl;
-    std::string_view path(dirname);
-
-    while (path.length())
+    const msos::fs::MountPoint* root = msos::fs::mount_points.get_mount_point("/");
+    if (root == nullptr)
     {
-        int slash_position = path.find("/");
-
-        if (slash_position != 0 && slash_position != std::string_view::npos)
-        {
-            std::string_view before_slash = path.substr(0, slash_position);
-            process_next_directory(before_slash);
-        }
+        return nullptr;
     }
 
-    // DIR* dir = new DIR;
-    // dir->ent.d_ino = 0;
-    // dir->ent.d_off = 0;
-    // dir->ent.d_reclen = 0;
-    // dir->ent.d_namlen = 0;
+    std::string_view path(dirname);
 
-    // dir->impl = new DIRImpl;
+    auto file = root->filesystem->get(path);
+    if (!file)
+    {
+        return nullptr; // no such directory
+    }
 
+    DIR* dir = new DIR;
+    dir->ent.d_ino = 0;
+    dir->ent.d_off = 0;
+    dir->ent.d_reclen = 0;
+    dir->ent.d_namlen = 0;
 
-    // msos::fs::IFileSystem *fs = msos::fs::mount_points.get_mounted_filesystem(dirname);
-    // // msos::fs::mount_points;
-    // dir->impl->matched_filesystem = fs;
+    dir->impl = new DIRImpl;
+    dir->impl->filesystem = root->filesystem;
 
-    // dir->impl->mounted_points = msos::fs::mount_points.get_mounted_points_under(dirname);
-    // dir->impl->first = true;
+    dir->impl->path = new char[path.length() + 1];
+    std::memcpy(dir->impl->path, path.data(), path.length());
+    dir->impl->path[path.length()] = 0;
 
-    // if (std::string_view(dirname) == "/")
-    // {
-    //     dir->impl->parent_namlen = 1;
-    //     dir->impl->parent[0] = '/';
-    //     dir->impl->parent[1] = 0;
-    // }
-    // else
-    // {
-    //     if (!fs)
-    //     {
-    //         writer << "FS not found for file: " << dirname << endl;
-    //     }
-    //     const msos::fs::MountPoint* mp = msos::fs::mount_points.get_mount_point(fs);
-    //     std::string_view path_in_fs(dirname);
-    //     path_in_fs = path_in_fs.substr(mp->point.length(), path_in_fs.length());
-    //     if (path_in_fs.length())
-    //     {
-    //         writer << "path is: " << path_in_fs << endl;
-
-    //         dir->impl->parent_namlen = path_in_fs.length();
-    //         std::memcpy(dir->impl->parent, path_in_fs.data(), path_in_fs.length());
-    //     }
-    //     else
-    //     {
-    //         writer << "path is /" << endl;
-
-    //         dir->impl->parent_namlen = 1;
-    //         dir->impl->parent[0] = '/';
-    //         dir->impl->parent[1] = 0;
-    //     }
-
-    // }
-
-    // return dir;
+    return dir;
 }
 
 dirent* readdir(DIR *dirp)
 {
-    // if (dirp->impl->matched_filesystem)
-    // {
-    //     if (dirp->impl->first)
-    //     {
-    //         auto files = dirp->impl->matched_filesystem->list(dirp->impl->parent);
-    //         dirp->impl->first = false;
-    //         if (!files.empty())
-    //         {
-    //             const auto file = files.begin();
-    //             std::memcpy(dirp->ent.d_name, (*file)->name().data(), (*file)->name().length());
-    //             dirp->ent.d_namlen = (*file)->name().length();
-    //             dirp->ent.d_name[dirp->ent.d_namlen] = 0;
-    //             return &dirp->ent;
-    //         }
-    //     }
+    auto files = dirp->impl->filesystem->list(dirp->impl->path);
+    if (files.empty())
+    {
+        return nullptr;
+    }
 
-    //     bool previous_found = false;
-    //     for (const auto& file : dirp->impl->matched_filesystem->list(dirp->impl->parent))
-    //     {
-    //         if (previous_found)
-    //         {
-    //             std::memcpy(dirp->ent.d_name, file->name().data(), file->name().length());
-    //             dirp->ent.d_namlen = file->name().length();
-    //             dirp->ent.d_name[dirp->ent.d_namlen] = 0;
+    if (dirp->ent.d_namlen == 0)
+    {
+        const auto& file = *files.front();
+        std::memcpy(dirp->ent.d_name, file.name().data(), file.name().length());
+        dirp->ent.d_namlen = file.name().length();
+        dirp->ent.d_name[dirp->ent.d_namlen] = 0;
+        return &dirp->ent;
+    }
 
-    //             return &dirp->ent;
-    //         }
-    //         if (std::string_view(dirp->ent.d_name) == file->name())
-    //         {
-    //             previous_found = true;
-    //         }
-    //     }
-    // }
+    bool found_previous = false;
+    for (const auto& file : files)
+    {
+        if (found_previous)
+        {
+            std::memcpy(dirp->ent.d_name, file->name().data(), file->name().length());
+            dirp->ent.d_namlen = file->name().length();
+            dirp->ent.d_name[dirp->ent.d_namlen] = 0;
+            return &dirp->ent;
+        }
+        if (file->name() == std::string_view(dirp->ent.d_name))
+        {
+            found_previous = true;
+        }
+    }
 
-    // if (dirp->impl->first)
-    // {
-    //     dirp->impl->first = false;
-    //     if (!dirp->impl->mounted_points.empty())
-    //     {
-    //         const auto point = dirp->impl->mounted_points.begin();
-    //         std::memcpy(dirp->ent.d_name, point->point.data(), point->point.length());
-    //         dirp->ent.d_namlen = point->point.length();
-    //         dirp->ent.d_name[dirp->ent.d_namlen] = 0;
-
-    //         return &dirp->ent;
-    //     }
-    // }
-
-    // bool previous_found = false;
-    // for (auto& mp : dirp->impl->mounted_points)
-    // {
-    //     if (previous_found)
-    //     {
-    //         std::memcpy(dirp->ent.d_name, mp.point.data(), mp.point.length());
-    //         dirp->ent.d_namlen = mp.point.length();
-    //         dirp->ent.d_name[dirp->ent.d_namlen] = 0;
-
-    //         return &dirp->ent;
-    //     }
-    //     if (std::string_view(dirp->ent.d_name) == mp.point)
-    //     {
-    //         previous_found = true;
-    //     }
-    // }
     return nullptr;
 }
 
 int closedir(DIR *dirp)
 {
-    // delete dirp->impl;
-    // delete dirp;
+    delete[] dirp->impl->path;
+    delete dirp->impl;
+    delete dirp;
     return 0;
 }

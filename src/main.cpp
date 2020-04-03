@@ -40,9 +40,9 @@ void kernel_process(void*)
 {
     uint8_t* romfs_disk = reinterpret_cast<uint8_t*>(&_fs_flash_start);
     msos::fs::RomFs romfs(romfs_disk);
-    msos::fs::mount_points.mount_filesystem("/rom", &romfs);
+    msos::fs::mount_points.mount_filesystem("/", &romfs);
 
-    spawn_exec("/rom/bin/msos_shell.bin", NULL, NULL, 0, 1024);
+    spawn_exec("/bin/msos_shell.bin", NULL, NULL, 0, 2048);
 
     while (true)
     {

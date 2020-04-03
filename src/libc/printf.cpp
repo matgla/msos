@@ -249,6 +249,7 @@ int __vfscanf_( int fd, const char* format, va_list argptr,
         char* buffer = va_arg(argptr, char*);
         return read(fd, buffer, 0);
     }
+    return 0;
 }
 
 int _scanf(const char* format, ...)

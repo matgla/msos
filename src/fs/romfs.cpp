@@ -16,9 +16,15 @@
 
 #include "msos/fs/romfs.hpp"
 
+#include <algorithm>
+
 #include "msos/fs/romfs_file.hpp"
 
 #include <eul/utils/unused.hpp>
+
+#include "msos/usart_printer.hpp"
+
+static UsartWriter writer;
 
 namespace msos
 {
@@ -70,11 +76,12 @@ std::unique_ptr<IFile> RomFs::get(std::string_view path)
     auto dir = disk_.get_directory(path);
     if (dir)
     {
+        return std::make_unique<RomFsFile>(dir->get_file_header());
         return nullptr;
     }
     std::size_t last_slash = path.rfind("/");
     std::string_view filename = path.substr(last_slash + 1, path.size());
-
+\
     path.remove_suffix(path.size() - last_slash);
     dir = disk_.get_directory(path);
     if (dir)
@@ -84,6 +91,10 @@ std::unique_ptr<IFile> RomFs::get(std::string_view path)
         {
             return std::make_unique<RomFsFile>(*file);
         }
+        // else
+        // {
+        //     return std::make_unique<RomFsFile>(*dir);
+        // }
     }
 
     return nullptr;
@@ -109,6 +120,10 @@ std::vector<std::unique_ptr<IFile>> RomFs::list(std::string_view path)
     {
         files.push_back(std::make_unique<RomFsFile>(file));
     }
+
+    std::sort(files.begin(), files.end(), [](const auto& lhs, const auto& rhs) {
+        return std::lexicographical_compare(lhs->name().begin(), lhs->name().end(), rhs->name().begin(), rhs->name().end());
+    });
 
     return files;
 }
