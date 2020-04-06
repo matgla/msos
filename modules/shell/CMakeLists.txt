@@ -24,14 +24,10 @@ target_sources(msos_shell_lib
 
 # TODO: smarter way to inherit flags
 target_link_libraries(msos_shell_lib
-    PRIVATE
+    PUBLIC
         module_flags
         msos_interface
-)
-
-target_link_options(msos_shell_lib
-    PUBLIC
-        "-static-libgcc"
+        eul
 )
 
 add_module(msos_shell msos_shell_lib)

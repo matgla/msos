@@ -132,8 +132,10 @@ def extract_relocations(relocations, symbols, processed_symbols):
                 index += 1
         elif relocation["info_type"] == "R_ARM_ABS32":
             continue
+        elif relocation["info_type"] == "R_ARM_THM_JUMP24":
+            continue
         else:
-            print (Fore.RED + "Unknown relocation type. Please fix generate_binary.py")
+            print (Fore.RED + "Unknown relocation type. Please fix generate_binary.py: " + relocation["info_type"])
             raise RuntimeError("Script not working for this binary")
     return local_relocations, external_relocations, exported_relocations, index
 
@@ -155,9 +157,10 @@ def extract_data_relocations(relocations, symbols, code_length, lot_offset):
                 offset = int((offset - code_length)/4)
                 symbol_value = relocation["symbol_value"]
                 data_relocations.append((symbol_value, offset + lot_offset, relocation["symbol_name"]))
-
+        elif relocation["info_type"] == "R_ARM_THM_JUMP24":
+            continue
         else:
-            print (Fore.RED + "Unknown relocation type. Please fix generate_binary.py")
+            print (Fore.RED + "Unknown relocation type. Please fix generate_binary.py: " + relocation["info_type"])
             raise RuntimeError("Script not working for this binary")
     return data_relocations
 

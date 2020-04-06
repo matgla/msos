@@ -24,6 +24,7 @@ namespace dirent_utils
 {
 
 std::string_view get_next_part(std::string_view& path);
+std::string_view get_last_part(std::string_view& path);
 
 } // namespace dirent_utils
 } // namespace posix

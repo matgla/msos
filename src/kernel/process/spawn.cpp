@@ -31,10 +31,14 @@
 
 #include <hal/interrupt/systick.hpp>
 
+#include "msos/usart_printer.hpp"
+
 msos::kernel::process::ProcessManager processes;
 
 constexpr std::size_t default_stack_size = 728;
 msos::dl::DynamicLinker dynamic_linker;
+
+static UsartWriter writer;
 
 uint32_t get_lot_at(uint32_t address)
 {
@@ -99,19 +103,18 @@ pid_t spawn_root_process(void (*start_routine) (void *), void *arg, std::size_t 
 int exec_process(ExecInfo* info)
 {
     std::string_view path_to_executable(info->path);
-    msos::fs::IFileSystem* fs = msos::fs::mount_points.get_mounted_filesystem(path_to_executable);
-    const msos::fs::MountPoint* mp = msos::fs::mount_points.get_mount_point(fs);
-    if (mp->point != "/")
-    {
-        path_to_executable.remove_prefix(mp->point.size());
-    }
 
-    if (fs == nullptr)
+    writer << "Trying to execute process: " << info->path << endl;
+    msos::fs::IFileSystem* root_fs = msos::fs::mount_points.get_mounted_filesystem("/");
+
+    if (root_fs == nullptr)
     {
+        writer << "Root fs not found";
+
         return -1;
     }
 
-    std::unique_ptr<msos::fs::IFile> file = fs->get(path_to_executable);
+    std::unique_ptr<msos::fs::IFile> file = root_fs->get(path_to_executable);
 
     if (!file)
     {

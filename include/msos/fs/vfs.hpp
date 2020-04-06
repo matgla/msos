@@ -16,41 +16,42 @@
 
 #pragma once
 
-#include <vector>
 #include <string_view>
+#include <string>
+
+#include <romfs/romfs.hpp>
 
 #include "msos/fs/i_filesystem.hpp"
+#include "msos/fs/mount_points.hpp"
 
 namespace msos
 {
 namespace fs
 {
 
-struct RamfsFile : public IFile
+class Vfs : public IFileSystem
 {
 public:
-    RamfsFile(const std::string_view name, std::vector<uint8_t>& data);
-    RamfsFile(const std::string_view name);
+    int mount(drivers::storage::BlockDevice& device) override;
 
-    ssize_t read(DataType data) override;
-    ssize_t write(const ConstDataType data) override;
-    off_t seek(off_t offset, int base) const override;
-    int close() override;
-    int sync() override;
+    int umount() override;
 
-    off_t tell() const override;
-    ssize_t size() const override;
+    int create() override;
 
-    std::string_view name() const override;
+    int mkdir(std::string_view path, int mode) override;
 
-    std::unique_ptr<IFile> clone() const override;
+    int remove(std::string_view path) override;
 
-    const char* data() const override;
+    int stat(std::string_view path) override;
 
+    std::unique_ptr<IFile> get(std::string_view path) override;
+    std::unique_ptr<IFile> create(std::string_view path) override;
+
+    std::vector<std::unique_ptr<IFile>> list(std::string_view path) override;
+
+    void mount_fs(std::string_view path, IFileSystem* fs);
 private:
-    std::string_view filename_;
-    std::vector<uint8_t>* data_;
-    std::size_t position_;
+    MountPoints mount_points_;
 };
 
 } // namespace fs

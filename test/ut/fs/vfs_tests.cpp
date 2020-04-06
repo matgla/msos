@@ -14,44 +14,35 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
+#include <gtest/gtest.h>
 
-#include <vector>
-#include <string_view>
-
-#include "msos/fs/i_filesystem.hpp"
+#include "msos/fs/vfs.hpp"
 
 namespace msos
 {
 namespace fs
 {
 
-struct RamfsFile : public IFile
+TEST(VfsShould, ParsePath)
 {
-public:
-    RamfsFile(const std::string_view name, std::vector<uint8_t>& data);
-    RamfsFile(const std::string_view name);
+    std::string_view path = "/test/..";
+    EXPECT_EQ("/test", parse_path(path));
+    path = "/test";
+    EXPECT_EQ("/test", parse_path(path));
+    path = "./test";
+    EXPECT_EQ("/test", parse_path(path));
+    path = ".//test/";
+    EXPECT_EQ("/test", parse_path(path));
+    path = ".//test/path/2/../..";
+    EXPECT_EQ("/test", parse_path(path));
+    path = ".//test/path/2/../../..";
+    EXPECT_EQ("/", parse_path(path));
+    path = ".//test/path/2/..//./../../..//";
+    EXPECT_EQ("/", parse_path(path));
+}
 
-    ssize_t read(DataType data) override;
-    ssize_t write(const ConstDataType data) override;
-    off_t seek(off_t offset, int base) const override;
-    int close() override;
-    int sync() override;
-
-    off_t tell() const override;
-    ssize_t size() const override;
-
-    std::string_view name() const override;
-
-    std::unique_ptr<IFile> clone() const override;
-
-    const char* data() const override;
-
-private:
-    std::string_view filename_;
-    std::vector<uint8_t>* data_;
-    std::size_t position_;
-};
 
 } // namespace fs
 } // namespace msos
+
+

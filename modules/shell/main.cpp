@@ -23,6 +23,8 @@
 
 #include <dirent.h>
 
+#include <eul/filesystem/path.hpp>
+
 #include "msos/kernel/process/spawn.hpp"
 
 void ls_command(const char* path)
@@ -82,10 +84,17 @@ void cd_command(std::string_view path, char* pwd)
             return;
         }
         std::memcpy(absolute_path, pwd, pwd_length);
-        absolute_path[pwd_length] = '/';
-        std::memcpy(absolute_path + pwd_length + 1, path.data(), path.length());
-        absolute_path[path.length() + pwd_length + 1] = 0;
-        printf("absolute path: %s\n", absolute_path);
+        if (pwd_length != 1)
+        {
+            absolute_path[pwd_length] = '/';
+            std::memcpy(absolute_path + pwd_length + 1, path.data(), path.length());
+            absolute_path[path.length() + pwd_length + 1] = 0;
+        }
+        else
+        {
+            std::memcpy(absolute_path + pwd_length, path.data(), path.length());
+            absolute_path[path.length() + pwd_length] = 0;
+        }
         DIR *dir = opendir(absolute_path);
         if (dir != nullptr)
         {
@@ -174,9 +183,9 @@ int main()
         {
             remove_newlines(buffer, strlen(buffer));
             std::string_view arglist(buffer);
-            std::string_view arg = get_next_argument(arglist); // first argument is command name
-            arg = get_next_argument(arglist);
-            cd_command(arg, pwd);
+            get_next_argument(arglist);
+            eul::filesystem::path path(get_next_argument(arglist)); // first argument is command name
+            cd_command(path.lexically_normal().native(), pwd);
         }
         else
         {
@@ -196,9 +205,19 @@ int main()
                     continue;
                 }
                 std::memcpy(absolute_path, pwd, pwd_length);
-                absolute_path[pwd_length] = '/';
-                std::memcpy(absolute_path + pwd_length + 1, path.data(), path.length());
-                absolute_path[path.length() + pwd_length + 1] = 0;
+                if (pwd_length != 1)
+                {
+                    printf("Pwd: %s\n", pwd);
+                    absolute_path[pwd_length] = '/';
+                    std::memcpy(absolute_path + pwd_length + 1, path.data(), path.length());
+                    absolute_path[path.length() + pwd_length + 1] = 0;
+                }
+                else
+                {
+                    printf("Pwd not: %s\n", pwd);
+                    std::memcpy(absolute_path + pwd_length, path.data(), path.length());
+                    absolute_path[path.length() + pwd_length] = 0;
+                }
                 printf("executing %s\n", absolute_path);
                 exec(absolute_path, NULL, NULL, NULL);
 

@@ -25,7 +25,15 @@ namespace fs
 
 RamfsFile::RamfsFile(const std::string_view name, std::vector<uint8_t>& data)
     : filename_(name)
-    , data_{data}
+    , data_{&data}
+    , position_(0)
+{
+
+}
+
+RamfsFile::RamfsFile(const std::string_view name)
+    : filename_(name)
+    , data_{nullptr}
     , position_(0)
 {
 
@@ -33,20 +41,20 @@ RamfsFile::RamfsFile(const std::string_view name, std::vector<uint8_t>& data)
 
 ssize_t RamfsFile::read(DataType data)
 {
-    if (position_ >= data_.size())
+    if (position_ >= data_->size())
     {
         return 0;
     }
-    size_t len = (data_.size() - position_) > static_cast<size_t>(data.size()) ? data.size() : data_.size() - position_;
+    size_t len = (data_->size() - position_) > static_cast<size_t>(data.size()) ? data.size() : data_->size() - position_;
 
-    std::copy(data_.begin() + position_, data_.end(), data.begin());
+    std::copy(data_->begin() + position_, data_->end(), data.begin());
     position_ += len;
     return len;
 }
 
 ssize_t RamfsFile::write(const ConstDataType data)
 {
-    std::copy(data.begin(), data.end(), std::back_inserter(data_));
+    std::copy(data.begin(), data.end(), std::back_inserter(*data_));
     return data.size();
 }
 
@@ -83,12 +91,12 @@ std::string_view RamfsFile::name() const
 
 std::unique_ptr<IFile> RamfsFile::clone() const
 {
-    return std::make_unique<RamfsFile>(filename_, data_);
+    return std::make_unique<RamfsFile>(filename_, *data_);
 }
 
 const char* RamfsFile::data() const
 {
-    return reinterpret_cast<const char*>(data_.data());
+    return reinterpret_cast<const char*>(data_->data());
 }
 
 } // namespace fs

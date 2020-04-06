@@ -19,6 +19,8 @@
 #include <vector>
 #include <cstring>
 
+#include <eul/filesystem/path.hpp>
+
 #include "msos/fs/mount_points.hpp"
 #include "msos/usart_printer.hpp"
 #include "msos/posix/dirent_utils.hpp"
@@ -34,7 +36,7 @@ struct DIRImpl
 
 }
 
-// static UsartWriter writer;
+static UsartWriter writer;
 
 void process_next_directory(std::string_view dir)
 {
@@ -54,11 +56,14 @@ DIR* opendir(const char* dirname)
         return nullptr;
     }
 
-    std::string_view path(dirname);
+    eul::filesystem::path path(dirname);
+    path = path.lexically_normal();
 
-    auto file = root->filesystem->get(path);
+    auto file = root->filesystem->get(path.native());
     if (!file)
     {
+        // writer << "Can't get path: " << path << endl;
+
         return nullptr; // no such directory
     }
 
@@ -71,15 +76,16 @@ DIR* opendir(const char* dirname)
     dir->impl = new DIRImpl;
     dir->impl->filesystem = root->filesystem;
 
-    dir->impl->path = new char[path.length() + 1];
-    std::memcpy(dir->impl->path, path.data(), path.length());
-    dir->impl->path[path.length()] = 0;
+    dir->impl->path = new char[path.native().length() + 1];
+    std::memcpy(dir->impl->path, path.c_str(), path.native().length());
+    dir->impl->path[path.native().length()] = 0;
 
     return dir;
 }
 
 dirent* readdir(DIR *dirp)
 {
+    // writer << "Read dir" << endl;
     auto files = dirp->impl->filesystem->list(dirp->impl->path);
     if (files.empty())
     {
@@ -88,14 +94,30 @@ dirent* readdir(DIR *dirp)
 
     if (dirp->ent.d_namlen == 0)
     {
+        // writer << "Namelen is 0" << endl;
         const auto& file = *files.front();
-        std::memcpy(dirp->ent.d_name, file.name().data(), file.name().length());
+        // writer << "size: " << files.size() << ", " << files.front()->name() << endl;
+
+        if (file.name().empty())
+        {
+            dirp->ent.d_name[0] = '/';
+            dirp->ent.d_name[1] = 0;
+            dirp->ent.d_namlen = 1;
+            return &dirp->ent;
+        }
         dirp->ent.d_namlen = file.name().length();
+        std::memcpy(dirp->ent.d_name, file.name().data(), file.name().length());
         dirp->ent.d_name[dirp->ent.d_namlen] = 0;
         return &dirp->ent;
     }
 
     bool found_previous = false;
+    std::string_view previous = dirp->ent.d_name;
+    if (previous == "/")
+    {
+        previous = {};
+    }
+
     for (const auto& file : files)
     {
         if (found_previous)
@@ -105,7 +127,8 @@ dirent* readdir(DIR *dirp)
             dirp->ent.d_name[dirp->ent.d_namlen] = 0;
             return &dirp->ent;
         }
-        if (file->name() == std::string_view(dirp->ent.d_name))
+        // writer << file->name() << "==" << dirp->ent.d_name << endl;
+        if (file->name() == previous)
         {
             found_previous = true;
         }

@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <cstdint>
+#include <filesystem>
 
 #include <board.hpp>
 #include <hal/core/core.hpp>
@@ -22,6 +23,9 @@
 #include <hal/time/time.hpp>
 
 #include "msos/fs/romfs.hpp"
+#include "msos/drivers/storage/ram_block_device.hpp"
+#include "msos/fs/ramfs.hpp"
+#include "msos/fs/vfs.hpp"
 #include "msos/fs/mount_points.hpp"
 #include "msos/kernel/process/spawn.hpp"
 #include "msos/kernel/process/scheduler.hpp"
@@ -38,11 +42,18 @@ static UsartWriter writer;
 
 void kernel_process(void*)
 {
+    writer << "Starting" << endl;
+    msos::fs::Vfs vfs;
+    msos::fs::RamFs ramfs;
+    vfs.mount_fs("/", &ramfs);
+    ramfs.mkdir("rom", 1);
+
     uint8_t* romfs_disk = reinterpret_cast<uint8_t*>(&_fs_flash_start);
     msos::fs::RomFs romfs(romfs_disk);
-    msos::fs::mount_points.mount_filesystem("/", &romfs);
+    vfs.mount_fs("/rom", &romfs);
 
-    spawn_exec("/bin/msos_shell.bin", NULL, NULL, 0, 2048);
+    msos::fs::mount_points.mount_filesystem("/", &vfs);
+    spawn_exec("/rom/bin/msos_shell.bin", NULL, NULL, 0, 2048);
 
     while (true)
     {
@@ -61,7 +72,7 @@ int main()
         write_to_stdin(c);
     });
 
-    spawn_root_process(&kernel_process, NULL, 512);
+    spawn_root_process(&kernel_process, NULL, 1024);
 
     while (true)
     {

@@ -48,6 +48,31 @@ std::string_view get_next_part(std::string_view& path)
     return part;
 }
 
+std::string_view get_last_part(std::string_view& path)
+{
+    // ignore slashes at start
+    int dirname_start = path.find_first_not_of("/");
+    if (dirname_start == std::string_view::npos)
+    {
+        path = {};
+        return {};
+    }
+    path = path.substr(dirname_start, path.length());
+    int next_slash = path.find("/");
+    std::string_view part;
+    if (next_slash != std::string_view::npos)
+    {
+        part = path.substr(0, next_slash);
+        path = path.substr(next_slash, path.length());
+    }
+    else
+    {
+        part = path;
+        path = {};
+    }
+    return part;
+}
+
 } // namespace dirent_utils
 } // namespace posix
 } // namespace msos

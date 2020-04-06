@@ -28,6 +28,7 @@
 #include "msos/drivers/storage/ram_block_device.hpp"
 #include "msos/fs/ramfs.hpp"
 #include "msos/fs/romfs.hpp"
+#include "msos/fs/vfs.hpp"
 #include "msos/fs/mount_points.hpp"
 
 #include "msos/kernel/process/process.hpp"
@@ -116,8 +117,10 @@ void kernel_process(void *)
         << "Write size: " << bd.write_size() << endl
         << "Erase size: " << bd.erase_size() << endl;
 
+    msos::fs::Vfs vfs;
     msos::fs::RamFs ramfs;
-    msos::fs::mount_points.mount_filesystem("/", &ramfs);
+    vfs.mount_fs("/", &ramfs);
+    msos::fs::mount_points.mount_filesystem("/", &vfs);
 
     writer << "Creating file with name: /test.txt" << endl;
     FILE* test_file = fopen("/test.txt", "w");
@@ -159,7 +162,7 @@ void kernel_process(void *)
 
     writer << "Started testing ROMFS disk" << endl;
     msos::fs::RomFs romfs(romfs_disk);
-    msos::fs::mount_points.mount_filesystem("/rom", &romfs);
+    vfs.mount_fs("/rom", &romfs);
 
     writer << "Opening file /rom/test.txt" << endl;
     FILE *romfs_file = fopen("/rom/test.txt", "r");
@@ -181,7 +184,7 @@ void kernel_process(void *)
             {
                 writer << static_cast<char>(c);
             }
-            writer << endl;
+            // writer << endl;
         }
         fclose(romfs_file);
     }

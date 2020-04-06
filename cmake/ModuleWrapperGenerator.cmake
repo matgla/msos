@@ -71,10 +71,12 @@ function (add_module module_name module_library)
 
         file (TOUCH ${CMAKE_CURRENT_BINARY_DIR}/empty.cpp)
         add_executable(${module_name} ${CMAKE_CURRENT_BINARY_DIR}/empty.cpp)
+        get_target_property(library_libs ${module_library} LINK_LIBRARIES)
         target_link_libraries(${module_name}
             PUBLIC
                 ${module_name}_wrapper
                 module_flags
+                ${library_libs}
         )
         add_custom_command(
             TARGET ${module_name}

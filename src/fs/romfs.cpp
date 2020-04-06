@@ -73,6 +73,11 @@ int RomFs::stat(std::string_view path)
 
 std::unique_ptr<IFile> RomFs::get(std::string_view path)
 {
+    writer << "Open file: " << path << endl;
+    if (path.empty())
+    {
+        path = "/";
+    }
     auto dir = disk_.get_directory(path);
     if (dir)
     {
@@ -81,7 +86,7 @@ std::unique_ptr<IFile> RomFs::get(std::string_view path)
     }
     std::size_t last_slash = path.rfind("/");
     std::string_view filename = path.substr(last_slash + 1, path.size());
-\
+
     path.remove_suffix(path.size() - last_slash);
     dir = disk_.get_directory(path);
     if (dir)
@@ -109,6 +114,10 @@ std::unique_ptr<IFile> RomFs::create(std::string_view path)
 
 std::vector<std::unique_ptr<IFile>> RomFs::list(std::string_view path)
 {
+    if (path.empty())
+    {
+        path = "/";
+    }
     std::vector<std::unique_ptr<IFile>> files;
     auto dir = disk_.get_directory(path);
     if (!dir)

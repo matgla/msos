@@ -26,21 +26,12 @@ namespace fs
 {
 
 MountPoints mount_points;
+static UsartWriter writer;
 
 const std::vector<MountPoint> MountPoints::get_mounted_points() const
 {
     return points_;
 }
-
-/*
-    /
-    /rom
-    /tom
-    /rom2/tom2
-    /rom2/com2
-
-
-*/
 
 const std::vector<MountPoint> MountPoints::get_mounted_points_under(const std::string_view& path) const
 {
@@ -63,7 +54,38 @@ const std::vector<MountPoint> MountPoints::get_mounted_points_under(const std::s
     return matched;
 }
 
+const MountPoint* MountPoints::get_best_mount_point(std::string_view path) const
+{
+    std::string_view best_mount_point;
+    std::string_view path_to_executable(path);
+    for (auto& point : points_)
+    {
+        std::size_t index = path_to_executable.find(point.point);
+        if (index != std::string_view::npos)
+        {
+            if (point.point.size() > best_mount_point.size())
+            {
+                best_mount_point = point.point;
+            }
+        }
+    }
 
+    if (best_mount_point != "/")
+    {
+        path_to_executable.remove_prefix(best_mount_point.size());
+    }
+
+    auto mount_point = std::find_if(points_.begin(), points_.end(), [best_mount_point](const MountPoint& mp){
+        return mp.point == best_mount_point;
+    });
+    if (mount_point != points_.end())
+    {
+        return &(*mount_point);
+    }
+
+    return nullptr;
+
+}
 
 IFileSystem* MountPoints::get_mounted_filesystem(const std::string_view& path)
 {
@@ -97,8 +119,19 @@ IFileSystem* MountPoints::get_mounted_filesystem(const std::string_view& path)
     return nullptr;
 }
 
-bool MountPoints::mount_filesystem(const std::string_view& point, IFileSystem* filesystem)
+bool MountPoints::mount_filesystem(std::string_view point, IFileSystem* filesystem)
 {
+    std::size_t dirname_start = point.find_first_not_of("/");
+    if (dirname_start != std::string_view::npos)
+    {
+        point = point.substr(dirname_start, point.length());
+    }
+    else if(!point.empty())
+    {
+        point = {};
+    }
+
+
     points_.push_back(MountPoint(point, filesystem));
     return true;
 }
@@ -117,8 +150,18 @@ const MountPoint* MountPoints::get_mount_point(IFileSystem* filesystem) const
     return nullptr;
 }
 
-const MountPoint* MountPoints::get_mount_point(const std::string_view& point) const
+const MountPoint* MountPoints::get_mount_point(std::string_view point) const
 {
+    std::size_t dirname_start = point.find_first_not_of("/");
+    if (dirname_start != std::string_view::npos)
+    {
+        point = point.substr(dirname_start, point.length());
+    }
+    else if(!point.empty())
+    {
+        point = {};
+    }
+
     auto mount_point = std::find_if(points_.begin(), points_.end(), [point](const MountPoint& mp){
         return mp.point == point;
     });

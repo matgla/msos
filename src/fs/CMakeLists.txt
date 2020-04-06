@@ -24,6 +24,7 @@ target_sources(msos_fs
         ${library_includes}/i_filesystem.hpp
         ${library_includes}/mount_point.hpp
         ${library_includes}/mount_points.hpp
+        ${library_includes}/vfs.hpp
         ${library_includes}/ramfs.hpp
         ${library_includes}/romfs.hpp
         ${library_includes}/ramfs_file.hpp
@@ -36,6 +37,7 @@ target_sources(msos_fs
         ${CMAKE_CURRENT_SOURCE_DIR}/ramfs_file.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/romfs_file.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/usart_file.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/vfs.cpp
 )
 
 target_include_directories(msos_fs

@@ -27,6 +27,7 @@ target_link_libraries(posix_tests
         gtest_main
         gmock
         msos_posix
+        msos_fs
 )
 
 target_include_directories(posix_tests

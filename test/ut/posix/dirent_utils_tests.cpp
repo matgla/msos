@@ -126,6 +126,107 @@ TEST(DirentUtilsShould, CorrectlyReturnNextPartForEmpty)
     EXPECT_EQ(part, "");
 }
 
+TEST(DirentUtilsShould, CorrectlyReturnLastPartForRootBasedPath)
+{
+    std::string_view path1("/test/directory/to/some/file");
+    std::string_view part = get_next_part(path1);
+    EXPECT_EQ(path1, "/directory/to/some/file");
+    EXPECT_EQ(part, "test");
+
+    part = get_next_part(path1);
+    EXPECT_EQ(path1, "/to/some/file");
+    EXPECT_EQ(part, "directory");
+
+    part = get_next_part(path1);
+    EXPECT_EQ(path1, "/some/file");
+    EXPECT_EQ(part, "to");
+
+    part = get_next_part(path1);
+    EXPECT_EQ(path1, "/file");
+    EXPECT_EQ(part, "some");
+
+    part = get_next_part(path1);
+    EXPECT_EQ(path1, "");
+    EXPECT_EQ(part, "file");
+
+    part = get_next_part(path1);
+    EXPECT_EQ(path1, "");
+    EXPECT_EQ(part, "");
+}
+
+TEST(DirentUtilsShould, CorrectlyReturnLastPartForRootBasedPathWhenALotOfAdditionalSlashes)
+{
+    std::string_view path1("/////test///directory//to///some//file///");
+    std::string_view part = get_next_part(path1);
+    EXPECT_EQ(path1, "///directory//to///some//file///");
+    EXPECT_EQ(part, "test");
+
+    part = get_next_part(path1);
+    EXPECT_EQ(path1, "//to///some//file///");
+    EXPECT_EQ(part, "directory");
+
+    part = get_next_part(path1);
+    EXPECT_EQ(path1, "///some//file///");
+    EXPECT_EQ(part, "to");
+
+    part = get_next_part(path1);
+    EXPECT_EQ(path1, "//file///");
+    EXPECT_EQ(part, "some");
+
+    part = get_next_part(path1);
+    EXPECT_EQ(path1, "///");
+    EXPECT_EQ(part, "file");
+
+    part = get_next_part(path1);
+    EXPECT_EQ(path1, "");
+    EXPECT_EQ(part, "");
+}
+
+TEST(DirentUtilsShould, CorrectlyReturnLastPartForRelativeBasedPath)
+{
+    std::string_view path1("./test/../directory/to/.");
+    std::string_view part = get_next_part(path1);
+    EXPECT_EQ(path1, "/test/../directory/to/.");
+    EXPECT_EQ(part, ".");
+
+    part = get_next_part(path1);
+    EXPECT_EQ(path1, "/../directory/to/.");
+    EXPECT_EQ(part, "test");
+
+    part = get_next_part(path1);
+    EXPECT_EQ(path1, "/directory/to/.");
+    EXPECT_EQ(part, "..");
+
+    part = get_next_part(path1);
+    EXPECT_EQ(path1, "/to/.");
+    EXPECT_EQ(part, "directory");
+
+    part = get_next_part(path1);
+    EXPECT_EQ(path1, "/.");
+    EXPECT_EQ(part, "to");
+
+    part = get_next_part(path1);
+    EXPECT_EQ(path1, "");
+    EXPECT_EQ(part, ".");
+
+    part = get_next_part(path1);
+    EXPECT_EQ(path1, "");
+    EXPECT_EQ(part, "");
+}
+
+TEST(DirentUtilsShould, CorrectlyReturnLastPartForEmpty)
+{
+    std::string_view path1("");
+    std::string_view part = get_next_part(path1);
+    EXPECT_EQ(path1, "");
+    EXPECT_EQ(part, "");
+
+    path1 = "/";
+    part = get_next_part(path1);
+    EXPECT_EQ(path1, "");
+    EXPECT_EQ(part, "");
+}
+
 } // namespace dirent_utils
 } // namespace posix
 } // namespace msos
