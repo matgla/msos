@@ -7,7 +7,15 @@ page:
 .PHONY: docs
 docs:
 	@echo "Generating documentation"
-	cd docs && make html
+	( \
+		mkdir -p build; \
+		cd build; \
+		python3 -m venv docs_build_env; \
+		cd ..; \
+		. build/docs_build_env/bin/activate; pip3 install -r docs/requirements.txt; \
+		cd docs; \
+		make html; \
+	)
 
 menuconfig:
 	 scripts/kconfiglib.py $@

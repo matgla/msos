@@ -10,6 +10,9 @@ Welcome to MSOS's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   general/getting_started.md
+   specification/dynamic_linker.md
+
 
 
 Indices and tables

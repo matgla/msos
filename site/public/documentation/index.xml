@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Documentation on MSOS project webpage</title>
+    <link>https://matgla.github.io/msos/documentation/</link>
+    <description>Recent content in Documentation on MSOS project webpage</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    
+	<atom:link href="https://matgla.github.io/msos/documentation/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Documentations for devs</title>
+      <link>https://matgla.github.io/msos/documentation/dev_docs/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://matgla.github.io/msos/documentation/dev_docs/</guid>
+      <description>Link to documentation</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://matgla.github.io/msos/documentation/users_docs/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://matgla.github.io/msos/documentation/users_docs/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>
