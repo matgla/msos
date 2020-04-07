@@ -14,8 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(msos STATIC)
+add_library(msos INTERFACE)
 
+add_subdirectory(apps)
 add_subdirectory(arch)
 add_subdirectory(dynamic_linker)
 add_subdirectory(kernel)
@@ -26,16 +27,38 @@ add_subdirectory(fs)
 add_subdirectory(drivers)
 add_subdirectory(libc)
 
+add_library(msos_printer)
+
 set (library_includes ${PROJECT_SOURCE_DIR}/include/msos)
 
-target_sources(msos
+target_sources(msos_printer
     PUBLIC
         ${library_includes}/usart_printer.hpp
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/usart_printer.cpp
+)
+
+target_include_directories(msos_printer
+    PUBLIC
+        ${PROJECT_SOURCE_DIR}/include
+)
+
+target_link_libraries(msos_printer
+    PRIVATE
+        hal
+)
+
+target_compile_options(msos_printer
+    PUBLIC
+        $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a>
+    PRIVATE
+        $<$<COMPILE_LANGUAGE:CXX>:-Werror -Wall -Wextra -Wpedantic -Wcast-align -Wshadow -Wpointer-arith -Wcast-qual -Wno-missing-braces>
+        $<$<CONFIG:DEBUG>:-Og -g>
+        $<$<CONFIG:RELEASE>:-Os>
 )
 
 target_link_libraries(msos
-    PUBLIC
-        hal
+    INTERFACE
         msos_kernel_synchronization
         msos_kernel_memory
         msos_syscalls
@@ -45,10 +68,13 @@ target_link_libraries(msos
         msos_libc
         msos_posix
         msos_arch
+        msos_apps
+        msos_printer
+        hal_flags
 )
 
 target_include_directories(msos
-    PUBLIC
+    INTERFACE
         ${PROJECT_SOURCE_DIR}/include
 )
 
@@ -72,6 +98,8 @@ target_sources(msos_test
 target_link_libraries(msos_test
     PUBLIC
         msos
+        msos_shell
+
 )
 
 set_target_properties(msos_test
@@ -87,13 +115,15 @@ set (executable_file "${CMAKE_CURRENT_BINARY_DIR}/msos_test.bin")
 
 add_custom_target(generate_romfs
     ALL
-    DEPENDS msos_test msos_shell
+    DEPENDS msos_test simple_game msos_ls
 
 )
 
 add_custom_command(
     TARGET generate_romfs
     POST_BUILD
+    COMMAND rm -f ${PROJECT_BINARY_DIR}/rootfs.img
+    COMMAND genromfs -f ${PROJECT_BINARY_DIR}/rootfs.img -d ${PROJECT_BINARY_DIR}/rootfs -v -V msos_romfs
     COMMAND ${truncate_exec} --size 32K ${executable_file}
     COMMAND cp ${executable_file} ${executable_file}.tmp
     COMMAND cat ${executable_file}.tmp ${PROJECT_BINARY_DIR}/rootfs.img > ${executable_file}

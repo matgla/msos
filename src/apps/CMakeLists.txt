@@ -1,5 +1,5 @@
 # This file is part of MSOS project. This is simple OS for embedded development devices.
-# Copyright (C) 2020 Mateusz Stadnik
+# Copyright (C) 2019 Mateusz Stadnik
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,50 +14,38 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_executable(host)
+add_subdirectory(shell)
 
-target_sources(host
+add_library(msos_apps)
+
+set (library_includes ${PROJECT_SOURCE_DIR}/include/msos/apps)
+
+target_sources(msos_apps
     PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+        ${library_includes}/app_registry.hpp
+        ${library_includes}/app_file.hpp
+
+        ${CMAKE_CURRENT_SOURCE_DIR}/app_registry.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/app_file.cpp
 )
 
-target_link_libraries(host
-    PUBLIC
-        msos
-        hal
-)
 
-include (GenerateBinary)
-generate_binary(host ${vendor})
-
-target_include_directories(host
+target_include_directories(msos_apps
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
 )
 
-set_target_properties(host
-    PROPERTIES
-        SUFFIX ".elf"
-)
-
-find_program(qemu_img qemu-img)
-
-if (NOT qemu_img)
-    message(FATAL_ERROR "qemu-img executable not found!")
-endif ()
-
-add_custom_command(
-    TARGET host
-    COMMAND ${qemu_img} resize ${CMAKE_CURRENT_BINARY_DIR}/host.bin 32K
-    POST_BUILD
-    VERBATIM
-)
-
-set (HOST_BINARY_FILE "${CMAKE_CURRENT_BINARY_DIR}/host.bin" CACHE INTERNAL "")
-
-target_compile_options(host
+target_compile_options(msos_apps
     PUBLIC
-    $<$<CONFIG:DEBUG>:-Og -g>
-    $<$<CONFIG:RELEASE>:-Os>
+        $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a>
+        $<$<CONFIG:DEBUG>:-Og -g>
+        $<$<CONFIG:RELEASE>:-Os>
+    PRIVATE
+        $<$<COMPILE_LANGUAGE:CXX>:-Werror -Wall -Wextra -Wpedantic -Wconversion -Wcast-align -Wunused -Wshadow -Wold-style-cast -Wpointer-arith -Wcast-qual -Wno-missing-braces>
 )
 
+target_link_libraries(msos_apps
+    PRIVATE
+        eul
+        msos_fs
+)

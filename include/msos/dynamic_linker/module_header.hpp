@@ -27,19 +27,19 @@ namespace dl
 class ModuleHeader
 {
 public:
-    const std::string_view cookie() const;
-    const uint32_t code_size() const;
-    const uint32_t data_size() const;
-    const uint32_t bss_size() const;
-    const uint16_t number_of_exported_relocations() const;
-    const uint16_t number_of_external_relocations() const;
-    const uint16_t number_of_local_relocations() const;
-    const uint16_t number_of_data_relocations() const;
-    const uint32_t number_of_relocations() const;
-    const uint16_t number_of_exported_symbols() const;
-    const uint16_t number_of_external_symbols() const;
-    const std::string_view name() const;
-    const uint32_t size() const;
+    std::string_view cookie() const;
+    uint32_t code_size() const;
+    uint32_t data_size() const;
+    uint32_t bss_size() const;
+    uint16_t number_of_exported_relocations() const;
+    uint16_t number_of_external_relocations() const;
+    uint16_t number_of_local_relocations() const;
+    uint16_t number_of_data_relocations() const;
+    uint32_t number_of_relocations() const;
+    uint16_t number_of_exported_symbols() const;
+    uint16_t number_of_external_symbols() const;
+    std::string_view name() const;
+    std::size_t size() const;
 private:
     char cookie_[4];
     uint32_t code_size_;

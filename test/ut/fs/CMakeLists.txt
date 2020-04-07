@@ -28,6 +28,8 @@ target_link_libraries(fs_tests
         gmock
         gtest_main
         msos_fs
+        msos_drivers_storage
+        gsl
 )
 
 target_include_directories(fs_tests

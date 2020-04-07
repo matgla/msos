@@ -48,6 +48,8 @@ public:
     std::unique_ptr<IFile> create(std::string_view path) override;
 
     std::vector<std::unique_ptr<IFile>> list(std::string_view path) override;
+    std::string_view name() const override;
+
 protected:
     static bool mounted_;
     romfs::RomFsDisk disk_;

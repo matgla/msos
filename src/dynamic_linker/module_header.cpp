@@ -23,9 +23,9 @@ namespace msos
 namespace dl
 {
 
-inline int get_aligned_length(const std::string_view& str)
+inline std::size_t get_aligned_length(const std::string_view& str)
 {
-    uint32_t name_length = str.length() + 1;
+    std::size_t name_length = str.length() + 1;
     if (name_length % 4)
     {
         name_length = name_length + 4 - (name_length % 4);
@@ -34,68 +34,68 @@ inline int get_aligned_length(const std::string_view& str)
 }
 
 
-const std::string_view ModuleHeader::cookie() const
+std::string_view ModuleHeader::cookie() const
 {
     return std::string_view(cookie_, 4);
 }
 
-const uint32_t ModuleHeader::code_size() const
+uint32_t ModuleHeader::code_size() const
 {
     return code_size_;
 }
 
-const uint32_t ModuleHeader::data_size() const
+uint32_t ModuleHeader::data_size() const
 {
     return data_size_;
 }
 
-const uint32_t ModuleHeader::bss_size() const
+uint32_t ModuleHeader::bss_size() const
 {
     return bss_size_;
 }
 
-const uint16_t ModuleHeader::number_of_exported_relocations() const
+uint16_t ModuleHeader::number_of_exported_relocations() const
 {
     return number_of_exported_relocations_;
 }
 
-const uint16_t ModuleHeader::number_of_external_relocations() const
+uint16_t ModuleHeader::number_of_external_relocations() const
 {
     return number_of_external_relocations_;
 }
 
-const uint16_t ModuleHeader::number_of_local_relocations() const
+uint16_t ModuleHeader::number_of_local_relocations() const
 {
     return number_of_local_relocations_;
 }
 
-const uint16_t ModuleHeader::number_of_data_relocations() const
+uint16_t ModuleHeader::number_of_data_relocations() const
 {
     return number_of_data_relocations_;
 }
 
-const uint32_t ModuleHeader::number_of_relocations() const
+uint32_t ModuleHeader::number_of_relocations() const
 {
     return number_of_exported_relocations_ + number_of_external_relocations_ +
         number_of_local_relocations_ + number_of_data_relocations_;
 }
 
-const uint16_t ModuleHeader::number_of_exported_symbols() const
+uint16_t ModuleHeader::number_of_exported_symbols() const
 {
     return number_of_exported_symbols_;
 }
 
-const uint16_t ModuleHeader::number_of_external_symbols() const
+uint16_t ModuleHeader::number_of_external_symbols() const
 {
     return number_of_external_symbols_;
 }
 
-const std::string_view ModuleHeader::name() const
+std::string_view ModuleHeader::name() const
 {
     return std::string_view(reinterpret_cast<const char*>(this) + sizeof(ModuleHeader));
 }
 
-const uint32_t ModuleHeader::size() const
+std::size_t ModuleHeader::size() const
 {
     return sizeof(ModuleHeader) + get_aligned_length(name());
 }

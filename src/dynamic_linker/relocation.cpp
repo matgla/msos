@@ -23,7 +23,7 @@ namespace msos
 namespace dl
 {
 
-const uint32_t Relocation::index() const
+uint32_t Relocation::index() const
 {
     return index_;
 }

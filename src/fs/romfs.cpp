@@ -22,10 +22,6 @@
 
 #include <eul/utils/unused.hpp>
 
-#include "msos/usart_printer.hpp"
-
-static UsartWriter writer;
-
 namespace msos
 {
 namespace fs
@@ -73,7 +69,6 @@ int RomFs::stat(std::string_view path)
 
 std::unique_ptr<IFile> RomFs::get(std::string_view path)
 {
-    writer << "Open file: " << path << endl;
     if (path.empty())
     {
         path = "/";
@@ -136,6 +131,12 @@ std::vector<std::unique_ptr<IFile>> RomFs::list(std::string_view path)
 
     return files;
 }
+
+std::string_view RomFs::name() const
+{
+    return "RomFS";
+}
+
 
 } // namespace fs
 } // namespace msos

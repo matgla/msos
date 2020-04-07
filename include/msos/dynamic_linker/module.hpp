@@ -40,8 +40,8 @@ public:
     DataSpan get_text() const;
     DataSpan get_data() const;
     const ModuleHeader& get_header() const;
-    const std::unique_ptr<uint32_t[]>& get_lot() const;
-    std::unique_ptr<uint32_t[]>& get_lot();
+    const std::unique_ptr<size_t[]>& get_lot() const;
+    std::unique_ptr<size_t[]>& get_lot();
     ModuleData& get_module_data();
     const ModuleData& get_module_data() const;
 
@@ -55,7 +55,7 @@ private:
     const ModuleHeader* module_header_;
     uint8_t* text_;
     uint8_t* data_;
-    std::unique_ptr<uint32_t[]> lot_;
+    std::unique_ptr<size_t[]> lot_;
     ModuleData module_data_;
 };
 

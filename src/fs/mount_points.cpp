@@ -18,15 +18,10 @@
 
 #include <algorithm>
 
-#include "msos/usart_printer.hpp"
-
 namespace msos
 {
 namespace fs
 {
-
-MountPoints mount_points;
-static UsartWriter writer;
 
 const std::vector<MountPoint> MountPoints::get_mounted_points() const
 {
@@ -42,7 +37,7 @@ const std::vector<MountPoint> MountPoints::get_mounted_points_under(const std::s
             if (point.point.find(path) == 0)
             {
                 std::string_view trimmed_path = point.point.substr(path.length(), point.point.length());
-                int last_slash = trimmed_path.find_last_of("/");
+                std::size_t last_slash = trimmed_path.find_last_of("/");
 
                 if (last_slash == 0 || last_slash == std::string_view::npos)
                 {

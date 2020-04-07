@@ -19,17 +19,18 @@ add_library(msos_kernel_memory)
 set (library_includes ${PROJECT_SOURCE_DIR}/include/msos/kernel/memory)
 
 target_sources(msos_kernel_memory
-   PUBLIC
+   PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/malloc.cpp
-)
-
-target_link_libraries(msos_kernel_memory
-    PUBLIC
-        hal
 )
 
 target_include_directories(msos_kernel_memory
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
+)
+
+target_link_libraries(msos_kernel_memory
+    PRIVATE
+        msos_printer
+        hal_flags
 )
 

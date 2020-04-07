@@ -29,10 +29,10 @@
 #include <hal/core/core.hpp>
 
 
-msos::dl::DynamicLinker dynamic_linker;
+static msos::dl::DynamicLinker dynamic_linker;
 UsartWriter writer;
 
-uint32_t get_lot_at(uint32_t address)
+static uint32_t get_lot_at(uint32_t address)
 {
     return dynamic_linker.get_lot_for_module_at(address);
 }
@@ -52,7 +52,7 @@ int main()
     module_address += 32 * 1024;
     msos::dl::Environment<2> env{
         msos::dl::SymbolAddress{"atoi", &atoi},
-        msos::dl::SymbolAddress{"printf", &_printf_via_usart}
+        msos::dl::SymbolAddress{"printf", &_printf}
     };
     writer << "[TEST START]" << endl;
 

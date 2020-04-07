@@ -14,29 +14,41 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <cstdint>
+#pragma once
 
-extern "C"
+#include <string_view>
+
+#include "msos/apps/app_registry.hpp"
+
+namespace msos
+{
+namespace apps
 {
 
-typedef struct dirent {
-    uint32_t d_ino;
-    uint32_t d_off;
-    uint16_t d_reclen;
-    std::size_t d_namlen;
-    int d_type;
-    char d_name[128];
-} dirent;
+struct AppFile : public fs::IFile
+{
+public:
+    AppFile(const AppEntry entry);
+    AppFile();
 
-struct DIRImpl;
+    ssize_t read(DataType data) override;
+    ssize_t write(const ConstDataType data) override;
+    off_t seek(off_t offset, int base) const override;
+    int close() override;
+    int sync() override;
 
-typedef struct DIR {
-    struct dirent ent;
-    struct DIRImpl *impl;
-} DIR;
+    off_t tell() const override;
+    ssize_t size() const override;
 
-DIR* opendir(const char* dirname);
-dirent* readdir(DIR *dirp);
-int closedir(DIR *dirp);
+    std::string_view name() const override;
 
-}
+    std::unique_ptr<fs::IFile> clone() const override;
+
+    const char* data() const override;
+
+private:
+    AppEntry entry_;
+};
+
+} // namespace apps
+} // namespace msos

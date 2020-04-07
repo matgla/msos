@@ -117,10 +117,9 @@ void kernel_process(void *)
         << "Write size: " << bd.write_size() << endl
         << "Erase size: " << bd.erase_size() << endl;
 
-    msos::fs::Vfs vfs;
+    msos::fs::Vfs& vfs = msos::fs::Vfs::instance();
     msos::fs::RamFs ramfs;
     vfs.mount_fs("/", &ramfs);
-    msos::fs::mount_points.mount_filesystem("/", &vfs);
 
     writer << "Creating file with name: /test.txt" << endl;
     FILE* test_file = fopen("/test.txt", "w");

@@ -32,28 +32,43 @@
 #include "msos/syscalls/syscalls.hpp"
 #include "msos/usart_printer.hpp"
 #include "msos/libc/printf.hpp"
+#include "msos/apps/app_registry.hpp"
 
 extern "C"
 {
 extern uint32_t _fs_flash_start;
 }
 
+msos::fs::RamFs ramfs;
+
+
 static UsartWriter writer;
+
+void aa()
+{
+    writer << "aa" << endl;
+}
 
 void kernel_process(void*)
 {
     writer << "Starting" << endl;
-    msos::fs::Vfs vfs;
-    msos::fs::RamFs ramfs;
+    msos::fs::Vfs& vfs = msos::fs::Vfs::instance();
     vfs.mount_fs("/", &ramfs);
     ramfs.mkdir("rom", 1);
+    ramfs.mkdir("bin", 1);
 
     uint8_t* romfs_disk = reinterpret_cast<uint8_t*>(&_fs_flash_start);
     msos::fs::RomFs romfs(romfs_disk);
     vfs.mount_fs("/rom", &romfs);
 
-    msos::fs::mount_points.mount_filesystem("/", &vfs);
-    spawn_exec("/rom/bin/msos_shell.bin", NULL, NULL, 0, 2048);
+    msos::apps::AppRegistry& apps = msos::apps::AppRegistry::get_instance();
+    writer << "apps; 0x" << hex << reinterpret_cast<std::size_t>(&apps) << endl;
+    apps.register_executable("aa", reinterpret_cast<std::size_t>(&aa));
+    writer << "Mount apps" << endl;
+    vfs.mount_fs("/bin", &apps);
+
+    writer << "executin shell" << endl;
+    spawn_exec("/bin/msos_shell.bin", NULL, NULL, 0, 2048);
 
     while (true)
     {
@@ -72,7 +87,7 @@ int main()
         write_to_stdin(c);
     });
 
-    spawn_root_process(&kernel_process, NULL, 1024);
+    spawn_root_process(&kernel_process, NULL, 2048);
 
     while (true)
     {

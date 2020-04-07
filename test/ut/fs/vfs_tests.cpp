@@ -23,24 +23,6 @@ namespace msos
 namespace fs
 {
 
-TEST(VfsShould, ParsePath)
-{
-    std::string_view path = "/test/..";
-    EXPECT_EQ("/test", parse_path(path));
-    path = "/test";
-    EXPECT_EQ("/test", parse_path(path));
-    path = "./test";
-    EXPECT_EQ("/test", parse_path(path));
-    path = ".//test/";
-    EXPECT_EQ("/test", parse_path(path));
-    path = ".//test/path/2/../..";
-    EXPECT_EQ("/test", parse_path(path));
-    path = ".//test/path/2/../../..";
-    EXPECT_EQ("/", parse_path(path));
-    path = ".//test/path/2/..//./../../..//";
-    EXPECT_EQ("/", parse_path(path));
-}
-
 
 } // namespace fs
 } // namespace msos

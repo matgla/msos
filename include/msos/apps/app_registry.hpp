@@ -17,20 +17,37 @@
 #pragma once
 
 #include <string_view>
-#include <string>
 
 #include "msos/fs/i_filesystem.hpp"
-#include "msos/fs/mount_points.hpp"
+#include "msos/fs/ramfs_file.hpp"
 
 namespace msos
 {
-namespace fs
+namespace apps
 {
 
-class Vfs : public IFileSystem
+struct AppEntry
+{
+    AppEntry() : name("/"), address(0xdeadbeef)
+    {
+
+    }
+    AppEntry(const std::string_view& n, std::size_t a)
+        : name{n}
+        , address{a}
+    {
+    }
+
+
+    std::string_view name;
+    std::size_t address;
+};
+
+class AppRegistry : public fs::IFileSystem
 {
 public:
-    static Vfs& instance();
+    static AppRegistry& get_instance();
+
     int mount(drivers::storage::BlockDevice& device) override;
 
     int umount() override;
@@ -43,17 +60,16 @@ public:
 
     int stat(std::string_view path) override;
 
-    std::unique_ptr<IFile> get(std::string_view path) override;
-    std::unique_ptr<IFile> create(std::string_view path) override;
+    std::unique_ptr<fs::IFile> get(std::string_view path) override;
+    std::unique_ptr<fs::IFile> create(std::string_view path) override;
 
-    std::vector<std::unique_ptr<IFile>> list(std::string_view path) override;
+    std::vector<std::unique_ptr<fs::IFile>> list(std::string_view path) override;
 
-    void mount_fs(std::string_view path, IFileSystem* fs);
+    static bool register_executable(std::string_view name, std::size_t address);
     std::string_view name() const override;
-    IFileSystem* get_child_fs(std::string_view path);
-private:
-    MountPoints mount_points_;
 };
 
-} // namespace fs
+} // namespace apps
 } // namespace msos
+
+#define REGISTER_APP(name, address) bool app_name ## _entry = msos::apps::AppRegistry::register_executable("/"#name".bin", reinterpret_cast<std::size_t>(address));

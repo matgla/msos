@@ -119,12 +119,13 @@ def extract_relocations(relocations, symbols, processed_symbols):
                     lot_index = get_index_of_relocation(external_relocations, relocation["symbol_name"])
                 external_relocations.append((relocation["symbol_name"], offset, lot_index))
             elif symbol_visibility == "exported":
-                lot_index = index
-                if not has_relocation(exported_relocations, relocation["symbol_name"]):
-                    index += 1
-                else:
-                    lot_index = get_index_of_relocation(external_relocations, relocation["symbol_name"])
-                exported_relocations.append((relocation["symbol_name"], offset, lot_index))
+                if relocation["symbol_name"] == "main":
+                    lot_index = index
+                    if not has_relocation(exported_relocations, relocation["symbol_name"]):
+                        index += 1
+                    else:
+                        lot_index = get_index_of_relocation(external_relocations, relocation["symbol_name"])
+                    exported_relocations.append((relocation["symbol_name"], offset, lot_index))
             elif symbol_visibility == "internal":
                 symbol_value = relocation["symbol_value"]
                 section = relocation["section_index"]

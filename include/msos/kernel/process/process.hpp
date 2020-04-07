@@ -66,7 +66,7 @@ public:
 
     Process() = default;
     Process(const Process& process);
-    Process(const std::size_t process_entry, const std::size_t stack_size, uint32_t arg);
+    Process(const std::size_t process_entry, const std::size_t stack_size, std::size_t arg);
 
     pid_t pid() const;
     std::size_t stack_size() const;
@@ -92,10 +92,10 @@ private:
     pid_t pid_;
     std::size_t stack_size_;
     std::unique_ptr<std::size_t[]> stack_;
-    uint8_t fd_map_;
+    int fd_map_;
     const std::size_t* current_stack_pointer_;
     std::array<std::unique_ptr<msos::fs::IFile>, 8> fd_;
-    std::vector<uint32_t> locks_;
+    std::vector<std::size_t> locks_;
 };
 
 } // namespace process

@@ -23,13 +23,13 @@ target_sources(msos_libc
         ${CMAKE_CURRENT_SOURCE_DIR}/printf.cpp
 )
 
-target_link_libraries(msos_libc
-    PUBLIC
-        hal
-)
-
 target_include_directories(msos_libc
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
 )
 
+target_link_libraries(msos_libc
+    PRIVATE
+        msos_printer
+        hal_flags
+)

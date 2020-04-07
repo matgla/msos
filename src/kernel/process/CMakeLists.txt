@@ -35,10 +35,22 @@ target_sources(msos_kernel_process
         ${CMAKE_CURRENT_SOURCE_DIR}/spawn.cpp
 )
 
+target_compile_options(msos_kernel_process
+    PUBLIC
+        $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a>
+        $<$<CONFIG:DEBUG>:-Og -g>
+        $<$<CONFIG:RELEASE>:-Os>
+    PRIVATE
+        $<$<COMPILE_LANGUAGE:CXX>:-Werror -Wall -Wextra -Wpedantic -Wcast-align -Wunused -Wshadow -Wpointer-arith -Wcast-qual -Wno-missing-braces -Wno-cast-align -Wno-old-style-cast>
+)
+
 target_link_libraries(msos_kernel_process
     PUBLIC
-        hal
+        eul_error
+    PRIVATE
         msos_arch
+        msos_fs
+        hal
 )
 
 target_include_directories(msos_kernel_process

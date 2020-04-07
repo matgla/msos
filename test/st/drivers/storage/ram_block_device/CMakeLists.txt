@@ -24,6 +24,8 @@ target_sources(ram_block_device_test
 target_link_libraries(ram_block_device_test
     PUBLIC
         msos
+    PRIVATE
+        hal
 )
 
 include (GenerateBinary)

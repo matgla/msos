@@ -30,7 +30,7 @@ target_sources(msos_kernel_synchronization
 )
 
 target_link_libraries(msos_kernel_synchronization
-    PUBLIC
+    PRIVATE
         hal
 )
 
@@ -39,7 +39,8 @@ target_include_directories(msos_kernel_synchronization
        ${PROJECT_SOURCE_DIR}/include
 )
 
-target_compile_options(msos_kernel_synchronization PUBLIC
+target_compile_options(msos_kernel_synchronization
+    PRIVATE
         $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a -Wcast-align -Wpointer-arith -Wcast-qual -Wno-missing-braces>
         $<$<CONFIG:DEBUG>:-Og -g>
         $<$<CONFIG:RELEASE>:-Os>

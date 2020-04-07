@@ -24,6 +24,7 @@ target_sources(host_with_args
 target_link_libraries(host_with_args
     PUBLIC
         msos
+        hal
 )
 
 include (GenerateBinary)

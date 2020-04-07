@@ -19,8 +19,6 @@
 #include <algorithm>
 #include <cstdio>
 
-#include <hal/core/criticalSection.hpp>
-
 #include "msos/kernel/process/process.hpp"
 
 
@@ -35,7 +33,7 @@ ProcessManager::ProcessManager() : processes_{}
 {
 }
 
-Process& ProcessManager::create_process(std::size_t process_entry, std::size_t stack_size, uint32_t arg)
+Process& ProcessManager::create_process(std::size_t process_entry, std::size_t stack_size, std::size_t arg)
 {
     processes_.emplace_back(process_entry, stack_size, arg);
     return processes_.back();

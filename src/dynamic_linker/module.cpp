@@ -52,12 +52,12 @@ const ModuleHeader& Module::get_header() const
     return *module_header_;
 }
 
-const std::unique_ptr<uint32_t[]>& Module::get_lot() const
+const std::unique_ptr<size_t[]>& Module::get_lot() const
 {
     return lot_;
 }
 
-std::unique_ptr<uint32_t[]>& Module::get_lot()
+std::unique_ptr<std::size_t[]>& Module::get_lot()
 {
     return lot_;
 }

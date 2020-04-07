@@ -27,7 +27,15 @@ target_link_libraries(posix_tests
         gtest_main
         gmock
         msos_posix
-        msos_fs
+        # eul_filesystem
+        # msos_fs
+)
+
+target_compile_options(posix_tests
+    PRIVATE
+        $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a -Werror -Wall -Wextra -Wpedantic -Wconversion -Wcast-align -Wunused -Wshadow -Wold-style-cast -Wpointer-arith -Wcast-qual -Wno-missing-braces>
+        $<$<CONFIG:DEBUG>:-Og -g>
+        $<$<CONFIG:RELEASE>:-Os>
 )
 
 target_include_directories(posix_tests

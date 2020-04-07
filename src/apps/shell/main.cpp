@@ -24,6 +24,8 @@
 #include <dirent.h>
 
 #include <eul/filesystem/path.hpp>
+#include "msos/apps/app_registry.hpp"
+#include "msos/libc/printf.hpp"
 
 #include "msos/kernel/process/spawn.hpp"
 
@@ -40,16 +42,6 @@ void ls_command(const char* path)
         closedir(d);
     }
 }
-
-void remove_whitespace_from_start(std::string_view& path)
-{
-    int first_char = path.find_first_not_of(" ");
-    if (first_char != 0 && first_char != std::string_view::npos)
-    {
-        path = path.substr(first_char, path.length());
-    }
-}
-
 bool is_absolute_path(const std::string_view& path)
 {
     if (path.empty())
@@ -59,47 +51,34 @@ bool is_absolute_path(const std::string_view& path)
     return path[0] == '/';
 }
 
-void cd_command(std::string_view path, char* pwd)
+void cd_command(const eul::filesystem::path& path, char* pwd)
 {
     DIR *d;
     struct dirent *dir;
-    remove_whitespace_from_start(path);
 
-    if (is_absolute_path(path))
+    if (path.is_absolute())
     {
-        DIR *dir = opendir(path.data());
+        DIR *dir = opendir(path.c_str());
         if (dir != nullptr)
         {
-            std::memcpy(pwd, path.data(), path.length());
+            std::memcpy(pwd, path.c_str(), path.native().length());
+            pwd[path.native().length()] = 0;
             closedir(dir);
             return;
         }
     }
     else
     {
-        char absolute_path[100];
-        int pwd_length = strlen(pwd);
-        if (pwd_length + path.length() + 2 >= 100)
-        {
-            return;
-        }
-        std::memcpy(absolute_path, pwd, pwd_length);
-        if (pwd_length != 1)
-        {
-            absolute_path[pwd_length] = '/';
-            std::memcpy(absolute_path + pwd_length + 1, path.data(), path.length());
-            absolute_path[path.length() + pwd_length + 1] = 0;
-        }
-        else
-        {
-            std::memcpy(absolute_path + pwd_length, path.data(), path.length());
-            absolute_path[path.length() + pwd_length] = 0;
-        }
-        DIR *dir = opendir(absolute_path);
+        eul::filesystem::path absolute_path(pwd);
+        absolute_path += path;
+        auto ab = absolute_path.lexically_normal(); // first argument is command name
+        DIR *dir = opendir(ab.c_str());
         if (dir != nullptr)
         {
             closedir(dir);
-            std::memcpy(pwd, absolute_path, strlen(absolute_path));
+
+            std::memcpy(pwd, ab.c_str(), ab.native().length());
+            pwd[ab.native().length()] = 0;
             return;
         }
     }
@@ -160,7 +139,7 @@ void remove_newlines(char* str, size_t len)
     }
 }
 
-int main()
+int app_start()
 {
     printf("MSOS shell:\n");
     char buffer[100] = {};
@@ -169,7 +148,7 @@ int main()
     while (std::string_view(buffer).find("exit") == std::string_view::npos)
     {
         write(1, "> \0", 3);
-        // buffer[0] = 0;
+        buffer[0] = 0;
         scanf("%s", &buffer);
         if (std::string_view(buffer).find("ls") == 0)
         {
@@ -184,13 +163,18 @@ int main()
             remove_newlines(buffer, strlen(buffer));
             std::string_view arglist(buffer);
             get_next_argument(arglist);
-            eul::filesystem::path path(get_next_argument(arglist)); // first argument is command name
-            cd_command(path.lexically_normal().native(), pwd);
+            auto path = eul::filesystem::path::create(get_next_argument(arglist)); // first argument is command name
+            cd_command(path.lexically_normal(), pwd);
+        }
+        else if (std::string_view(buffer).find("exit") == 0)
+        {
+            break;
         }
         else
         {
             remove_newlines(buffer, strlen(buffer));
-            std::string_view path(buffer);
+            auto path = eul::filesystem::path::create(buffer); // first argument is command name
+
             if (is_absolute_path(buffer))
             {
                 printf("executing %s\n", path);
@@ -200,7 +184,7 @@ int main()
             {
                 char absolute_path[100];
                 int pwd_length = strlen(pwd);
-                if (pwd_length + path.length() + 2 >= 100)
+                if (pwd_length + path.native().length() + 2 >= 100)
                 {
                     continue;
                 }
@@ -209,14 +193,14 @@ int main()
                 {
                     printf("Pwd: %s\n", pwd);
                     absolute_path[pwd_length] = '/';
-                    std::memcpy(absolute_path + pwd_length + 1, path.data(), path.length());
-                    absolute_path[path.length() + pwd_length + 1] = 0;
+                    std::memcpy(absolute_path + pwd_length + 1, path.c_str(), path.native().length());
+                    absolute_path[path.native().length() + pwd_length + 1] = 0;
                 }
                 else
                 {
                     printf("Pwd not: %s\n", pwd);
-                    std::memcpy(absolute_path + pwd_length, path.data(), path.length());
-                    absolute_path[path.length() + pwd_length] = 0;
+                    std::memcpy(absolute_path + pwd_length, path.c_str(), path.native().length());
+                    absolute_path[path.native().length() + pwd_length] = 0;
                 }
                 printf("executing %s\n", absolute_path);
                 exec(absolute_path, NULL, NULL, NULL);
@@ -226,5 +210,7 @@ int main()
         }
     }
     printf("MSOS Shell exit\n");
+    return 0;
 }
 
+REGISTER_APP(msos_shell, &app_start);

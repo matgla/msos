@@ -23,6 +23,7 @@ target_sources(mutex_test
 
 target_link_libraries(mutex_test
     PUBLIC
+        hal
         msos
 )
 

@@ -24,12 +24,11 @@
 #include <fcntl.h>
 #include <gsl/span>
 
-#include <hal/memory/heap.hpp>
-#include <hal/core/criticalSection.hpp>
-#include <board.hpp>
+#include <eul/filesystem/path.hpp>
+#include <eul/utils/unused.hpp>
 
 #include "msos/syscalls/syscalls.hpp"
-#include "msos/fs/mount_points.hpp"
+#include "msos/fs/vfs.hpp"
 #include "msos/kernel/process/scheduler.hpp"
 #include "msos/kernel/process/context_switch.hpp"
 
@@ -63,6 +62,7 @@ pid_t process_fork(uint32_t sp, uint32_t return_address);
 
 int _gettimeofday(struct timeval* tv, void* tzvp)
 {
+    UNUSED2(tv, tzvp);
     return 0;
 }
 
@@ -76,10 +76,12 @@ void _exit(int code)
 
 int _kill(int pid, int sig)
 {
+    UNUSED2(pid, sig);
     return 0;
 }
 int _getpid(int n)
 {
+    UNUSED1(n);
     return 0;
 }
 
@@ -168,6 +170,7 @@ int _read(int fd, char* ptr, int len)
 
 int _isatty(int file)
 {
+    UNUSED1(file);
     // if (file == 0)
     // {
     //     return 1;
@@ -178,6 +181,7 @@ int _isatty(int file)
 
 int _lseek(int file, int ptr, int dir)
 {
+    UNUSED3(file, ptr, dir);
     // printf("lseek file: %d, ptr %d, dir %d\n", file, ptr, dir);
 
     return 0;
@@ -190,6 +194,7 @@ int _close(int file)
 
 int _fstat(int file, struct stat* st)
 {
+    UNUSED2(file, st);
     // if (file == 0)
     // {
     //     st->st_mode = S_IFCHR;
@@ -203,48 +208,19 @@ int _open(const char* filename, int flags)
 {
     // printf("opening file: %s\n", filename);
 
-    auto& mount_points = msos::fs::mount_points.get_mounted_points();
-
-    msos::fs::IFileSystem* fs;
-    std::string_view best_mount_point;
-    std::string_view path(filename);
-
-    for (auto& point : mount_points)
-    {
-        std::size_t position = path.find(point.point);
-        if (position != std::string_view::npos)
-        {
-            if (point.point.size() > best_mount_point.size())
-            {
-                best_mount_point = point.point;
-            }
-        }
-    }
-
-    if (best_mount_point != "/")
-    {
-        path.remove_prefix(best_mount_point.size());
-    }
-
-
-    fs = msos::fs::mount_points.get_mounted_filesystem(best_mount_point);
-
-    if (fs == nullptr)
-    {
-        errno = ENOENT;
-        return -1;
-    }
+    auto& vfs = msos::fs::Vfs::instance();
+    eul::filesystem::path path(filename);
 
     std::unique_ptr<msos::fs::IFile> file;
     if ((flags & O_ACCMODE) == O_RDONLY)
     {
-        file = fs->get(path);
+        file = vfs.get(path.lexically_normal().c_str());
         int fd = msos::kernel::process::Scheduler::get().current_process().add_file(std::move(file));
         return fd;
     }
     else if ((flags & O_CREAT) == O_CREAT)
     {
-        file = fs->create(path);
+        file = vfs.create(path.lexically_normal().c_str());
 
         int fd = msos::kernel::process::Scheduler::get().current_process().add_file(std::move(file));
         return fd;
@@ -266,6 +242,7 @@ namespace syscalls
 
 void process_exit(int code)
 {
+    UNUSED1(code);
     msos::kernel::process::Scheduler::get().delete_process(msos::kernel::process::Scheduler::get().current_process().pid());
     msos::kernel::process::Scheduler::get().current_process_was_deleted(true);
     switch_to_next_task();

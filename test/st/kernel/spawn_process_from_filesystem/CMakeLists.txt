@@ -23,6 +23,7 @@ target_sources(spawn_process_from_filesystem
 
 target_link_libraries(spawn_process_from_filesystem
     PUBLIC
+        hal
         msos
 )
 

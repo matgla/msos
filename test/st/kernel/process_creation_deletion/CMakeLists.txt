@@ -24,6 +24,7 @@ target_sources(process_creation_deletion_test
 target_link_libraries(process_creation_deletion_test
     PUBLIC
         msos
+        hal
 )
 
 include (GenerateBinary)

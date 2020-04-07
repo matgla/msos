@@ -1,5 +1,5 @@
-// This file is part of MSOS project. This is simple OS for embedded development devices.
-// Copyright (C) 2019 Mateusz Stadnik
+// This file is part of MSOS project.
+// Copyright (C) 2020 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,11 +14,36 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
+#include "msos/fs/ramfs_data.hpp"
 
-int _printf(const char* format, ...);
-int _printf_via_usart(const char* format, ...);
-int _scanf(const char* format, ...);
+namespace msos
+{
+namespace fs
+{
 
-#define printf _printf
-#define scanf _scanf
+RamFsData::RamFsData(const std::string_view& name)
+    : filename_{name}
+    , data_{}
+{
+
+}
+
+RamFsData::RamFsData(const std::string_view& name, const std::vector<uint8_t>& data)
+    : filename_{name}
+    , data_{data}
+{
+
+}
+
+const std::string_view& RamFsData::filename() const
+{
+    return filename_;
+}
+
+std::vector<uint8_t>& RamFsData::data()
+{
+    return data_;
+}
+
+} // namespace fs
+} // namespace msos

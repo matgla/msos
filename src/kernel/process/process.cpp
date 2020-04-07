@@ -67,7 +67,7 @@ Process::Process(const Process& process)
     }
 }
 
-Process::Process(const std::size_t process_entry, const std::size_t stack_size, uint32_t arg)
+Process::Process(const std::size_t process_entry, const std::size_t stack_size, std::size_t arg)
     : state_(State::Ready)
     , pid_(pid_counter++)
     , stack_size_(stack_size)
@@ -85,7 +85,7 @@ Process::Process(const std::size_t process_entry, const std::size_t stack_size, 
     }
 
     HardwareStoredRegisters* hw_registers = reinterpret_cast<HardwareStoredRegisters*>(stack_ptr + sizeof(SoftwareStoredRegisters));
-    hw_registers->r0 = reinterpret_cast<uint32_t>(arg);
+    hw_registers->r0 = reinterpret_cast<std::size_t>(arg);
     hw_registers->r1 = 0;
     hw_registers->r2 = 0;
     hw_registers->r3 = 0;
@@ -183,9 +183,7 @@ Process::State Process::get_state() const
 
 int Process::add_file(std::unique_ptr<msos::fs::IFile>&& file)
 {
-    int i = 0;
-
-    for (i = 0; i < 8; i++)
+    for (int i = 0; i < 8; i++)
     {
         if ((fd_map_ & (1 << i)) == 0)
         {

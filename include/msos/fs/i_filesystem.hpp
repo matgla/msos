@@ -41,13 +41,12 @@ public:
 
     virtual int remove(std::string_view path) = 0;
     virtual int stat(std::string_view path) = 0;
+    virtual std::string_view name() const = 0;
 
     virtual std::vector<std::unique_ptr<IFile>> list(std::string_view path) = 0;
 
     virtual std::unique_ptr<IFile> get(std::string_view path) = 0;
     virtual std::unique_ptr<IFile> create(std::string_view path) = 0;
-
-
 protected:
     static bool mounted_;
 };

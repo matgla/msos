@@ -51,4 +51,7 @@ function(add_device_hal_library hal_device_library)
         $<$<CONFIG:RELEASE>:-Os>
     )
 
+    add_library(hal_flags INTERFACE)
+    set(hal_cxx_compilation_flags "-std=c++2a;" CACHE INTERNAL "HAL CXX FLAGS")
+
 endfunction()

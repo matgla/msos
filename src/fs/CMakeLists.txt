@@ -24,19 +24,29 @@ target_sources(msos_fs
         ${library_includes}/i_filesystem.hpp
         ${library_includes}/mount_point.hpp
         ${library_includes}/mount_points.hpp
-        ${library_includes}/vfs.hpp
+
         ${library_includes}/ramfs.hpp
-        ${library_includes}/romfs.hpp
+        ${library_includes}/ramfs_data.hpp
         ${library_includes}/ramfs_file.hpp
+
+        ${library_includes}/romfs.hpp
         ${library_includes}/romfs_file.hpp
+
         ${library_includes}/usart_file.hpp
+
+        ${library_includes}/vfs.hpp
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/mount_points.cpp
+
         ${CMAKE_CURRENT_SOURCE_DIR}/ramfs.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/romfs.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/ramfs_data.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ramfs_file.cpp
+
+        ${CMAKE_CURRENT_SOURCE_DIR}/romfs.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/romfs_file.cpp
+
         ${CMAKE_CURRENT_SOURCE_DIR}/usart_file.cpp
+
         ${CMAKE_CURRENT_SOURCE_DIR}/vfs.cpp
 )
 
@@ -46,20 +56,22 @@ target_include_directories(msos_fs
 )
 
 target_compile_options(msos_fs
-    PRIVATE
-        $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a -Wall -Wextra -Wpedantic -Wconversion -Wcast-align -Wunused -Wshadow -Wold-style-cast -Wpointer-arith -Wcast-qual -Wno-missing-braces>
+    PUBLIC
+        $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a>
         $<$<CONFIG:DEBUG>:-Og -g>
         $<$<CONFIG:RELEASE>:-Os>
+    PRIVATE
+        $<$<COMPILE_LANGUAGE:CXX>:-Werror -Wall -Wextra -Wpedantic -Wconversion -Wcast-align -Wunused -Wshadow -Wold-style-cast -Wpointer-arith -Wcast-qual -Wno-missing-braces>
 )
 
 target_link_libraries(msos_fs
     PUBLIC
-        gsl
-        eul
         msos_drivers_storage
-        romfs
+        gsl
+        romfs # should't be public, try to change
     PRIVATE
-        hal
+        eul
+        hal_flags
 )
 
 

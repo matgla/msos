@@ -29,7 +29,7 @@ namespace dl
 class Relocation
 {
 public:
-    const uint32_t index() const;
+    uint32_t index() const;
     const Symbol& symbol() const;
     constexpr static std::size_t size()
     {

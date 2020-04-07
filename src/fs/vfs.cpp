@@ -24,14 +24,16 @@
 
 #include <eul/utils/unused.hpp>
 
-#include "msos/usart_printer.hpp"
-
 namespace msos
 {
 namespace fs
 {
 
-static UsartWriter writer;
+Vfs& Vfs::instance()
+{
+    static Vfs v;
+    return v;
+}
 
 int Vfs::mount(drivers::storage::BlockDevice& device)
 {
@@ -56,6 +58,10 @@ int Vfs::create()
 int Vfs::mkdir(std::string_view path, int mode)
 {
     const MountPoint* mp = mount_points_.get_best_mount_point(path);
+    if (mp == nullptr)
+    {
+        return -1;
+    }
     std::string_view path_in_fs = path.substr(path.find(mp->point) + mp->point.length(), path.length());
     return mp->filesystem->mkdir(path_in_fs, mode);
 }
@@ -63,6 +69,10 @@ int Vfs::mkdir(std::string_view path, int mode)
 int Vfs::remove(std::string_view path)
 {
     const MountPoint* mp = mount_points_.get_best_mount_point(path);
+    if (mp == nullptr)
+    {
+        return -1;
+    }
     std::string_view path_in_fs = path.substr(path.find(mp->point) + mp->point.length(), path.length());
     return mp->filesystem->remove(path_in_fs);
 }
@@ -70,6 +80,10 @@ int Vfs::remove(std::string_view path)
 int Vfs::stat(std::string_view path)
 {
     const MountPoint* mp = mount_points_.get_best_mount_point(path);
+    if (mp == nullptr)
+    {
+        return -1;
+    }
     std::string_view path_in_fs = path.substr(path.find(mp->point) + mp->point.length(), path.length());
     return mp->filesystem->stat(path_in_fs);
 }
@@ -77,13 +91,22 @@ int Vfs::stat(std::string_view path)
 std::unique_ptr<IFile> Vfs::get(std::string_view path)
 {
     const MountPoint* mp = mount_points_.get_best_mount_point(path);
+    if (mp == nullptr)
+    {
+        return nullptr;
+    }
     std::string_view path_in_fs = path.substr(path.find(mp->point) + mp->point.length(), path.length());
+
     return mp->filesystem->get(path_in_fs);
 }
 
 std::unique_ptr<IFile> Vfs::create(std::string_view path)
 {
     const MountPoint* mp = mount_points_.get_best_mount_point(path);
+    if (mp == nullptr)
+    {
+        return nullptr;
+    }
     std::string_view path_in_fs = path.substr(path.find(mp->point) + mp->point.length(), path.length());
     return mp->filesystem->create(path_in_fs);
 }
@@ -93,8 +116,17 @@ std::vector<std::unique_ptr<IFile>> Vfs::list(std::string_view path)
 {
     std::string destination(path);
     const MountPoint* mp = mount_points_.get_best_mount_point(path);
+    if (mp == nullptr)
+    {
+        return {};
+    }
     std::string_view path_in_fs = path.substr(path.find(mp->point) + mp->point.length(), path.length());
     return mp->filesystem->list(path_in_fs);
+}
+
+std::string_view Vfs::name() const
+{
+    return "VFS";
 }
 
 void Vfs::mount_fs(std::string_view path, IFileSystem* fs)
@@ -102,6 +134,15 @@ void Vfs::mount_fs(std::string_view path, IFileSystem* fs)
     mount_points_.mount_filesystem(path, fs);
 }
 
+IFileSystem* Vfs::get_child_fs(std::string_view path)
+{
+    const MountPoint* mp = mount_points_.get_best_mount_point(path);
+    if (mp == nullptr)
+    {
+        return nullptr;
+    }
+    return mp->filesystem;
+}
 
 } // namespace fs
 } // namespace msos

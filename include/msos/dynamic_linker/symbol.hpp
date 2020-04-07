@@ -10,7 +10,7 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
@@ -43,11 +43,11 @@ std::string_view to_string(const Section s);
 class Symbol
 {
 public:
-    const uint32_t size() const;
-    const Section section() const;
-    const std::string_view name() const;
+    uint32_t size() const;
+    Section section() const;
+    std::string_view name() const;
     const Symbol& next() const;
-    const uint32_t offset() const;
+    uint32_t offset() const;
 private:
     uint16_t size_;
     Section section_;

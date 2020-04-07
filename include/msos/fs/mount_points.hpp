@@ -42,7 +42,5 @@ private:
     std::vector<MountPoint> points_;
 };
 
-extern MountPoints mount_points;
-
 } // namespace fs
 } // namespace msos

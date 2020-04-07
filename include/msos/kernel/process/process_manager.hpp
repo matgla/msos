@@ -35,7 +35,7 @@ public:
     ProcessManager();
     using ContainerType = std::list<Process>;
 
-    Process& create_process(std::size_t process_entry, std::size_t stack_size, uint32_t arg = 0);
+    Process& create_process(std::size_t process_entry, std::size_t stack_size, std::size_t arg = 0);
 
     void delete_process(pid_t pid);
 

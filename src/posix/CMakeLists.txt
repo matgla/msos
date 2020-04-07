@@ -22,7 +22,7 @@ target_sources(msos_posix
     PUBLIC
         ${library_includes}/dirent.h
         ${library_includes}/dirent_utils.hpp
-
+    PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/dirent.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/dirent_utils.cpp
 )
@@ -33,7 +33,20 @@ target_include_directories(msos_posix
         ${PROJECT_SOURCE_DIR}/include
 )
 
-target_link_libraries(msos_posix
+
+target_compile_options(msos_posix
     PUBLIC
-        hal
+        $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a>
+        $<$<CONFIG:DEBUG>:-Og -g>
+        $<$<CONFIG:RELEASE>:-Os>
+    PRIVATE
+        $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a -Werror -Wall -Wextra -Wpedantic -Wconversion -Wcast-align -Wunused -Wshadow -Wold-style-cast -Wpointer-arith -Wcast-qual -Wno-missing-braces>
+
+)
+
+target_link_libraries(msos_posix
+    PRIVATE
+        msos_fs
+        hal_flags
+        eul_filesystem
 )

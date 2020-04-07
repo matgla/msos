@@ -18,32 +18,34 @@ add_library(msos_drivers_storage)
 
 set(library_includes ${PROJECT_SOURCE_DIR}/include/msos/drivers/storage)
 
-target_sources(msos_drivers_storage 
-    PUBLIC 
+target_sources(msos_drivers_storage
+    PUBLIC
         ${library_includes}/block_device.hpp
-        ${library_includes}/ram_block_device.hpp 
+        ${library_includes}/ram_block_device.hpp
 
-    PRIVATE 
-        ${CMAKE_CURRENT_SOURCE_DIR}/block_device.cpp 
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/block_device.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ram_block_device.cpp
 )
 
-target_include_directories(msos_drivers_storage 
-    PUBLIC 
-        ${PROJECT_SOURCE_DIR}/include 
+target_include_directories(msos_drivers_storage
+    PUBLIC
+        ${PROJECT_SOURCE_DIR}/include
 )
 
-target_compile_options(msos_drivers_storage 
-    PRIVATE 
+target_compile_options(msos_drivers_storage
+    PRIVATE
         $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a -Wall -Werror -Wextra -Wpedantic -Wconversion -Wcast-align -Wunused -Wshadow -Wold-style-cast -Wpointer-arith -Wcast-qual -Wno-missing-braces>
         $<$<CONFIG:DEBUG>:-Og -g>
         $<$<CONFIG:RELEASE>:-Os>
 )
 
-target_link_libraries(msos_drivers_storage 
-    PUBLIC 
-        gsl 
+target_link_libraries(msos_drivers_storage
+    PUBLIC
+        gsl
+    PRIVATE
         eul
+        hal_flags
 )
-        
+
 

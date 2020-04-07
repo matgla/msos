@@ -21,7 +21,7 @@ set (library_includes ${PROJECT_SOURCE_DIR}/include/msos/syscalls)
 target_sources(msos_syscalls
     PUBLIC
         ${library_includes}/syscalls.hpp
-
+    PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/syscalls.cpp
 )
 
@@ -31,9 +31,11 @@ target_include_directories(msos_syscalls
 )
 
 target_link_libraries(msos_syscalls
-    PUBLIC
-        hal
+    PRIVATE
         msos_kernel_process
         msos_kernel_synchronization
+        gsl
+        eul_filesystem
+        hal_flags
 )
 

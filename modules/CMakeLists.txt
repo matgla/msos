@@ -18,5 +18,4 @@ include(ModuleWrapperGenerator)
 add_module_flags_target()
 
 add_subdirectory(ls)
-add_subdirectory(shell)
 add_subdirectory(simple_game)

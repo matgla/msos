@@ -21,8 +21,7 @@
 
 #include <eul/filesystem/path.hpp>
 
-#include "msos/fs/mount_points.hpp"
-#include "msos/usart_printer.hpp"
+#include "msos/fs/vfs.hpp"
 #include "msos/posix/dirent_utils.hpp"
 
 extern "C"
@@ -36,34 +35,15 @@ struct DIRImpl
 
 }
 
-static UsartWriter writer;
-
-void process_next_directory(std::string_view dir)
-{
-    // writer << "Next: " << dir << endl;
-}
-
-void find_path(const char* path)
-{
-    // try to find
-}
-
 DIR* opendir(const char* dirname)
 {
-    const msos::fs::MountPoint* root = msos::fs::mount_points.get_mount_point("/");
-    if (root == nullptr)
-    {
-        return nullptr;
-    }
-
     eul::filesystem::path path(dirname);
     path = path.lexically_normal();
 
-    auto file = root->filesystem->get(path.native());
+    auto& vfs = msos::fs::Vfs::instance();
+    auto file = vfs.get(path.native());
     if (!file)
     {
-        // writer << "Can't get path: " << path << endl;
-
         return nullptr; // no such directory
     }
 
@@ -74,7 +54,7 @@ DIR* opendir(const char* dirname)
     dir->ent.d_namlen = 0;
 
     dir->impl = new DIRImpl;
-    dir->impl->filesystem = root->filesystem;
+    dir->impl->filesystem = &vfs;
 
     dir->impl->path = new char[path.native().length() + 1];
     std::memcpy(dir->impl->path, path.c_str(), path.native().length());

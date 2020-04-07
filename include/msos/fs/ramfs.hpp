@@ -17,27 +17,16 @@
 #pragma once
 
 #include <string_view>
+#include <list>
 
 #include "msos/fs/i_filesystem.hpp"
+#include "msos/fs/ramfs_data.hpp"
 #include "msos/fs/ramfs_file.hpp"
 
 namespace msos
 {
 namespace fs
 {
-
-struct RamFsData
-{
-    RamFsData(const std::string_view& name)
-        : filename{name}
-        , data{}
-    {
-
-    }
-
-    std::string_view filename;
-    std::vector<uint8_t> data;
-};
 
 class RamFs : public IFileSystem
 {
@@ -59,10 +48,11 @@ public:
     std::unique_ptr<IFile> create(std::string_view path) override;
 
     std::vector<std::unique_ptr<IFile>> list(std::string_view path) override;
+    std::string_view name() const override;
 
 protected:
     static bool mounted_;
-    std::vector<RamFsData> files_;
+    std::list<RamFsData> files_;
 };
 
 } // namespace fs

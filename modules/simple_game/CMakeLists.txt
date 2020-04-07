@@ -42,7 +42,5 @@ add_custom_command(
     TARGET simple_game
     POST_BUILD
     COMMAND mkdir -p ${PROJECT_BINARY_DIR}/rootfs/bin/games
-    COMMAND rm -f ${PROJECT_BINARY_DIR}/rootfs.img
-    COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/${prefix}simple_game${suffix} ${PROJECT_BINARY_DIR}/rootfs/bin/games
-    COMMAND genromfs -f ${PROJECT_BINARY_DIR}/rootfs.img -d ${PROJECT_BINARY_DIR}/rootfs -v -V msos_romfs
+    COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/${prefix}simple_game${suffix} ${PROJECT_BINARY_DIR}/rootfs/bin/games/
 )

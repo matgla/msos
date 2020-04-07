@@ -47,10 +47,22 @@ target_include_directories(msos_dynamic_linker
         ${PROJECT_SOURCE_DIR}/include
 )
 
+target_compile_options(msos_dynamic_linker
+    PUBLIC
+        $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a>
+        $<$<CONFIG:DEBUG>:-Og -g>
+        $<$<CONFIG:RELEASE>:-Os>
+    PRIVATE
+        $<$<COMPILE_LANGUAGE:CXX>:-Werror -Wall -Wextra -Wpedantic -Wconversion -Wunused -Wshadow -Wold-style-cast -Wpointer-arith -Wcast-qual -Wno-missing-braces>
+)
+
 target_link_libraries(msos_dynamic_linker
     PUBLIC
-        hal
         gsl
+        eul_error
+    PRIVATE
         msos_arch
+        msos_printer
+        hal_flags
 )
 

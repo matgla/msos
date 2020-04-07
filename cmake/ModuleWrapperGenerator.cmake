@@ -76,7 +76,7 @@ function (add_module module_name module_library)
             PUBLIC
                 ${module_name}_wrapper
                 module_flags
-                ${library_libs}
+                # ${library_libs}
         )
         add_custom_command(
             TARGET ${module_name}
@@ -106,11 +106,16 @@ function (add_module_flags_target)
 
     if (${arch} STREQUAL "ARM")
         target_link_options(module_flags INTERFACE
-            "${hal_linker_flags};-T${PROJECT_SOURCE_DIR}/linker_scripts/dynamic_module.ld;-nostartfiles;-nodefaultlibs;-nostdlib;-Wl,--unresolved-symbols=ignore-in-object-files;-Wl,--emit-relocs;-fvisibility=hidden")
+            "${hal_linker_flags};-T${PROJECT_SOURCE_DIR}/linker_scripts/dynamic_module.ld;-nostartfiles;-nodefaultlibs;-nostdlib;-Wl,--unresolved-symbols=ignore-in-object-files;-Wl,--emit-relocs;-fvisibility=hidden;")
 
+        set(module_common_flags "-fvisibility-inlines-hidden;-fno-function-sections;-fno-data-sections;-fno-section-anchors;-msingle-pic-base;-mno-pic-data-is-text-relative;-fPIE;-mlong-calls;-fvisibility=hidden;")
         target_compile_options(module_flags INTERFACE
-            "${hal_cxx_compilation_flags};-fvisibility-inlines-hidden;-fno-function-sections;-fno-data-sections;-fno-section-anchors;-msingle-pic-base;-mno-pic-data-is-text-relative;-fPIE;-mlong-calls;-fvisibility=hidden;")
-    else ()
+            $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a;${hal_cxx_compilation_flags};${module_common_flags}>
+            $<$<COMPILE_LANGUAGE:C>:${hal_c_compilation_flags};${module_common_flags}>
+
+            $<$<CONFIG:DEBUG>:-Og -g>
+            $<$<CONFIG:RELEASE>:-Os>)
+            else ()
     target_compile_options(module_flags
         INTERFACE
             $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a;-fPIC>

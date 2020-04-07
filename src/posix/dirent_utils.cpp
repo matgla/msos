@@ -26,14 +26,14 @@ namespace dirent_utils
 std::string_view get_next_part(std::string_view& path)
 {
     // ignore slashes at start
-    int dirname_start = path.find_first_not_of("/");
+    std::size_t dirname_start = path.find_first_not_of("/");
     if (dirname_start == std::string_view::npos)
     {
         path = {};
         return {};
     }
     path = path.substr(dirname_start, path.length());
-    int next_slash = path.find("/");
+    std::size_t  next_slash = path.find("/");
     std::string_view part;
     if (next_slash != std::string_view::npos)
     {
@@ -51,14 +51,14 @@ std::string_view get_next_part(std::string_view& path)
 std::string_view get_last_part(std::string_view& path)
 {
     // ignore slashes at start
-    int dirname_start = path.find_first_not_of("/");
+    std::size_t  dirname_start = path.find_first_not_of("/");
     if (dirname_start == std::string_view::npos)
     {
         path = {};
         return {};
     }
     path = path.substr(dirname_start, path.length());
-    int next_slash = path.find("/");
+    std::size_t  next_slash = path.find("/");
     std::string_view part;
     if (next_slash != std::string_view::npos)
     {

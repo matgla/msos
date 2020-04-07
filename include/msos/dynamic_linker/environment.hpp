@@ -72,7 +72,7 @@ public:
         return entry_.name;
     }
 
-    uint32_t address() const
+    std::size_t address() const
     {
         return entry_.address;
     }
