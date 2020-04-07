@@ -70,6 +70,7 @@ void kernel_process(void*)
     writer << "executin shell" << endl;
     spawn_exec("/bin/msos_shell.bin", NULL, NULL, 0, 2048);
 
+
     while (true)
     {
         hal::time::sleep(std::chrono::seconds(1));

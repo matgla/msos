@@ -30,7 +30,6 @@ namespace apps
 
 static AppRegistry a;
 static std::vector<AppEntry> apps_;
-static UsartWriter writer;
 
 AppRegistry& AppRegistry::get_instance()
 {
@@ -74,7 +73,6 @@ int AppRegistry::stat(std::string_view path)
 std::unique_ptr<fs::IFile> AppRegistry::get(std::string_view path)
 {
     auto it = std::find_if(apps_.begin(), apps_.end(), [path](auto& entry){
-        writer << entry.name  << " == " << path;
         return entry.name == path;
     });
     if (it != apps_.end())

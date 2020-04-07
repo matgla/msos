@@ -29,5 +29,14 @@ target_link_libraries(msos_shell
         eul_filesystem
         gsl
         msos_apps
-        # msos
+        hal_flags
+)
+
+target_compile_options(msos_shell
+    PUBLIC
+        $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a>
+        $<$<CONFIG:DEBUG>:-Og -g>
+        $<$<CONFIG:RELEASE>:-Os>
+    PRIVATE
+        $<$<COMPILE_LANGUAGE:CXX>:-Werror -Wall -Wextra -Wpedantic -Wconversion -Wcast-align -Wunused -Wshadow -Wold-style-cast -Wpointer-arith -Wcast-qual -Wno-missing-braces>
 )

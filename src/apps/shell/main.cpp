@@ -53,17 +53,14 @@ bool is_absolute_path(const std::string_view& path)
 
 void cd_command(const eul::filesystem::path& path, char* pwd)
 {
-    DIR *d;
-    struct dirent *dir;
-
     if (path.is_absolute())
     {
-        DIR *dir = opendir(path.c_str());
-        if (dir != nullptr)
+        DIR *d = opendir(path.c_str());
+        if (d != nullptr)
         {
             std::memcpy(pwd, path.c_str(), path.native().length());
             pwd[path.native().length()] = 0;
-            closedir(dir);
+            closedir(d);
             return;
         }
     }
@@ -72,10 +69,10 @@ void cd_command(const eul::filesystem::path& path, char* pwd)
         eul::filesystem::path absolute_path(pwd);
         absolute_path += path;
         auto ab = absolute_path.lexically_normal(); // first argument is command name
-        DIR *dir = opendir(ab.c_str());
-        if (dir != nullptr)
+        DIR *d = opendir(ab.c_str());
+        if (d != nullptr)
         {
-            closedir(dir);
+            closedir(d);
 
             std::memcpy(pwd, ab.c_str(), ab.native().length());
             pwd[ab.native().length()] = 0;
@@ -90,20 +87,20 @@ void remove_spaces(char* s) {
         while (isspace(*d)) {
             ++d;
         }
-    } while (*s++ = *d++);
+    } while ((*s++ = *d++));
 }
 
 std::string_view get_next_argument(std::string_view& arglist)
 {
     // ignore slashes at start
-    int dirname_start = arglist.find_first_not_of(" ");
+    std::size_t dirname_start = arglist.find_first_not_of(" ");
     if (dirname_start == std::string_view::npos)
     {
         arglist = {};
         return {};
     }
     arglist = arglist.substr(dirname_start, arglist.length());
-    int next_slash = arglist.find(" ");
+    std::size_t next_slash = arglist.find(" ");
     std::string_view part;
     if (next_slash != std::string_view::npos)
     {
@@ -178,7 +175,7 @@ int app_start()
             if (is_absolute_path(buffer))
             {
                 printf("executing %s\n", path);
-                exec(buffer, NULL, NULL, NULL);
+                exec(buffer, NULL, NULL, 0);
             }
             else
             {
@@ -203,7 +200,7 @@ int app_start()
                     absolute_path[path.native().length() + pwd_length] = 0;
                 }
                 printf("executing %s\n", absolute_path);
-                exec(absolute_path, NULL, NULL, NULL);
+                exec(absolute_path, NULL, NULL, 0);
 
             }
 

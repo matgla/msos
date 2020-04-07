@@ -99,6 +99,7 @@ target_link_libraries(msos_test
     PUBLIC
         msos
         msos_shell
+        hal
 
 )
 

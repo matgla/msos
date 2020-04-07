@@ -72,4 +72,4 @@ public:
 } // namespace apps
 } // namespace msos
 
-#define REGISTER_APP(name, address) bool app_name ## _entry = msos::apps::AppRegistry::register_executable("/"#name".bin", reinterpret_cast<std::size_t>(address));
+#define REGISTER_APP(name, address) bool app_name ## _entry = msos::apps::AppRegistry::register_executable("/"#name".bin", reinterpret_cast<std::size_t>(address))
