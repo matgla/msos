@@ -48,4 +48,5 @@ target_link_libraries(msos_apps
     PRIVATE
         eul
         msos_fs
+        hal_flags
 )

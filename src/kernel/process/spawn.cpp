@@ -64,7 +64,7 @@ extern "C"
     }
 }
 
-static msos::dl::Environment<10> env{
+static msos::dl::Environment<8> env{
         msos::dl::SymbolAddress{"strlen", &strlen},
         msos::dl::SymbolAddress{"memcpy", &memcpy},
         msos::dl::SymbolAddress{"memcmp", &memcmp},
@@ -73,8 +73,8 @@ static msos::dl::Environment<10> env{
         msos::dl::SymbolAddress{"write", &write},
         msos::dl::SymbolAddress{"scanf", reinterpret_cast<uint32_t*>(&_scanf)},
         msos::dl::SymbolAddress{"printf", reinterpret_cast<uint32_t*>(&_printf)},
-        msos::dl::SymbolAddress{"spawn_exec", reinterpret_cast<uint32_t*>(&spawn_exec)},
-        msos::dl::SymbolAddress{"exec", reinterpret_cast<uint32_t*>(&exec)},
+        // msos::dl::SymbolAddress{"spawn_exec", reinterpret_cast<uint32_t*>(&spawn_exec)},
+        // msos::dl::SymbolAddress{"exec", reinterpret_cast<uint32_t*>(&exec)},
         // msos::dl::SymbolAddress{"opendir", reinterpret_cast<uint32_t*>(&opendir)},
         // msos::dl::SymbolAddress{"readdir", reinterpret_cast<uint32_t*>(&readdir)},
         // msos::dl::SymbolAddress{"closedir", reinterpret_cast<uint32_t*>(&closedir)},

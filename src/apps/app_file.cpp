@@ -76,7 +76,7 @@ ssize_t AppFile::size() const
 
 std::string_view AppFile::name() const
 {
-    return entry_.name.substr(1, entry_.name.length());
+    return entry_.name;
 }
 
 std::unique_ptr<fs::IFile> AppFile::clone() const

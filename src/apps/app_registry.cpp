@@ -52,47 +52,49 @@ int AppRegistry::create()
     return 0;
 }
 
-int AppRegistry::mkdir(std::string_view path, int mode)
+int AppRegistry::mkdir(const eul::filesystem::path& path, int mode)
 {
     UNUSED2(path, mode);
     return 0;
 }
 
-int AppRegistry::remove(std::string_view path)
+int AppRegistry::remove(const eul::filesystem::path& path)
 {
     UNUSED1(path);
     return 0;
 }
 
-int AppRegistry::stat(std::string_view path)
+int AppRegistry::stat(const eul::filesystem::path& path)
 {
     UNUSED1(path);
     return 0;
 }
 
-std::unique_ptr<fs::IFile> AppRegistry::get(std::string_view path)
+std::unique_ptr<fs::IFile> AppRegistry::get(const eul::filesystem::path& path)
 {
-    auto it = std::find_if(apps_.begin(), apps_.end(), [path](auto& entry){
-        return entry.name == path;
-    });
-    if (it != apps_.end())
-    {
-        return std::make_unique<AppFile>(*it);
-    }
-    if (path == "" || path == "/")
+    if (path.native() == "" || path.native() == "/")
     {
         return std::make_unique<AppFile>();
     }
+
+    for (const auto& app : apps_)
+    {
+        if (app.name == path.native())
+        {
+            return std::make_unique<AppFile>(app);
+        }
+    }
+
     return nullptr;
 }
 
-std::unique_ptr<fs::IFile> AppRegistry::create(std::string_view path)
+std::unique_ptr<fs::IFile> AppRegistry::create(const eul::filesystem::path& path)
 {
     UNUSED1(path);
     return nullptr;
 }
 
-std::vector<std::unique_ptr<fs::IFile>> AppRegistry::list(std::string_view path)
+std::vector<std::unique_ptr<fs::IFile>> AppRegistry::list(const eul::filesystem::path& path)
 {
     UNUSED1(path); // single directory
     std::vector<std::unique_ptr<fs::IFile>> files;

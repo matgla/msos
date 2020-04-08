@@ -38,16 +38,16 @@ public:
 
     int create() override;
 
-    int mkdir(std::string_view path, int mode) override;
+    int mkdir(const eul::filesystem::path& path, int mode) override;
 
-    int remove(std::string_view path) override;
+    int remove(const eul::filesystem::path& path) override;
 
-    int stat(std::string_view path) override;
+    int stat(const eul::filesystem::path& path) override;
 
-    std::unique_ptr<IFile> get(std::string_view path) override;
-    std::unique_ptr<IFile> create(std::string_view path) override;
+    std::unique_ptr<IFile> get(const eul::filesystem::path& path) override;
+    std::unique_ptr<IFile> create(const eul::filesystem::path& path) override;
 
-    std::vector<std::unique_ptr<IFile>> list(std::string_view path) override;
+    std::vector<std::unique_ptr<IFile>> list(const eul::filesystem::path& path) override;
     std::string_view name() const override;
 
 protected:

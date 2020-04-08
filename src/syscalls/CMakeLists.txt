@@ -39,3 +39,12 @@ target_link_libraries(msos_syscalls
         hal_flags
 )
 
+target_compile_options(msos_syscalls
+    PUBLIC
+        $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a>
+        $<$<CONFIG:DEBUG>:-Og -g>
+        $<$<CONFIG:RELEASE>:-Os>
+    PRIVATE
+        $<$<COMPILE_LANGUAGE:CXX>:-Werror -Wall -Wextra -Wpedantic -Wconversion -Wcast-align -Wunused -Wshadow -Wold-style-cast -Wpointer-arith -Wcast-qual -Wno-missing-braces>
+)
+

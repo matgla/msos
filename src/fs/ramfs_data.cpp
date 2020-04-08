@@ -16,28 +16,32 @@
 
 #include "msos/fs/ramfs_data.hpp"
 
+#include "msos/usart_printer.hpp"
+
 namespace msos
 {
 namespace fs
 {
 
-RamFsData::RamFsData(const std::string_view& name)
-    : filename_{name}
+static UsartWriter writer;
+
+RamFsData::RamFsData(const eul::filesystem::path& name)
+    : filename_(name.native())
     , data_{}
 {
-
+    writer << "Fname 1: " << filename_.c_str() << endl;
 }
 
-RamFsData::RamFsData(const std::string_view& name, const std::vector<uint8_t>& data)
+RamFsData::RamFsData(const eul::filesystem::path& name, const std::vector<uint8_t>& data)
     : filename_{name}
     , data_{data}
 {
-
+    writer << "Fname 2: " << filename_.native() << endl;
 }
 
-const std::string_view& RamFsData::filename() const
+const std::string& RamFsData::filename() const
 {
-    return filename_;
+    return filename_.native();
 }
 
 std::vector<uint8_t>& RamFsData::data()

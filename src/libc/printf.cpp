@@ -24,17 +24,20 @@
 
 #include <unistd.h>
 
+#include <eul/utils/unused.hpp>
+
 #include "msos/usart_printer.hpp"
 
 static UsartWriter writer_b_;
 
-int __vfscanf_( int fd, const char* format, va_list argptr,
+int __vfscanf_(int fd, const char* format, va_list argptr,
                     unsigned int mode_flags)
 {
+    UNUSED1(mode_flags);
     if (std::string_view(format) == "%s")
     {
         char* buffer = va_arg(argptr, char*);
-        return read(fd, buffer, 0);
+        return static_cast<int>(read(fd, buffer, 0));
     }
     return 0;
 }
@@ -52,21 +55,22 @@ template <typename T>
 int __vfprintf_(T& writer, int fd, const char* format, va_list argptr,
                     unsigned int mode_flags)
 {
+    UNUSED2(fd, mode_flags);
     // if (std::string_view(format) == "%s")
     // {
     //     char* buffer = va_arg(argptr, char*);
     //     return read(fd, buffer, 0);
     // }
     std::string_view data(format);
-    int position = 0, previous_position = 0, size = 0;
+    std::size_t position = 0, previous_position = 0, size = 0;
     //  %[flags][width][.precision][length]specifier
     do
     {
-        int position = data.find("%");
+        position = data.find("%");
         if (position == std::string_view::npos)
         {
             writer << std::string_view(data.data() + previous_position, data.length());
-            return size + data.length();
+            return static_cast<int>(size + data.length());
         }
         if (position > 0)
         {
@@ -75,30 +79,30 @@ int __vfprintf_(T& writer, int fd, const char* format, va_list argptr,
         }
         if (position + 1 >= data.length())
         {
-            return size + data.length();
+            return static_cast<int>(size + data.length());
         }
         ++position;
         char specifier = data[position];
         switch (specifier)
         {
             case 's': {
-                const char* data = va_arg(argptr, const char*);
-                writer << data;
+                const char* arg = va_arg(argptr, const char*);
+                writer << arg;
             } break;
             case 'd': {
-                int data = va_arg(argptr, int);
-                writer << data;
+                int arg = va_arg(argptr, int);
+                writer << arg;
             }
         }
         if (position + 1 >= data.length())
         {
-            return size + data.length();
+            return static_cast<int>(size + data.length());
         }
         ++position;
 
         data = data.substr(position, data.length());
     } while (position != std::string_view::npos);
-    return size;
+    return static_cast<int>(size);
 }
 
 

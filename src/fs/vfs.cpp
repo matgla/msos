@@ -20,14 +20,17 @@
 #include <climits>
 #include <filesystem>
 
-#include "msos/posix/dirent_utils.hpp"
-
 #include <eul/utils/unused.hpp>
+
+#include "msos/posix/dirent_utils.hpp"
+#include "msos/usart_printer.hpp"
 
 namespace msos
 {
 namespace fs
 {
+
+static UsartWriter writer;
 
 Vfs& Vfs::instance()
 {
@@ -51,77 +54,42 @@ int Vfs::create()
     return 1;
 }
 
-/* jeśli get to best match jest na przykład /rom -> ramfs
-   jeśli list to best match jest juz rom, bo chodzi o katalog decolowy
-   */
-
-int Vfs::mkdir(std::string_view path, int mode)
+int Vfs::mkdir(const eul::filesystem::path& path, int mode)
 {
     const MountPoint* mp = mount_points_.get_best_mount_point(path);
-    if (mp == nullptr)
-    {
-        return -1;
-    }
-    std::string_view path_in_fs = path.substr(path.find(mp->point) + mp->point.length(), path.length());
-    return mp->filesystem->mkdir(path_in_fs, mode);
+    return mp == nullptr ? -1 : mp->filesystem->mkdir(path.lexically_relative(mp->point), mode);
 }
 
-int Vfs::remove(std::string_view path)
+int Vfs::remove(const eul::filesystem::path& path)
 {
     const MountPoint* mp = mount_points_.get_best_mount_point(path);
-    if (mp == nullptr)
-    {
-        return -1;
-    }
-    std::string_view path_in_fs = path.substr(path.find(mp->point) + mp->point.length(), path.length());
-    return mp->filesystem->remove(path_in_fs);
+    return mp == nullptr ? -1 : mp->filesystem->remove(path.lexically_relative(mp->point));
 }
 
-int Vfs::stat(std::string_view path)
+int Vfs::stat(const eul::filesystem::path& path)
 {
     const MountPoint* mp = mount_points_.get_best_mount_point(path);
-    if (mp == nullptr)
-    {
-        return -1;
-    }
-    std::string_view path_in_fs = path.substr(path.find(mp->point) + mp->point.length(), path.length());
-    return mp->filesystem->stat(path_in_fs);
+    return mp == nullptr ? -1 : mp->filesystem->stat(path.lexically_relative(mp->point));
 }
 
-std::unique_ptr<IFile> Vfs::get(std::string_view path)
+std::unique_ptr<IFile> Vfs::get(const eul::filesystem::path& path)
 {
     const MountPoint* mp = mount_points_.get_best_mount_point(path);
-    if (mp == nullptr)
-    {
-        return nullptr;
-    }
-    std::string_view path_in_fs = path.substr(path.find(mp->point) + mp->point.length(), path.length());
-
-    return mp->filesystem->get(path_in_fs);
+    writer << "VFS get: " << path.native() << endl;
+    return mp == nullptr ? nullptr : mp->filesystem->get(path.lexically_relative(mp->point));
 }
 
-std::unique_ptr<IFile> Vfs::create(std::string_view path)
+std::unique_ptr<IFile> Vfs::create(const eul::filesystem::path& path)
 {
     const MountPoint* mp = mount_points_.get_best_mount_point(path);
-    if (mp == nullptr)
-    {
-        return nullptr;
-    }
-    std::string_view path_in_fs = path.substr(path.find(mp->point) + mp->point.length(), path.length());
-    return mp->filesystem->create(path_in_fs);
+    return mp == nullptr ? nullptr : mp->filesystem->create(path.lexically_relative(mp->point));
 }
 
 
-std::vector<std::unique_ptr<IFile>> Vfs::list(std::string_view path)
+std::vector<std::unique_ptr<IFile>> Vfs::list(const eul::filesystem::path& path)
 {
-    std::string destination(path);
     const MountPoint* mp = mount_points_.get_best_mount_point(path);
-    if (mp == nullptr)
-    {
-        return {};
-    }
-    std::string_view path_in_fs = path.substr(path.find(mp->point) + mp->point.length(), path.length());
-    return mp->filesystem->list(path_in_fs);
+    return mp == nullptr ? std::vector<std::unique_ptr<IFile>>{} : mp->filesystem->list(path.lexically_relative(mp->point));
 }
 
 std::string_view Vfs::name() const
@@ -129,19 +97,15 @@ std::string_view Vfs::name() const
     return "VFS";
 }
 
-void Vfs::mount_fs(std::string_view path, IFileSystem* fs)
+void Vfs::mount_fs(const eul::filesystem::path& path, IFileSystem* fs)
 {
     mount_points_.mount_filesystem(path, fs);
 }
 
-IFileSystem* Vfs::get_child_fs(std::string_view path)
+IFileSystem* Vfs::get_child_fs(const eul::filesystem::path& path)
 {
     const MountPoint* mp = mount_points_.get_best_mount_point(path);
-    if (mp == nullptr)
-    {
-        return nullptr;
-    }
-    return mp->filesystem;
+    return mp == nullptr ? nullptr : mp->filesystem;
 }
 
 } // namespace fs

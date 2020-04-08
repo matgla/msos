@@ -19,6 +19,8 @@
 #include <string_view>
 #include <vector>
 
+#include <eul/filesystem/path.hpp>
+
 #include "msos/drivers/storage/block_device.hpp"
 
 #include "msos/fs/i_file.hpp"
@@ -37,16 +39,16 @@ public:
     virtual int umount() = 0;
 
     virtual int create() = 0;
-    virtual int mkdir(std::string_view path, int mode) = 0;
+    virtual int mkdir(const eul::filesystem::path& path, int mode) = 0;
 
-    virtual int remove(std::string_view path) = 0;
-    virtual int stat(std::string_view path) = 0;
+    virtual int remove(const eul::filesystem::path& path) = 0;
+    virtual int stat(const eul::filesystem::path& path) = 0;
     virtual std::string_view name() const = 0;
 
-    virtual std::vector<std::unique_ptr<IFile>> list(std::string_view path) = 0;
+    virtual std::vector<std::unique_ptr<IFile>> list(const eul::filesystem::path& path) = 0;
 
-    virtual std::unique_ptr<IFile> get(std::string_view path) = 0;
-    virtual std::unique_ptr<IFile> create(std::string_view path) = 0;
+    virtual std::unique_ptr<IFile> get(const eul::filesystem::path& path) = 0;
+    virtual std::unique_ptr<IFile> create(const eul::filesystem::path& path) = 0;
 protected:
     static bool mounted_;
 };

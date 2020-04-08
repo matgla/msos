@@ -21,6 +21,8 @@
 #include <string_view>
 #include <vector>
 
+#include <eul/filesystem/path.hpp>
+
 namespace msos
 {
 namespace fs
@@ -29,15 +31,15 @@ namespace fs
 class RamFsData
 {
 public:
-    RamFsData(const std::string_view& name);
-    RamFsData(const std::string_view& name, const std::vector<uint8_t>& data);
+    RamFsData(const eul::filesystem::path& name);
+    RamFsData(const eul::filesystem::path& name, const std::vector<uint8_t>& data);
 
-    const std::string_view& filename() const;
+    const std::string& filename() const;
 
     std::vector<uint8_t>& data();
 
 private:
-    std::string_view filename_;
+    eul::filesystem::path filename_;
     std::vector<uint8_t> data_;
 };
 

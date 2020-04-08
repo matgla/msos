@@ -160,7 +160,7 @@ int app_start()
             remove_newlines(buffer, strlen(buffer));
             std::string_view arglist(buffer);
             get_next_argument(arglist);
-            auto path = eul::filesystem::path::create(get_next_argument(arglist)); // first argument is command name
+            eul::filesystem::path path(get_next_argument(arglist)); // first argument is command name
             cd_command(path.lexically_normal(), pwd);
         }
         else if (std::string_view(buffer).find("exit") == 0)
@@ -170,7 +170,7 @@ int app_start()
         else
         {
             remove_newlines(buffer, strlen(buffer));
-            auto path = eul::filesystem::path::create(buffer); // first argument is command name
+            eul::filesystem::path path(buffer); // first argument is command name
 
             if (is_absolute_path(buffer))
             {
@@ -180,7 +180,7 @@ int app_start()
             else
             {
                 char absolute_path[100];
-                int pwd_length = strlen(pwd);
+                std::size_t pwd_length = strlen(pwd);
                 if (pwd_length + path.native().length() + 2 >= 100)
                 {
                     continue;

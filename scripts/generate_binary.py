@@ -517,10 +517,11 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         symbol = exported_symbols[sym]
         value = symbol["value"]
         if symbol["section"] == 1:
-            print_debug("This is data relocation, calculating offset")
+            print("This is data relocation, calculating offset")
             value -= len(code_data)
 
         image += struct.pack("<HHI", symbol["size"], symbol["section"], value)
+        print("Exported relocation: ", sym)
         image += bytearray(sym + "\0", "ascii")
 
 

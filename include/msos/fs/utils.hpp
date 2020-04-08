@@ -16,22 +16,17 @@
 
 #pragma once
 
-#include <eul/filesystem/path.hpp>
+#include <memory>
+#include <vector>
 
-#include "msos/fs/i_filesystem.hpp"
-
+#include "msos/fs/i_file.hpp"
 
 namespace msos
 {
 namespace fs
 {
 
-struct MountPoint
-{
-    MountPoint(const eul::filesystem::path& p, IFileSystem* fs) : point(p), filesystem(fs) {}
-    eul::filesystem::path point;
-    IFileSystem* filesystem;
-};
+void insert_with_order(std::vector<std::unique_ptr<IFile>>& vec, std::unique_ptr<IFile>&& file);
 
 } // namespace fs
 } // namespace msos

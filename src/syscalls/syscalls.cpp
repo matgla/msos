@@ -140,7 +140,7 @@ int _write(int fd, const char* ptr, int len)
     msos::fs::IFile* file = msos::kernel::process::Scheduler::get().current_process().get_file(fd);
     if (file)
     {
-        return file->write(std::string_view(ptr, len));
+        return static_cast<int>(file->write(std::string_view(ptr, static_cast<std::size_t>(len))));
     }
 
     return 0;
@@ -162,7 +162,7 @@ int _read(int fd, char* ptr, int len)
 
     if (file)
     {
-        return file->read(gsl::make_span<char>(ptr, len));
+        return static_cast<int>(file->read(gsl::make_span<char>(ptr, static_cast<std::size_t>(len))));
     }
 
     return 0;

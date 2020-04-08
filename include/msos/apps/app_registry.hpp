@@ -54,16 +54,16 @@ public:
 
     int create() override;
 
-    int mkdir(std::string_view path, int mode) override;
+    int mkdir(const eul::filesystem::path& path, int mode) override;
 
-    int remove(std::string_view path) override;
+    int remove(const eul::filesystem::path& path) override;
 
-    int stat(std::string_view path) override;
+    int stat(const eul::filesystem::path& path) override;
 
-    std::unique_ptr<fs::IFile> get(std::string_view path) override;
-    std::unique_ptr<fs::IFile> create(std::string_view path) override;
+    std::unique_ptr<fs::IFile> get(const eul::filesystem::path& path) override;
+    std::unique_ptr<fs::IFile> create(const eul::filesystem::path& path) override;
 
-    std::vector<std::unique_ptr<fs::IFile>> list(std::string_view path) override;
+    std::vector<std::unique_ptr<fs::IFile>> list(const eul::filesystem::path& path) override;
 
     static bool register_executable(std::string_view name, std::size_t address);
     std::string_view name() const override;
@@ -72,4 +72,4 @@ public:
 } // namespace apps
 } // namespace msos
 
-#define REGISTER_APP(name, address) bool app_name ## _entry = msos::apps::AppRegistry::register_executable("/"#name".bin", reinterpret_cast<std::size_t>(address))
+#define REGISTER_APP(name, address) bool app_name ## _entry = msos::apps::AppRegistry::register_executable(#name".bin", reinterpret_cast<std::size_t>(address))

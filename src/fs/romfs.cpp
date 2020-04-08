@@ -18,14 +18,19 @@
 
 #include <algorithm>
 
-#include "msos/fs/romfs_file.hpp"
-
 #include <eul/utils/unused.hpp>
+
+#include "msos/fs/romfs_file.hpp"
+#include "msos/fs/utils.hpp"
+
+#include "msos/usart_printer.hpp"
 
 namespace msos
 {
 namespace fs
 {
+
+static UsartWriter writer;
 
 RomFs::RomFs(const uint8_t* memory)
     : disk_(memory)
@@ -49,41 +54,48 @@ int RomFs::create()
     return 1;
 }
 
-int RomFs::mkdir(std::string_view path, int mode)
+int RomFs::mkdir(const eul::filesystem::path& path, int mode)
 {
     UNUSED2(path, mode);
     return -1;
 }
 
-int RomFs::remove(std::string_view path)
+int RomFs::remove(const eul::filesystem::path& path)
 {
     UNUSED1(path);
     return -1;
 }
 
-int RomFs::stat(std::string_view path)
+int RomFs::stat(const eul::filesystem::path& path)
 {
     UNUSED1(path);
     return 1;
 }
 
-std::unique_ptr<IFile> RomFs::get(std::string_view path)
+std::unique_ptr<IFile> RomFs::get(const eul::filesystem::path& path)
 {
-    if (path.empty())
+    eul::filesystem::path path_in_fs("/");
+    if (path.is_absolute())
     {
-        path = "/";
+        path_in_fs = path;
     }
-    auto dir = disk_.get_directory(path);
+    else
+    {
+        path_in_fs += path;
+    }
+    if (path.native().empty())
+    {
+        path_in_fs = "/";
+    }
+    auto dir = disk_.get_directory(path_in_fs.c_str());
     if (dir)
     {
         return std::make_unique<RomFsFile>(dir->get_file_header());
-        return nullptr;
     }
-    std::size_t last_slash = path.rfind("/");
-    std::string_view filename = path.substr(last_slash + 1, path.size());
 
-    path.remove_suffix(path.size() - last_slash);
-    dir = disk_.get_directory(path);
+
+    auto filename = path_in_fs.filename();
+    dir = disk_.get_directory(path_in_fs.parent_path().native());
     if (dir)
     {
         auto file = dir->get_file(filename);
@@ -91,30 +103,32 @@ std::unique_ptr<IFile> RomFs::get(std::string_view path)
         {
             return std::make_unique<RomFsFile>(*file);
         }
-        // else
-        // {
-        //     return std::make_unique<RomFsFile>(*dir);
-        // }
     }
 
     return nullptr;
 }
 
-std::unique_ptr<IFile> RomFs::create(std::string_view path)
+std::unique_ptr<IFile> RomFs::create(const eul::filesystem::path& path)
 {
     UNUSED1(path);
     return nullptr;
 }
 
 
-std::vector<std::unique_ptr<IFile>> RomFs::list(std::string_view path)
+std::vector<std::unique_ptr<IFile>> RomFs::list(const eul::filesystem::path& path)
 {
-    if (path.empty())
+    eul::filesystem::path path_in_fs("/");
+    if (path.is_absolute())
     {
-        path = "/";
+        path_in_fs = path;
     }
+    else
+    {
+        path_in_fs += path;
+    }
+
     std::vector<std::unique_ptr<IFile>> files;
-    auto dir = disk_.get_directory(path);
+    auto dir = disk_.get_directory(path_in_fs.native());
     if (!dir)
     {
         return {};
@@ -122,12 +136,8 @@ std::vector<std::unique_ptr<IFile>> RomFs::list(std::string_view path)
 
     for (auto& file : *dir)
     {
-        files.push_back(std::make_unique<RomFsFile>(file));
+        insert_with_order(files, std::make_unique<RomFsFile>(file));
     }
-
-    std::sort(files.begin(), files.end(), [](const auto& lhs, const auto& rhs) {
-        return std::lexicographical_compare(lhs->name().begin(), lhs->name().end(), rhs->name().begin(), rhs->name().end());
-    });
 
     return files;
 }

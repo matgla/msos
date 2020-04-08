@@ -29,8 +29,7 @@ extern "C"
 
 struct DIRImpl
 {
-    char* path;
-    msos::fs::IFileSystem* filesystem;
+    std::vector<std::unique_ptr<msos::fs::IFile>> files;
 };
 
 }
@@ -41,7 +40,7 @@ DIR* opendir(const char* dirname)
     path = path.lexically_normal();
 
     auto& vfs = msos::fs::Vfs::instance();
-    auto file = vfs.get(path.native());
+    auto file = vfs.get(path);
     if (!file)
     {
         return nullptr; // no such directory
@@ -54,19 +53,15 @@ DIR* opendir(const char* dirname)
     dir->ent.d_namlen = 0;
 
     dir->impl = new DIRImpl;
-    dir->impl->filesystem = &vfs;
 
-    dir->impl->path = new char[path.native().length() + 1];
-    std::memcpy(dir->impl->path, path.c_str(), path.native().length());
-    dir->impl->path[path.native().length()] = 0;
-
+    dir->impl->files = vfs.list(path);
     return dir;
 }
 
 dirent* readdir(DIR *dirp)
 {
     // writer << "Read dir" << endl;
-    auto files = dirp->impl->filesystem->list(dirp->impl->path);
+    const auto& files = dirp->impl->files;
     if (files.empty())
     {
         return nullptr;
@@ -74,9 +69,7 @@ dirent* readdir(DIR *dirp)
 
     if (dirp->ent.d_namlen == 0)
     {
-        // writer << "Namelen is 0" << endl;
         const auto& file = *files.front();
-        // writer << "size: " << files.size() << ", " << files.front()->name() << endl;
 
         if (file.name().empty())
         {
@@ -119,7 +112,6 @@ dirent* readdir(DIR *dirp)
 
 int closedir(DIR *dirp)
 {
-    delete[] dirp->impl->path;
     delete dirp->impl;
     delete dirp;
     return 0;

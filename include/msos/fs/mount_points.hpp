@@ -22,6 +22,8 @@
 #include "msos/fs/i_filesystem.hpp"
 #include "msos/fs/mount_point.hpp"
 
+#include <eul/filesystem/path.hpp>
+
 namespace msos
 {
 namespace fs
@@ -30,13 +32,8 @@ namespace fs
 class MountPoints
 {
 public:
-    const std::vector<MountPoint> get_mounted_points() const;
-    const std::vector<MountPoint> get_mounted_points_under(const std::string_view& path) const;
-    IFileSystem* get_mounted_filesystem(const std::string_view& path);
-    bool mount_filesystem(std::string_view point, IFileSystem* filesystem);
-    const MountPoint* get_mount_point(IFileSystem* filesystem) const;
-    const MountPoint* get_mount_point(std::string_view point) const;
-    const MountPoint* get_best_mount_point(std::string_view path) const;
+    const MountPoint* get_best_mount_point(const eul::filesystem::path& path) const;
+    bool mount_filesystem(const eul::filesystem::path& path, IFileSystem* filesystem);
 
 private:
     std::vector<MountPoint> points_;

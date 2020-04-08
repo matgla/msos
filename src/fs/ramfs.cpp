@@ -22,11 +22,16 @@
 #include <eul/utils/unused.hpp>
 
 #include "msos/fs/ramfs_file.hpp"
+#include "msos/fs/utils.hpp"
+
+#include "msos/usart_printer.hpp"
 
 namespace msos
 {
 namespace fs
 {
+
+static UsartWriter writer;
 
 int RamFs::mount(drivers::storage::BlockDevice& device)
 {
@@ -44,71 +49,58 @@ int RamFs::create()
     return 1;
 }
 
-int RamFs::mkdir(std::string_view path, int mode)
+int RamFs::mkdir(const eul::filesystem::path& path, int mode)
 {
     UNUSED1(mode);
-    std::size_t last_slash = path.find_last_of("/");
-    std::size_t dirname_start = path.find_first_not_of("/");
-    if (dirname_start == std::string_view::npos)
+    auto it = std::find_if(files_.begin(), files_.end(), [path](const auto& file) {
+        return file.filename() == path.native();
+    });
+    if (it != files_.end())
     {
         return -1;
     }
-    path = path.substr(dirname_start, path.length());
-    if (last_slash == std::string_view::npos || last_slash == 0)
-    {
-        files_.push_back(RamFsData{path});
-        return 0;
-    }
-    else
-    {
-        std::string_view parent_path = path.substr(0, last_slash);
-        auto parent = std::find_if(files_.begin(), files_.end(), [parent_path](const auto& file) {
-            return file.filename() == parent_path;
-        });
-        if (parent != files_.end())
-        {
-            files_.push_back(RamFsData{path});
-            return 0;
-        }
-
-    }
-    return -1;
+    files_.push_back(RamFsData{path});
+    return 0;
 }
 
-int RamFs::remove(std::string_view path)
+int RamFs::remove(const eul::filesystem::path& path)
 {
     UNUSED1(path);
     return 1;
 }
 
-int RamFs::stat(std::string_view path)
+int RamFs::stat(const eul::filesystem::path& path)
 {
     UNUSED1(path);
     return 1;
 }
 
-std::unique_ptr<IFile> RamFs::get(std::string_view path)
+std::unique_ptr<IFile> RamFs::get(const eul::filesystem::path& path)
 {
-    if (path == "/")
+    if (path.native() == "/" || path.native().empty())
     {
         return std::make_unique<RamfsFile>("/");
     }
-
+    writer << "size: " << files_.size() << files_.front().filename() << endl;
     for (auto& file : files_)
     {
-        if (file.filename() == path)
+        writer << file.filename() << " == " << path.native() << endl;
+
+        if (file.filename() == path.native())
         {
-            return std::make_unique<RamfsFile>(path, file.data());
+            return std::make_unique<RamfsFile>(path.native(), file.data());
         }
     }
 
     return nullptr;
 }
 
-std::unique_ptr<IFile> RamFs::create(std::string_view path)
+std::unique_ptr<IFile> RamFs::create(const eul::filesystem::path& path)
 {
+    // eul::filesystem::path filename = path.lexically_relative("/");
     files_.push_back(RamFsData{path});
-    return std::make_unique<RamfsFile>(path, files_.back().data());
+    // writer << "Created file: " << filename.native() << endl;
+    return std::make_unique<RamfsFile>(files_.back().filename(), files_.back().data());
 }
 
 std::string_view get_parent_path(std::string_view path)
@@ -124,53 +116,33 @@ std::string_view get_parent_path(std::string_view path)
     return parent_path;
 }
 
-std::vector<std::unique_ptr<IFile>> RamFs::list(std::string_view path)
+std::vector<std::unique_ptr<IFile>> RamFs::list(const eul::filesystem::path& path)
 {
     std::vector<std::unique_ptr<IFile>> files;
 
-    std::size_t dirname_start = path.find_first_not_of("/");
-    if (dirname_start != std::string_view::npos)
-    {
-        path = path.substr(dirname_start, path.length());
-    }
-    else if (!path.empty())
-    {
-        path = {};
-    }
-
-    if (path.empty())
+    if (path.native().empty() || path.native() == "/")
     {
         for (auto& file : files_)
         {
             if (file.filename().find("/") == std::string_view::npos)
             {
-                files.push_back(std::make_unique<RamfsFile>(file.filename(), file.data()));
+                insert_with_order(files, std::make_unique<RamfsFile>(file.filename(), file.data()));
             }
         }
     }
     else
     {
-        std::size_t last_slash = path.find_last_of("/");
-        std::string_view parent_path = path;
-
-        if (last_slash != std::string_view::npos)
-        {
-            parent_path = path.substr(0, last_slash);
-        }
         for (auto& file : files_)
         {
             std::string_view file_parent_path = get_parent_path(file.filename());
-            if (file_parent_path == parent_path)
+            if (file_parent_path == path.parent_path().native())
             {
-                files.push_back(std::make_unique<RamfsFile>(file.filename(), file.data()));
+                insert_with_order(files, std::make_unique<RamfsFile>(file.filename(), file.data()));
             }
         }
 
     }
 
-    std::sort(files.begin(), files.end(), [](const auto& lhs, const auto& rhs) {
-        return std::lexicographical_compare(lhs->name().begin(), lhs->name().end(), rhs->name().begin(), rhs->name().end());
-    });
     return files;
 }
 

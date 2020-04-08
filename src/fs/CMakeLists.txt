@@ -35,6 +35,8 @@ target_sources(msos_fs
         ${library_includes}/usart_file.hpp
 
         ${library_includes}/vfs.hpp
+
+        ${library_includes}/utils.hpp
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/mount_points.cpp
 
@@ -48,6 +50,8 @@ target_sources(msos_fs
         ${CMAKE_CURRENT_SOURCE_DIR}/usart_file.cpp
 
         ${CMAKE_CURRENT_SOURCE_DIR}/vfs.cpp
+
+        ${CMAKE_CURRENT_SOURCE_DIR}/utils.cpp
 )
 
 target_include_directories(msos_fs
@@ -69,8 +73,9 @@ target_link_libraries(msos_fs
         msos_drivers_storage
         gsl
         romfs # should't be public, try to change
+        eul_filesystem
     PRIVATE
-        eul
+        msos_printer
         hal_flags
 )
 

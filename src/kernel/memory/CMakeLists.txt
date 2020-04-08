@@ -28,6 +28,16 @@ target_include_directories(msos_kernel_memory
         ${PROJECT_SOURCE_DIR}/include
 )
 
+target_compile_options(msos_kernel_memory
+    PUBLIC
+        $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a>
+        $<$<CONFIG:DEBUG>:-Og -g>
+        $<$<CONFIG:RELEASE>:-Os>
+    PRIVATE
+        $<$<COMPILE_LANGUAGE:CXX>:-Werror -Wall -Wextra -Wpedantic -Wconversion -Wcast-align -Wunused -Wshadow -Wold-style-cast -Wpointer-arith -Wcast-qual -Wno-missing-braces>
+)
+
+
 target_link_libraries(msos_kernel_memory
     PRIVATE
         msos_printer

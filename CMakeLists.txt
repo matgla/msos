@@ -37,6 +37,7 @@ enable_language(ASM C CXX)
 fetch_module_via_branch(lib/msgui ${PROJECT_SOURCE_DIR}/lib/msgui ${CMAKE_CURRENT_SOURCE_DIR} "master")
 set (DISABLE_ROMFS_TESTS "1")
 set (romfs_cxx_compilation_flags ${hal_cxx_compilation_flags} CACHE STRING "romfs compilation flags" FORCE)
+set (romfs_linking_flags ${hal_linker_flags} CACHE STRING "romfs linking flags" FORCE)
 fetch_module_via_branch(lib/romfs ${PROJECT_SOURCE_DIR}/lib/romfs ${CMAKE_CURRENT_SOURCE_DIR} "master")
 fetch_module_via_branch(lib/gsl/gsl ${PROJECT_SOURCE_DIR}/lib/gsl/gsl ${CMAKE_CURRENT_SOURCE_DIR} "v2.0.0")
 

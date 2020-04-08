@@ -14,24 +14,34 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
+#include "msos/fs/utils.hpp"
 
-#include <eul/filesystem/path.hpp>
-
-#include "msos/fs/i_filesystem.hpp"
-
+#include <algorithm>
 
 namespace msos
 {
 namespace fs
 {
 
-struct MountPoint
+void insert_with_order(std::vector<std::unique_ptr<IFile>>& vec, std::unique_ptr<IFile>&& file)
 {
-    MountPoint(const eul::filesystem::path& p, IFileSystem* fs) : point(p), filesystem(fs) {}
-    eul::filesystem::path point;
-    IFileSystem* filesystem;
-};
+    if (vec.empty())
+    {
+        vec.push_back(std::move(file));
+        return;
+    }
+
+    for (auto it = vec.begin(); it != vec.end(); ++it)
+    {
+        if (std::lexicographical_compare(file->name().begin(), file->name().end(), (*it)->name().begin(), (*it)->name().end()))
+        {
+            vec.insert(it, std::move(file));
+            return;
+        }
+    }
+
+    vec.push_back(std::move(file));
+}
 
 } // namespace fs
 } // namespace msos

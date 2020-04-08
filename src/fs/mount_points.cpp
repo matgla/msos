@@ -23,55 +23,23 @@ namespace msos
 namespace fs
 {
 
-const std::vector<MountPoint> MountPoints::get_mounted_points() const
-{
-    return points_;
-}
-
-const std::vector<MountPoint> MountPoints::get_mounted_points_under(const std::string_view& path) const
-{
-    std::vector<MountPoint> matched;
-
-    std::copy_if(points_.begin(), points_.end(), std::back_inserter(matched),
-        [path](const MountPoint& point) {
-            if (point.point.find(path) == 0)
-            {
-                std::string_view trimmed_path = point.point.substr(path.length(), point.point.length());
-                std::size_t last_slash = trimmed_path.find_last_of("/");
-
-                if (last_slash == 0 || last_slash == std::string_view::npos)
-                {
-                    return true;
-                }
-            }
-            return false;
-        });
-    return matched;
-}
-
-const MountPoint* MountPoints::get_best_mount_point(std::string_view path) const
+const MountPoint* MountPoints::get_best_mount_point(const eul::filesystem::path& path) const
 {
     std::string_view best_mount_point;
-    std::string_view path_to_executable(path);
     for (auto& point : points_)
     {
-        std::size_t index = path_to_executable.find(point.point);
+        std::size_t index = path.native().find(point.point.native());
         if (index != std::string_view::npos)
         {
-            if (point.point.size() > best_mount_point.size())
+            if (point.point.native().size() > best_mount_point.size())
             {
-                best_mount_point = point.point;
+                best_mount_point = point.point.native();
             }
         }
     }
 
-    if (best_mount_point != "/")
-    {
-        path_to_executable.remove_prefix(best_mount_point.size());
-    }
-
     auto mount_point = std::find_if(points_.begin(), points_.end(), [best_mount_point](const MountPoint& mp){
-        return mp.point == best_mount_point;
+        return mp.point.native() == best_mount_point;
     });
     if (mount_point != points_.end())
     {
@@ -82,91 +50,10 @@ const MountPoint* MountPoints::get_best_mount_point(std::string_view path) const
 
 }
 
-IFileSystem* MountPoints::get_mounted_filesystem(const std::string_view& path)
+bool MountPoints::mount_filesystem(const eul::filesystem::path& path, IFileSystem* filesystem)
 {
-    std::string_view best_mount_point;
-    std::string_view path_to_executable(path);
-    for (auto& point : points_)
-    {
-        std::size_t index = path_to_executable.find(point.point);
-        if (index != std::string_view::npos)
-        {
-            if (point.point.size() > best_mount_point.size())
-            {
-                best_mount_point = point.point;
-            }
-        }
-    }
-
-    if (best_mount_point != "/")
-    {
-        path_to_executable.remove_prefix(best_mount_point.size());
-    }
-
-    auto mount_point = std::find_if(points_.begin(), points_.end(), [best_mount_point](const MountPoint& mp){
-        return mp.point == best_mount_point;
-    });
-    if (mount_point != points_.end())
-    {
-        return mount_point->filesystem;
-    }
-
-    return nullptr;
-}
-
-bool MountPoints::mount_filesystem(std::string_view point, IFileSystem* filesystem)
-{
-    std::size_t dirname_start = point.find_first_not_of("/");
-    if (dirname_start != std::string_view::npos)
-    {
-        point = point.substr(dirname_start, point.length());
-    }
-    else if(!point.empty())
-    {
-        point = {};
-    }
-
-
-    points_.push_back(MountPoint(point, filesystem));
+    points_.push_back(MountPoint(path, filesystem));
     return true;
-}
-
-const MountPoint* MountPoints::get_mount_point(IFileSystem* filesystem) const
-{
-    auto mount_point = std::find_if(points_.begin(), points_.end(), [filesystem](const MountPoint& mp){
-        return mp.filesystem == filesystem;
-    });
-
-    if (mount_point != points_.end())
-    {
-        return &(*mount_point);
-    }
-
-    return nullptr;
-}
-
-const MountPoint* MountPoints::get_mount_point(std::string_view point) const
-{
-    std::size_t dirname_start = point.find_first_not_of("/");
-    if (dirname_start != std::string_view::npos)
-    {
-        point = point.substr(dirname_start, point.length());
-    }
-    else if(!point.empty())
-    {
-        point = {};
-    }
-
-    auto mount_point = std::find_if(points_.begin(), points_.end(), [point](const MountPoint& mp){
-        return mp.point == point;
-    });
-
-    if (mount_point != points_.end())
-    {
-        return &(*mount_point);
-    }
-
-    return nullptr;
 }
 
 } // namespace fs
