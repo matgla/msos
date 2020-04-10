@@ -67,12 +67,10 @@ int main()
     std::size_t module_address = 0x08000000;
     module_address += 32 * 1024;
     int extern_data = 123;
-    msos::dl::Environment<5> env{
-        msos::dl::SymbolAddress{"usart_write", &usart_write},
-        msos::dl::SymbolAddress{"strlen", &strlen},
-        msos::dl::SymbolAddress{"write", &write},
-        msos::dl::SymbolAddress{"extern_1", &extern_data},
-        msos::dl::SymbolAddress{"printf", &_printf},
+    msos::dl::Environment<3> env{
+        msos::dl::SymbolAddress{300, &strlen},
+        msos::dl::SymbolAddress{1100, &write},
+        msos::dl::SymbolAddress{100, &_printf},
     };
     writer << "[TEST START]" << endl;
 

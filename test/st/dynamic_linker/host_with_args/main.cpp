@@ -51,8 +51,8 @@ int main()
     std::size_t module_address = 0x08000000;
     module_address += 32 * 1024;
     msos::dl::Environment<2> env{
-        msos::dl::SymbolAddress{"atoi", &atoi},
-        msos::dl::SymbolAddress{"printf", &_printf}
+        msos::dl::SymbolAddress{200, &atoi},
+        msos::dl::SymbolAddress{100, &_printf}
     };
     writer << "[TEST START]" << endl;
 

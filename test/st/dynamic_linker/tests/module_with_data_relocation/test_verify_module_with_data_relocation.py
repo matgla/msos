@@ -29,9 +29,5 @@ def test_use_module_with_data_relocation():
     sut.expect("Local data 2: 5, 6, 7, 8", 1)
     sut.expect("Global integer: 19", 1)
     sut.expect("Global integer ptr: 19", 1)
-    sut.expect("Extern 1: 123", 1)
-    sut.expect("Extern 2: 234", 1)
-    sut.expect("Extern 1: 234", 1)
-    sut.expect("Extern 2: 234", 1)
     sut.stop(1)
 

@@ -48,7 +48,9 @@ function (add_module module_name module_library)
         )
 
         add_custom_command(
-            OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/objects/wrapped_symbols.s
+            # OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/objects/wrapped_symbols.s
+            TARGET ${module_library}
+            PRE_LINK
             COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/objects
             COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/objects
             COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/pip install -r ${PROJECT_SOURCE_DIR}/scripts/requirements.txt --upgrade -q -q -q
@@ -59,7 +61,8 @@ function (add_module module_name module_library)
             DEPENDS ${module_library} ${VIRTUALENV_FILE} ${PROJECT_SOURCE_DIR}/scripts/requirements.txt ${PROJECT_SOURCE_DIR}/scripts/wrapped_symbols.s.template ${PROJECT_SOURCE_DIR}/scripts/generate_wrappers.py
             VERBATIM
         )
-
+        set_target_properties(${module_name}_wrapper PROPERTIES OBJECT_DEPENDS ${PROJECT_SOURCE_DIR}/scripts/generate_wrappers.py)
+        # add_dependencies(${module_name}_wrapper ${PROJECT_SOURCE_DIR}/scripts/generate_wrappers.py)
         add_dependencies(${module_name}_wrapper ${module_library})
 
         link_directories(${CMAKE_CURRENT_BINARY_DIR}/objects)
@@ -78,14 +81,18 @@ function (add_module module_name module_library)
                 module_flags
                 # ${library_libs}
         )
+
         add_custom_command(
             TARGET ${module_name}
             POST_BUILD
             COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/python3 ${PROJECT_SOURCE_DIR}/scripts/generate_binary.py
             generate_wrapper_code --disable_logs --elf_filename=$<TARGET_FILE:${module_name}> --module_name=${module_name}
-            --objcopy=${CMAKE_OBJCOPY} --as_executable
+            --objcopy=${CMAKE_OBJCOPY} --as_executable --api=${PROJECT_SOURCE_DIR}/api/symbol_codes.json
             DEPENDS ${PROJECT_SOURCE_DIR}/scripts/generate_binary.py
         )
+
+        set_target_properties(${module_name} PROPERTIES OBJECT_DEPENDS ${PROJECT_SOURCE_DIR}/scripts/generate_wrappers.py)
+
     elseif (${arch} STREQUAL "x86")
         file (TOUCH ${CMAKE_CURRENT_BINARY_DIR}/empty.cpp)
         add_library(${module_name} SHARED ${CMAKE_CURRENT_BINARY_DIR}/empty.cpp)

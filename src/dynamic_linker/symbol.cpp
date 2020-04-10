@@ -42,24 +42,19 @@ std::string_view to_string(const Section s)
     return "Unknown";
 }
 
-uint32_t Symbol::size() const
-{
-    return size_;
-}
-
 Section Symbol::section() const
 {
     return section_;
 }
 
-std::string_view Symbol::name() const
+uint32_t Symbol::code() const
 {
-    return std::string_view(reinterpret_cast<const char*>(this) + sizeof(Symbol));
+    return code_;
 }
 
 const Symbol& Symbol::next() const
 {
-    return reinterpret_cast<const Symbol&>(*(reinterpret_cast<const uint8_t*>(this) + size()));
+    return *(this + 1);
 }
 
 uint32_t Symbol::offset() const

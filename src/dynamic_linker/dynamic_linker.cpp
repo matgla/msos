@@ -63,13 +63,13 @@ const LoadedModule* DynamicLinker::load_module(const std::size_t* module_address
     const std::size_t relocation_section_address = reinterpret_cast<std::size_t>(module_address) + header.size();
     const std::size_t relocation_section_size = get_relocations_size(header);
     const std::size_t symbol_section_address = relocation_section_address + relocation_section_size;
-    const uint32_t symbol_section_size = get_symbols_size(symbol_section_address, header.number_of_external_symbols() + header.number_of_exported_symbols());
+    const std::size_t symbol_section_size = get_symbols_size(symbol_section_address, header.number_of_external_symbols() + header.number_of_exported_symbols());
 
     const std::size_t not_aligned_code_address = symbol_section_address + symbol_section_size;
     const std::size_t code_address = not_aligned_code_address % 16 ? not_aligned_code_address + (16 - (not_aligned_code_address % 16)) : not_aligned_code_address;
     const std::size_t data_address = code_address + header.code_size();
 
-    const auto* main = find_symbol(symbol_section_address, header.number_of_external_symbols() + header.number_of_exported_symbols(), "main");
+    const auto* main = find_symbol(symbol_section_address, header.number_of_external_symbols() + header.number_of_exported_symbols(), 1);
     modules_.emplace_back(header);
     LoadedModule& loaded_module = modules_.back();
     Module& module = loaded_module.get_module();
@@ -127,12 +127,12 @@ const LoadedModule* DynamicLinker::load_module(const std::size_t* module_address
     return &loaded_module;
 }
 
-const Symbol* DynamicLinker::find_symbol(const std::size_t address, const uint32_t number_of_symbols, const std::string_view& symbol_name)
+const Symbol* DynamicLinker::find_symbol(const std::size_t address, const uint32_t number_of_symbols, uint32_t symbol_code)
 {
     const Symbol* symbol = reinterpret_cast<const Symbol*>(address);
     for (uint32_t i = 0; i < number_of_symbols; ++i)
     {
-        if (symbol->name() == symbol_name)
+        if (symbol->code() == symbol_code)
         {
             return symbol;
         }
@@ -226,9 +226,9 @@ std::size_t DynamicLinker::get_relocations_size(const ModuleHeader& header)
     return sizeof(Relocation) * header.number_of_relocations();
 }
 
-uint32_t DynamicLinker::get_symbols_size(const std::size_t address, const uint32_t number_of_symbols)
+std::size_t DynamicLinker::get_symbols_size(const std::size_t address, const uint32_t number_of_symbols)
 {
-    uint32_t size = 0;
+    std::size_t size = 0;
 
     const Symbol* symbol = reinterpret_cast<const Symbol*>(address);
     for (uint32_t i = 0; i < number_of_symbols; ++i)
@@ -252,14 +252,15 @@ bool DynamicLinker::process_external_relocations(std::size_t external_relocation
 
         external_relocations_address += relocation.size();
         const Symbol& symbol = relocation.symbol();
-        const auto* env_symbol = find_symbol(entries, number_of_entries, symbol.name());
+        writer << "Processing symbol: " << symbol.code() << endl;
+        const auto* env_symbol = find_symbol(entries, number_of_entries, symbol.code());
         if (env_symbol)
         {
             lot[relocation.index()] = env_symbol->address;
         }
         else
         {
-            writer << "Can't find symbol: " << symbol.name() << endl;
+            writer << "Can't find symbol: " << symbol.code() << endl;
             status = false;
         }
     }
@@ -283,11 +284,11 @@ void DynamicLinker::process_data_relocations(std::size_t data_relocations_addres
 }
 
 
-const SymbolEntry* DynamicLinker::find_symbol(const SymbolEntry* entries, std::size_t number_of_entries, std::string_view symbol)
+const SymbolEntry* DynamicLinker::find_symbol(const SymbolEntry* entries, std::size_t number_of_entries, uint32_t symbol_code)
 {
     for (std::size_t i = 0; i < number_of_entries; ++i)
     {
-        if (std::string_view(entries[i].name) == symbol)
+        if (entries[i].code == symbol_code)
         {
             return &entries[i];
         }

@@ -14,14 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-extern "C"
-{
-    void usart_write(const char* data);
-}
+#include <cstdio>
 
 int main()
 {
-    usart_write("Hello from simple single module\n");
+    printf("Hello from simple single module\n");
 }
 
 

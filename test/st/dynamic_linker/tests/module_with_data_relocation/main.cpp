@@ -48,9 +48,6 @@ void print()
 }
 
 
-extern int extern_1;
-extern int extern_2;
-
 int main()
 {
     global_integer = 177177;
@@ -72,12 +69,5 @@ int main()
 
     printf("Global integer: %d\n", global_integer);
     printf("Global integer ptr: %d\n", *ptr);
-    printf("Extern 1: %d\n", extern_1);
-    printf("Extern 2: %d\n", extern_2);
-    int* p_extern1 = &extern_1;
-    *p_extern1 = extern_2;
-
-    printf("Extern 1: %d\n", extern_1);
-    printf("Extern 2: %d\n", extern_2);
 }
 

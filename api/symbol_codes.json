@@ -1,4 +1,18 @@
-[
-    {"main": 0},
-    {"printf": 1}
-]
+{
+    "exported": {
+        "unused": 0,
+        "main": 1
+    },
+    "libc": {
+        "printf": 100,
+        "scanf": 101,
+        "atoi": 200,
+        "strlen": 300
+    },
+    "posix": {
+        "readdir": 1000,
+        "opendir": 1001,
+        "closedir": 1002,
+        "write": 1100
+    }
+}

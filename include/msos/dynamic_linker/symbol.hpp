@@ -43,15 +43,19 @@ std::string_view to_string(const Section s);
 class Symbol
 {
 public:
-    uint32_t size() const;
     Section section() const;
-    std::string_view name() const;
+    uint32_t code() const;
     const Symbol& next() const;
     uint32_t offset() const;
+    constexpr std::size_t size() const
+    {
+        return sizeof(Symbol);
+    }
 private:
     uint16_t size_;
     Section section_;
     uint32_t offset_;
+    uint32_t code_;
 };
 
 } // namespace dl

@@ -47,9 +47,3 @@ class BinaryUnderTest:
             self.executable.expect(expectation, timeout)
         else:
             raise "Executable not started"
-
-    def expect_async(self, expectation, timeout = 1):
-        if (self.executable):
-            self.executable.expect(expectation, timeout, async_=True)
-        else:
-            raise "Executable not started"

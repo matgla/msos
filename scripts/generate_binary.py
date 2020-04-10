@@ -20,6 +20,7 @@ import os
 import argparse
 import struct
 import sys
+import json
 
 from colorama import Fore, Style, init
 
@@ -213,7 +214,16 @@ def add_indexes_to_symbols(processed_symbols):
         symbol_index = symbol_index + 1
     return processed_symbols
 
-def generate_module(module_name, elf_filename, objcopy_executable):
+def find_symbol_code(api, symbol):
+    for lib in api:
+        for sym in api[lib]:
+            print(sym, " == ", symbol)
+            if sym == symbol:
+                print("Returnig: ", api[lib][sym])
+                return api[lib][sym]
+    return None
+
+def generate_module(module_name, elf_filename, objcopy_executable, api_file):
     elf = ElfParser(elf_filename)
 
     code_section = process_section(elf, ".text", 0)
@@ -306,7 +316,7 @@ def generate_module(module_name, elf_filename, objcopy_executable):
             sym["index"] = symbol_index
             symbol_index += 1
             sym["section"] = section
-            sym["size"] = len(symbol + "\0") + 2 + 2 + 4
+            sym["size"] = 4 + 2 + 2 + 4
             sym["value"] = symbols[symbol]["value"]
             external_symbols.update({symbol: sym})
 
@@ -326,7 +336,7 @@ def generate_module(module_name, elf_filename, objcopy_executable):
             sym["index"] = symbol_index
             symbol_index += 1
             sym["section"] = section
-            sym["size"] = len(symbol + "\0") + 2 + 2 + 4
+            sym["size"] = 4 + 2 + 2 + 4
             sym["value"] = symbols[symbol]["value"]
             exported_symbols.update({symbol: sym})
 
@@ -433,7 +443,7 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         for symbol in exported_symbols:
             if symbol == symbol_name:
                 break
-            symbol_offset += exported_symbols[symbol]["size"]
+            symbol_offset += 12
         offset_to_symbol = offset_to_symbol_table + symbol_offset
         row = [symbol_name, rel["lot_index"], offset_to_symbol]
         print_step("{: >50} {: >10} {: >10}".format(*row))
@@ -442,7 +452,7 @@ def generate_module(module_name, elf_filename, objcopy_executable):
 
     exported_symbols_size = 0
     for symbol in exported_symbols:
-        exported_symbols_size += exported_symbols[symbol]["size"]
+        exported_symbols_size += 12
 
     row = ["symbol", "index", "offset_to_symbol"]
     print_step("Exported relocations")
@@ -513,17 +523,27 @@ def generate_module(module_name, elf_filename, objcopy_executable):
     #     print_step(str(i) + "{: >45} {: >10} {: >10} {: >10} {: >15}".format(*row))
     #     i += 1
 
+    api = {}
+    print("Opening file: ", api_file)
+    with open(api_file) as codes_json:
+        api = json.loads(codes_json.read())
+
     for sym in exported_symbols:
         symbol = exported_symbols[sym]
         value = symbol["value"]
         if symbol["section"] == 1:
-            print("This is data relocation, calculating offset")
+            print_debug("This is data relocation, calculating offset")
             value -= len(code_data)
 
-        image += struct.pack("<HHI", symbol["size"], symbol["section"], value)
-        print("Exported relocation: ", sym)
-        image += bytearray(sym + "\0", "ascii")
+        if sym == "main":
+            symbol_code = find_symbol_code(api, sym)
+        else:
+            symbol_code = find_symbol_code(api, "undefined")
 
+        if symbol_code == None:
+            raise RuntimeError("Can't find symbol in api file: " + sym)
+
+        image += struct.pack("<HHII", symbol["size"], symbol["section"], value, symbol_code)
 
     for sym in external_symbols:
         symbol = external_symbols[sym]
@@ -531,9 +551,10 @@ def generate_module(module_name, elf_filename, objcopy_executable):
         if symbol["section"] == 1:
             print_debug("This is data relocation, calculating offset")
             value -= len(code_data)
-
-        image += struct.pack("<HHI", symbol["size"], symbol["section"], value)
-        image += bytearray(sym + "\0", "ascii")
+        symbol_code = find_symbol_code(api, sym)
+        if symbol_code == None:
+            raise RuntimeError("Can't find symbol in api file: " + sym)
+        image += struct.pack("<HHII", symbol["size"], symbol["section"], value, symbol_code)
 
     if (len(image) % 16):
         image += bytearray('\0' * (16 - (len(image) % 16)), "ascii")
@@ -551,6 +572,7 @@ parser.add_argument("--objcopy", dest="objcopy_executable", action="store", help
 parser.add_argument("--as_executable", dest="as_executable", action="store_true", help="Generate module as executable")
 parser.add_argument("-v", "--verbose", dest="enable_debugs", action="store_true", help="Additional logs")
 parser.add_argument("--disable_logs", dest="disable_logs", action="store_true", help="Disable logs")
+parser.add_argument("--api", dest="api_file", action="store", help="Disable logs", required="true")
 args, rest = parser.parse_known_args()
 
 def configure_logs(args):
@@ -580,6 +602,6 @@ def main():
 
     print_step("STEP 2. Generating module: " + args.module_name + ", ELF: " + args.elf_filename)
 
-    generate_module(args.module_name, args.elf_filename, args.objcopy_executable)
+    generate_module(args.module_name, args.elf_filename, args.objcopy_executable, args.api_file)
 
 main()
