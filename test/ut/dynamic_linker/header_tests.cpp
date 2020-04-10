@@ -36,16 +36,14 @@ TEST(HeaderShould, ProcessModuleHeader)
 
     const msos::dl::ModuleHeader& sut = *reinterpret_cast<const msos::dl::ModuleHeader*>(data.data());
     EXPECT_EQ(sut.cookie(), "MSDL");
-    EXPECT_EQ(sut.code_size(), 780);
-    EXPECT_EQ(sut.data_size(), 48);
+    EXPECT_EQ(sut.code_size(), 64);
+    EXPECT_EQ(sut.data_size(), 0);
     EXPECT_EQ(sut.bss_size(), 0);
     EXPECT_EQ(sut.number_of_exported_relocations(), 0);
-    EXPECT_EQ(sut.number_of_external_relocations(), 1);
-    EXPECT_EQ(sut.number_of_local_relocations(), 27);
-    EXPECT_EQ(sut.number_of_data_relocations(), 6);
-    EXPECT_EQ(sut.number_of_exported_symbols(), 2);
-    EXPECT_EQ(sut.number_of_external_symbols(), 2);
-    EXPECT_EQ(sut.size(), 52);
+    EXPECT_EQ(sut.number_of_local_relocations(), 1);
+    EXPECT_EQ(sut.number_of_data_relocations(), 0);
+    EXPECT_EQ(sut.number_of_exported_symbols(), 1);
+    EXPECT_EQ(sut.size(), 24);
 }
 
 TEST(HeaderShould, ProcessModuleHeaderWithData)
@@ -54,16 +52,13 @@ TEST(HeaderShould, ProcessModuleHeaderWithData)
 
     const msos::dl::ModuleHeader& sut = *reinterpret_cast<const msos::dl::ModuleHeader*>(data.data());
     EXPECT_EQ(sut.cookie(), "MSDL");
-    EXPECT_EQ(sut.code_size(), 624);
+    EXPECT_EQ(sut.code_size(), 468);
     EXPECT_EQ(sut.data_size(), 24);
     EXPECT_EQ(sut.bss_size(), 0);
-    EXPECT_EQ(sut.number_of_exported_relocations(), 0);
-    EXPECT_EQ(sut.number_of_external_relocations(), 2);
-    EXPECT_EQ(sut.number_of_local_relocations(), 18);
+    EXPECT_EQ(sut.number_of_local_relocations(), 15);
     EXPECT_EQ(sut.number_of_data_relocations(), 0);
-    EXPECT_EQ(sut.number_of_exported_symbols(), 2);
-    EXPECT_EQ(sut.number_of_external_symbols(), 3);
-    EXPECT_EQ(sut.size(), 48);
+    EXPECT_EQ(sut.number_of_exported_symbols(), 1);
+    EXPECT_EQ(sut.size(), 24);
 }
 
 TEST(HeaderShould, ProcessModuleHeaderWithBss)
@@ -72,16 +67,14 @@ TEST(HeaderShould, ProcessModuleHeaderWithBss)
 
     const msos::dl::ModuleHeader& sut = *reinterpret_cast<const msos::dl::ModuleHeader*>(data.data());
     EXPECT_EQ(sut.cookie(), "MSDL");
-    EXPECT_EQ(sut.code_size(), 1164);
+    EXPECT_EQ(sut.code_size(), 1008);
     EXPECT_EQ(sut.data_size(), 52);
     EXPECT_EQ(sut.bss_size(), 8);
-    EXPECT_EQ(sut.number_of_exported_relocations(), 0);
     EXPECT_EQ(sut.number_of_external_relocations(), 2);
-    EXPECT_EQ(sut.number_of_local_relocations(), 30);
+    EXPECT_EQ(sut.number_of_local_relocations(), 34);
     EXPECT_EQ(sut.number_of_data_relocations(), 0);
     EXPECT_EQ(sut.number_of_exported_symbols(), 1);
-    EXPECT_EQ(sut.number_of_external_symbols(), 2);
-    EXPECT_EQ(sut.size(), 48);
+    EXPECT_EQ(sut.size(), 24);
 }
 
 } // namespace dynamic_linker

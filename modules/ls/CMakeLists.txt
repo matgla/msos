@@ -34,8 +34,8 @@ if (${arch} STREQUAL "ARM")
     set (suffix ".bin")
     set (prefix "")
 else ()
-    set (suffix ".so")
-    set (prefix "lib")
+    set (suffix "")
+    set (prefix "")
 endif ()
 
 add_custom_command(

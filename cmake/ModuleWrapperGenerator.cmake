@@ -38,17 +38,6 @@ function (add_module module_name module_library)
         configure_virtual_env()
         find_file (VIRTUALENV_FILE venv.stamp ${PROJECT_BINARY_DIR}/)
 
-        # file (TOUCH ${CMAKE_CURRENT_BINARY_DIR}/empty.cpp)
-        # add_executable(${module_name} ${CMAKE_CURRENT_BINARY_DIR}/empty.cpp)
-        # get_target_property(library_libs ${module_library} LINK_LIBRARIES)
-        # message("Linking to library libs ${library_libs}")
-        # target_link_libraries(${module_name}
-        #     PUBLIC
-        #         # ${module_name}_wrapper
-        #         module_flags
-        #         ${library_libs}
-        # )
-
         add_custom_command(
             TARGET ${module_name}
             POST_BUILD
@@ -58,9 +47,6 @@ function (add_module module_name module_library)
             --objcopy=${CMAKE_OBJCOPY} --as_executable --api=${PROJECT_SOURCE_DIR}/api/symbol_codes.json
             DEPENDS ${PROJECT_SOURCE_DIR}/scripts/generate_binary.py
         )
-
-        set_target_properties(${module_name} PROPERTIES OBJECT_DEPENDS ${PROJECT_SOURCE_DIR}/scripts/generate_wrappers.py)
-
     elseif (${arch} STREQUAL "x86")
     endif()
 endfunction ()
