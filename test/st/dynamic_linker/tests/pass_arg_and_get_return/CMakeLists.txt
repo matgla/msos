@@ -14,26 +14,26 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(module_with_args_lib STATIC)
+add_executable(module_with_args)
 
-target_sources(module_with_args_lib
+target_sources(module_with_args
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 
-target_compile_options(module_with_args_lib
+target_compile_options(module_with_args
     PUBLIC
     $<$<CONFIG:DEBUG>:-Og -g>
     $<$<CONFIG:RELEASE>:-Os>
 )
 
-target_link_libraries(module_with_args_lib
+target_link_libraries(module_with_args
     PUBLIC
         module_flags
-        msos_utils
+        # msos_utils
 )
 
-add_module(module_with_args module_with_args_lib)
+add_module(module_with_args module_with_args)
 
 include(TestUtils)
 

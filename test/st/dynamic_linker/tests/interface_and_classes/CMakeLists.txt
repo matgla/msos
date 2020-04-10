@@ -14,9 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(interface_and_classes_lib STATIC)
+add_executable(interface_and_classes)
 
-target_sources(interface_and_classes_lib
+target_sources(interface_and_classes
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/child_implementation_a.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/i_some_interface.hpp
@@ -31,19 +31,19 @@ target_sources(interface_and_classes_lib
         ${CMAKE_CURRENT_SOURCE_DIR}/process_test.cpp
 )
 
-target_compile_options(interface_and_classes_lib
+target_compile_options(interface_and_classes
     PUBLIC
     $<$<CONFIG:DEBUG>:-Og -g>
     $<$<CONFIG:RELEASE>:-Os>
 )
 
-target_link_libraries(interface_and_classes_lib
+target_link_libraries(interface_and_classes
     PUBLIC
         module_flags
-        msos_utils
+        # msos_utils
 )
 
-add_module(interface_and_classes interface_and_classes_lib)
+add_module(interface_and_classes interface_and_classes)
 
 include(TestUtils)
 register_system_test_binary(interface_and_classes)

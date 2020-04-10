@@ -55,10 +55,7 @@ private:
     uint32_t get_size_of_lot(const ModuleHeader& header);
     bool allocate_lot(LoadedModule& loaded_module);
 
-    void process_exported_relocations(std::size_t exported_relocations_address, LoadedModule& loaded_module);
-
     void process_local_relocations(std::size_t local_relocations_address, LoadedModule& loaded_module);
-
 
     template <typename Environment>
     bool process_external_relocations(std::size_t external_relocations_address, const Environment& env, LoadedModule& loaded_module)

@@ -14,20 +14,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(simple_module_library STATIC)
+add_executable(simple_module)
 
-target_sources(simple_module_library
+target_sources(simple_module
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 
-target_link_libraries(simple_module_library
+target_link_libraries(simple_module
     PRIVATE
         module_flags
-        msos_utils
+        # msos_utils
 )
 
-add_module(simple_module simple_module_library)
+add_module(simple_module simple_module)
 
 include (TestUtils)
 register_system_test_binary(simple_module)

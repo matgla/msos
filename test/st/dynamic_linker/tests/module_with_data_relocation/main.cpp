@@ -20,8 +20,6 @@
 #include <cstring>
 #include <cstdint>
 
-#include "msos/utils/string.hpp"
-
 int global_integer = 177176;
 
 template <typename T, std::size_t N>

@@ -99,7 +99,7 @@ const LoadedModule* DynamicLinker::load_module(const std::size_t* module_address
 
     if (main)
     {
-        const std::size_t main_function_address = (reinterpret_cast<std::size_t>(module.get_text().data()) + main->offset()) & (~0x01);
+        const std::size_t main_function_address = (reinterpret_cast<std::size_t>(module.get_text().data()) + main->offset());
         loaded_module.set_start_address(main_function_address);
     }
 
@@ -109,9 +109,7 @@ const LoadedModule* DynamicLinker::load_module(const std::size_t* module_address
         return nullptr;
     }
 
-    process_exported_relocations(relocation_section_address, loaded_module);
-
-    const std::size_t external_relocations_address = relocation_section_address + header.number_of_exported_relocations() * sizeof(Relocation);
+    const std::size_t external_relocations_address = relocation_section_address;
     if(!process_external_relocations(external_relocations_address, entries, number_of_entries, loaded_module))
     {
         ec = DynamicLinkerErrors::ExternalRelocationFailure;
@@ -169,30 +167,6 @@ bool DynamicLinker::allocate_lot(LoadedModule& loaded_module)
     auto& lot = module.get_lot();
     lot.reset(new std::size_t[header.number_of_external_relocations() + header.number_of_local_relocations()]);
     return lot != nullptr;
-}
-
-void DynamicLinker::process_exported_relocations(std::size_t exported_relocations_address, LoadedModule& loaded_module)
-{
-    Module& module = loaded_module.get_module();
-    const ModuleHeader& header = module.get_header();
-    auto& lot = module.get_lot();
-
-    for (int i = 0; i < header.number_of_exported_relocations(); ++i)
-    {
-        const Relocation& relocation = *reinterpret_cast<const Relocation*>(exported_relocations_address);
-        exported_relocations_address += relocation.size();
-        const Symbol& symbol = relocation.symbol();
-        if (symbol.section() == Section::code)
-        {
-            const std::size_t relocated = reinterpret_cast<std::size_t>(module.get_text().data()) + symbol.offset();
-            lot[relocation.index()] = relocated;
-        }
-        else
-        {
-            const std::size_t relocated = reinterpret_cast<std::size_t>(module.get_data().data()) + symbol.offset();
-            lot[relocation.index()] = relocated;
-        }
-    }
 }
 
 void DynamicLinker::process_local_relocations(std::size_t local_relocations_address, LoadedModule& loaded_module)

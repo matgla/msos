@@ -14,21 +14,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(simple_game_lib STATIC)
+add_executable(simple_game)
 
-target_sources(simple_game_lib
+target_sources(simple_game
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 
 
 # TODO: smarter way to inherit flags
-target_link_libraries(simple_game_lib
+target_link_libraries(simple_game
     PRIVATE
         module_flags
 )
 
-add_module(simple_game simple_game_lib)
+add_module(simple_game simple_game)
 
 if (${arch} STREQUAL "ARM")
     set (suffix ".bin")

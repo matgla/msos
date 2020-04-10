@@ -54,11 +54,6 @@ uint32_t ModuleHeader::bss_size() const
     return bss_size_;
 }
 
-uint16_t ModuleHeader::number_of_exported_relocations() const
-{
-    return number_of_exported_relocations_;
-}
-
 uint16_t ModuleHeader::number_of_external_relocations() const
 {
     return number_of_external_relocations_;
@@ -76,28 +71,13 @@ uint16_t ModuleHeader::number_of_data_relocations() const
 
 uint32_t ModuleHeader::number_of_relocations() const
 {
-    return number_of_exported_relocations_ + number_of_external_relocations_ +
+    return number_of_external_relocations_ +
         number_of_local_relocations_ + number_of_data_relocations_;
-}
-
-uint16_t ModuleHeader::number_of_exported_symbols() const
-{
-    return number_of_exported_symbols_;
 }
 
 uint16_t ModuleHeader::number_of_external_symbols() const
 {
     return number_of_external_symbols_;
-}
-
-std::string_view ModuleHeader::name() const
-{
-    return std::string_view(reinterpret_cast<const char*>(this) + sizeof(ModuleHeader));
-}
-
-std::size_t ModuleHeader::size() const
-{
-    return sizeof(ModuleHeader) + get_aligned_length(name());
 }
 
 } // namespace dl

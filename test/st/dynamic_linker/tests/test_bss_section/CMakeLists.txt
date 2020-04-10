@@ -14,27 +14,27 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(test_bss_section_library STATIC)
+add_executable(test_bss_section)
 
-target_compile_options(test_bss_section_library
+target_compile_options(test_bss_section
     PUBLIC
     $<$<CONFIG:DEBUG>:-Og -g>
     $<$<CONFIG:RELEASE>:-Os>
 )
 
 
-target_sources(test_bss_section_library
+target_sources(test_bss_section
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 
-target_link_libraries(test_bss_section_library
+target_link_libraries(test_bss_section
     PUBLIC
         module_flags
-        msos_utils
+        # msos_utils
 )
 
-add_module(test_bss_section test_bss_section_library)
+add_module(test_bss_section test_bss_section)
 
 include (TestUtils)
 register_system_test_binary(test_bss_section)

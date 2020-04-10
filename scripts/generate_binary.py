@@ -397,34 +397,16 @@ def generate_module(module_name, elf_filename, objcopy_executable, api_file):
         rel["symbol_name"] = name
         data_relocations_to_image.append(rel)
 
-   # processed = []
-   # for relocation in data_relocations:
-   #     #for offset in data_relocations[relocation]:
-   #     rel = {}
-   #     rel["index"] = index
-   #     index += 1
-   #     rel["symbol"] = processed_symbols[relocation]["index"]
-   #     rel["offset"] = offset
-   #     print(relocation," ",  rel)
-   #     relocation_to_image.append(rel)
-
     total_relocations = len(data_relocations_to_image) \
         + len(local_relocations_to_image) + len(external_relocations_to_image) \
         + len(exported_relocations_to_image)
 
     # pack number of relocations
-    image += struct.pack("<HHHH", len(exported_relocations_to_image), \
+    image += struct.pack("<HHH", \
                          len(external_relocations_to_image), \
         len(local_relocations_to_image), len(data_relocations_to_image))
 
-    image += struct.pack("<HH", len(external_symbols), len(exported_symbols))
-
-    # pack image name
-    name = bytearray(module_name + "\0", "ascii")
-    image += name
-    name_length = len(module_name) + 1
-    if (name_length % 4):
-        image += bytearray("\0" * (4 - (name_length % 4)), "ascii")
+    image += struct.pack("<H", len(external_symbols))
 
     symbol_to_image = []
 
@@ -434,21 +416,21 @@ def generate_module(module_name, elf_filename, objcopy_executable, api_file):
     print_step("{: >50} {: >10} {: >10}".format(*row))
     relocation_position = 0
 
-    for rel in exported_relocations_to_image:
-        sizeof_relocation = 8
+    # for rel in exported_relocations_to_image:
+    #     sizeof_relocation = 8
 
-        offset_to_symbol_table = (total_relocations - relocation_position) * sizeof_relocation
-        symbol_name = rel["symbol_name"]
-        symbol_offset = 0
-        for symbol in exported_symbols:
-            if symbol == symbol_name:
-                break
-            symbol_offset += 12
-        offset_to_symbol = offset_to_symbol_table + symbol_offset
-        row = [symbol_name, rel["lot_index"], offset_to_symbol]
-        print_step("{: >50} {: >10} {: >10}".format(*row))
-        image += struct.pack("<II", rel["lot_index"], offset_to_symbol)
-        relocation_position += 1
+    #     offset_to_symbol_table = (total_relocations - relocation_position) * sizeof_relocation
+    #     symbol_name = rel["symbol_name"]
+    #     symbol_offset = 0
+    #     for symbol in exported_symbols:
+    #         if symbol == symbol_name:
+    #             break
+    #         symbol_offset += 12
+    #     offset_to_symbol = offset_to_symbol_table + symbol_offset
+    #     row = [symbol_name, rel["lot_index"], offset_to_symbol]
+    #     print_step("{: >50} {: >10} {: >10}".format(*row))
+    #     image += struct.pack("<II", rel["lot_index"], offset_to_symbol)
+    #     relocation_position += 1
 
     exported_symbols_size = 0
     for symbol in exported_symbols:

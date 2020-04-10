@@ -14,27 +14,27 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(module_with_data_lib STATIC)
+add_executable(module_with_data)
 
-target_sources(module_with_data_lib
+target_sources(module_with_data
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/extern_data.cpp
 )
 
-target_compile_options(module_with_data_lib
+target_compile_options(module_with_data
     PUBLIC
     $<$<CONFIG:DEBUG>:-Og -g>
     $<$<CONFIG:RELEASE>:-Os>
 )
 
-target_link_libraries(module_with_data_lib
+target_link_libraries(module_with_data
     PUBLIC
         module_flags
-        msos_utils
+        # msos_utils
 )
 
-add_module(module_with_data module_with_data_lib)
+add_module(module_with_data module_with_data)
 
 include(TestUtils)
 register_system_test_binary(module_with_data)

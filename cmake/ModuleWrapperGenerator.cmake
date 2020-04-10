@@ -38,53 +38,21 @@ function (add_module module_name module_library)
         configure_virtual_env()
         find_file (VIRTUALENV_FILE venv.stamp ${PROJECT_BINARY_DIR}/)
 
-        set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/objects/wrapped_symbols.s PROPERTIES GENERATED 1)
-
-        add_library(${module_name}_wrapper)
-
-        target_sources(${module_name}_wrapper
-            PUBLIC
-                ${CMAKE_CURRENT_BINARY_DIR}/objects/wrapped_symbols.s
-        )
-
-        add_custom_command(
-            # OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/objects/wrapped_symbols.s
-            TARGET ${module_library}
-            PRE_LINK
-            COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/objects
-            COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/objects
-            COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/pip install -r ${PROJECT_SOURCE_DIR}/scripts/requirements.txt --upgrade -q -q -q
-            COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/python3 ${PROJECT_SOURCE_DIR}/scripts/generate_wrappers.py
-            generate_wrapper_code --output ${CMAKE_CURRENT_BINARY_DIR}/objects --input
-            ${CMAKE_CURRENT_BINARY_DIR}/objects --objcopy=${CMAKE_OBJCOPY} --ar=${CMAKE_AR}
-            --module_name=${module_library} --disable_logs
-            DEPENDS ${module_library} ${VIRTUALENV_FILE} ${PROJECT_SOURCE_DIR}/scripts/requirements.txt ${PROJECT_SOURCE_DIR}/scripts/wrapped_symbols.s.template ${PROJECT_SOURCE_DIR}/scripts/generate_wrappers.py
-            VERBATIM
-        )
-        set_target_properties(${module_name}_wrapper PROPERTIES OBJECT_DEPENDS ${PROJECT_SOURCE_DIR}/scripts/generate_wrappers.py)
-        # add_dependencies(${module_name}_wrapper ${PROJECT_SOURCE_DIR}/scripts/generate_wrappers.py)
-        add_dependencies(${module_name}_wrapper ${module_library})
-
-        link_directories(${CMAKE_CURRENT_BINARY_DIR}/objects)
-        target_link_libraries(${module_name}_wrapper
-            PUBLIC
-                lib${module_library}_wrapped.a
-                module_flags
-        )
-
-        file (TOUCH ${CMAKE_CURRENT_BINARY_DIR}/empty.cpp)
-        add_executable(${module_name} ${CMAKE_CURRENT_BINARY_DIR}/empty.cpp)
-        get_target_property(library_libs ${module_library} LINK_LIBRARIES)
-        target_link_libraries(${module_name}
-            PUBLIC
-                ${module_name}_wrapper
-                module_flags
-                # ${library_libs}
-        )
+        # file (TOUCH ${CMAKE_CURRENT_BINARY_DIR}/empty.cpp)
+        # add_executable(${module_name} ${CMAKE_CURRENT_BINARY_DIR}/empty.cpp)
+        # get_target_property(library_libs ${module_library} LINK_LIBRARIES)
+        # message("Linking to library libs ${library_libs}")
+        # target_link_libraries(${module_name}
+        #     PUBLIC
+        #         # ${module_name}_wrapper
+        #         module_flags
+        #         ${library_libs}
+        # )
 
         add_custom_command(
             TARGET ${module_name}
             POST_BUILD
+            COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/pip install -r ${PROJECT_SOURCE_DIR}/scripts/requirements.txt --upgrade -q -q -q
             COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/python3 ${PROJECT_SOURCE_DIR}/scripts/generate_binary.py
             generate_wrapper_code --disable_logs --elf_filename=$<TARGET_FILE:${module_name}> --module_name=${module_name}
             --objcopy=${CMAKE_OBJCOPY} --as_executable --api=${PROJECT_SOURCE_DIR}/api/symbol_codes.json
@@ -94,13 +62,6 @@ function (add_module module_name module_library)
         set_target_properties(${module_name} PROPERTIES OBJECT_DEPENDS ${PROJECT_SOURCE_DIR}/scripts/generate_wrappers.py)
 
     elseif (${arch} STREQUAL "x86")
-        file (TOUCH ${CMAKE_CURRENT_BINARY_DIR}/empty.cpp)
-        add_library(${module_name} SHARED ${CMAKE_CURRENT_BINARY_DIR}/empty.cpp)
-        target_link_libraries(${module_name}
-            PUBLIC
-                $<TARGET_OBJECTS:${module_library}>
-                module_flags
-        )
     endif()
 endfunction ()
 

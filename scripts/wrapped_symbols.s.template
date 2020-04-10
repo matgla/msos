@@ -10,15 +10,15 @@
 .globl {{original_symbol_name}}
 .type {{original_symbol_name}}, %function
 {{original_symbol_name}}:
-    push    {r9, lr}
-    push    {r0, r1}
+    push    {lr}
+    /*push    {r0, r1}
     mov     r0, #0x20000000
     ldr     r1, [r0, #0]
     mov     r0, pc
     blx     r1
     mov     r9, r0
-    pop     {r0, r1}
+    pop     {r0, r1}*/
     bl      {{wrapped_symbol_name}}
-    pop     {r9, pc}
+    pop     {pc}
 
 {% endfor %}

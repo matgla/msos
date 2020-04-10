@@ -24,11 +24,18 @@
 .align 1
 .type call_external, %function
 call_external:
-    mov     pc, r0
+    push    {r9, lr}
+    mov     r9, r1
+    blx     r0
+    pop     {r9, pc}
 
 .global call_external_with_args
 .thumb_func
 .align 1
 .type call_external_with_args, %function
 call_external_with_args:
-    mov     pc, r2
+    push    {r9, lr}
+    mov     r9, r3
+    blx     r2
+    pop     {r9, pc}
+

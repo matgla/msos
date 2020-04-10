@@ -6,6 +6,7 @@
     "libc": {
         "printf": 100,
         "scanf": 101,
+        "sprintf": 102,
         "atoi": 200,
         "strlen": 300
     },

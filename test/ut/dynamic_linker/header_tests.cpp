@@ -45,7 +45,6 @@ TEST(HeaderShould, ProcessModuleHeader)
     EXPECT_EQ(sut.number_of_data_relocations(), 6);
     EXPECT_EQ(sut.number_of_exported_symbols(), 2);
     EXPECT_EQ(sut.number_of_external_symbols(), 2);
-    EXPECT_EQ(sut.name(), "interface_and_classes");
     EXPECT_EQ(sut.size(), 52);
 }
 
@@ -64,7 +63,6 @@ TEST(HeaderShould, ProcessModuleHeaderWithData)
     EXPECT_EQ(sut.number_of_data_relocations(), 0);
     EXPECT_EQ(sut.number_of_exported_symbols(), 2);
     EXPECT_EQ(sut.number_of_external_symbols(), 3);
-    EXPECT_EQ(sut.name(), "module_with_data");
     EXPECT_EQ(sut.size(), 48);
 }
 
@@ -83,7 +81,6 @@ TEST(HeaderShould, ProcessModuleHeaderWithBss)
     EXPECT_EQ(sut.number_of_data_relocations(), 0);
     EXPECT_EQ(sut.number_of_exported_symbols(), 1);
     EXPECT_EQ(sut.number_of_external_symbols(), 2);
-    EXPECT_EQ(sut.name(), "test_bss_section");
     EXPECT_EQ(sut.size(), 48);
 }
 

@@ -31,26 +31,33 @@ public:
     uint32_t code_size() const;
     uint32_t data_size() const;
     uint32_t bss_size() const;
-    uint16_t number_of_exported_relocations() const;
+    constexpr uint16_t number_of_exported_relocations() const
+    {
+        return 0;
+    }
     uint16_t number_of_external_relocations() const;
     uint16_t number_of_local_relocations() const;
     uint16_t number_of_data_relocations() const;
     uint32_t number_of_relocations() const;
-    uint16_t number_of_exported_symbols() const;
+    constexpr uint16_t number_of_exported_symbols() const
+    {
+        return 1;
+    }
     uint16_t number_of_external_symbols() const;
-    std::string_view name() const;
-    std::size_t size() const;
+    // std::string_view name() const;
+    constexpr std::size_t size() const
+    {
+        return sizeof(ModuleHeader);
+    }
 private:
     char cookie_[4];
     uint32_t code_size_;
     uint32_t data_size_;
     uint32_t bss_size_;
-    uint16_t number_of_exported_relocations_;
     uint16_t number_of_external_relocations_;
     uint16_t number_of_local_relocations_;
     uint16_t number_of_data_relocations_;
     uint16_t number_of_external_symbols_;
-    uint16_t number_of_exported_symbols_;
 };
 
 } // namespace dl

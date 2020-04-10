@@ -14,21 +14,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(msos_ls_lib STATIC)
+add_executable(msos_ls)
 
-target_sources(msos_ls_lib
+target_sources(msos_ls
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 
 
 # TODO: smarter way to inherit flags
-target_link_libraries(msos_ls_lib
+target_link_libraries(msos_ls
     PRIVATE
         module_flags
 )
 
-add_module(msos_ls msos_ls_lib)
+add_module(msos_ls msos_ls)
 
 if (${arch} STREQUAL "ARM")
     set (suffix ".bin")

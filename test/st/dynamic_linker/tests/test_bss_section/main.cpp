@@ -17,8 +17,6 @@
 #include <cstdio>
 #include <cstdint>
 
-#include "msos/utils/string.hpp"
-
 void print()
 {
     static uint32_t data[] = {1, 2, 3, 4};
@@ -28,7 +26,7 @@ void print()
     char buf[20];
     for (auto d : data)
     {
-        msos::utils::itoa(d, buf);
+        sprintf(buf, "%d", d);
         printf("%s, ", buf);
     }
     printf("\n");
@@ -37,17 +35,19 @@ void print()
     data[0] = -12;
     for (auto d : data_2)
     {
-        msos::utils::itoa(d, buf);
+        sprintf(buf, "%d", d);
         printf("%s, ", buf);
     }
     printf("\n");
 
     printf("local_data: 0x");
-    msos::utils::itoa(reinterpret_cast<uint32_t>(&data[0]), buf, 16);
+    sprintf(buf, "%x", reinterpret_cast<uint32_t>(&data[0]));
+
     printf("%s\n", buf);
 
     printf("local_data_2: 0x");
-    msos::utils::itoa(reinterpret_cast<uint32_t>(&data_2[0]), buf, 16);
+    sprintf(buf, "%x", reinterpret_cast<uint32_t>(&data_2[0]));
+
     printf("%s\n", buf);
 }
 
@@ -67,49 +67,50 @@ int main()
     data_3 = 5;
     printf("Addresses of: \n");
     printf("data_arr: 0x");
-    msos::utils::itoa(reinterpret_cast<uint32_t>(&data_arr[0]), buf, 16);
+    sprintf(buf, "%x", reinterpret_cast<uint32_t>(&data_arr[0]));
+
     printf("%s\n", buf);
     printf("data_1: 0x");
-    msos::utils::itoa(reinterpret_cast<uint32_t>(&data_1), buf, 16);
+    sprintf(buf, "%x", reinterpret_cast<uint32_t>(&data_1));
     printf("%s\n", buf);
 
     printf("data_2: 0x");
-    msos::utils::itoa(reinterpret_cast<uint32_t>(&data_2), buf, 16);
+    sprintf(buf, "%x", reinterpret_cast<uint32_t>(&data_2));
     printf("%s\n", buf);
 
     printf("data_3: 0x");
-    msos::utils::itoa(reinterpret_cast<uint32_t>(&data_3), buf, 16);
+    sprintf(buf, "%x", reinterpret_cast<uint32_t>(&data_3));
     printf("%s\n", buf);
 
     printf("data_arr_2: 0x");
-    msos::utils::itoa(reinterpret_cast<uint32_t>(&data_arr_2[0]), buf, 16);
+    sprintf(buf, "%x", reinterpret_cast<uint32_t>(&data_arr_2[0]));
     printf("%s\n", buf);
 
     printf("Array 1: ");
     for (const auto data : data_arr)
     {
-        msos::utils::itoa(data, buf);
+        sprintf(buf, "%d", data);
         printf("%s, ", buf);
     }
     printf("\n");
 
     printf("Integer 1: ");
-    msos::utils::itoa(data_1, buf);
+    sprintf(buf, "%d", data_1);
     printf("%s\n", buf);
 
     printf("Integer 2: ");
-    msos::utils::itoa(data_2, buf);
+    sprintf(buf, "%d", data_2);
     printf("%s\n", buf);
 
     printf("Integer 3: ");
-    msos::utils::itoa(data_3, buf);
+    sprintf(buf, "%d", data_3);
     printf("%s\n", buf);
 
     printf("Array 2: ");
     data_arr_2[2] = 19;
     for (const auto data : data_arr_2)
     {
-        msos::utils::itoa(data, buf);
+        sprintf(buf, "%d", data);
         printf("%s, ", buf);
     }
     printf("\n");
