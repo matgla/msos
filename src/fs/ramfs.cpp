@@ -31,8 +31,6 @@ namespace msos
 namespace fs
 {
 
-static UsartWriter writer;
-
 int RamFs::mount(drivers::storage::BlockDevice& device)
 {
     UNUSED1(device);
@@ -81,11 +79,8 @@ std::unique_ptr<IFile> RamFs::get(const eul::filesystem::path& path)
     {
         return std::make_unique<RamfsFile>("/");
     }
-    writer << "size: " << files_.size() << files_.front().filename() << endl;
     for (auto& file : files_)
     {
-        writer << file.filename() << " == " << path.native() << endl;
-
         if (file.filename() == path.native())
         {
             return std::make_unique<RamfsFile>(path.native(), file.data());
@@ -97,9 +92,7 @@ std::unique_ptr<IFile> RamFs::get(const eul::filesystem::path& path)
 
 std::unique_ptr<IFile> RamFs::create(const eul::filesystem::path& path)
 {
-    // eul::filesystem::path filename = path.lexically_relative("/");
     files_.push_back(RamFsData{path});
-    // writer << "Created file: " << filename.native() << endl;
     return std::make_unique<RamfsFile>(files_.back().filename(), files_.back().data());
 }
 

@@ -23,14 +23,10 @@
 #include "msos/fs/romfs_file.hpp"
 #include "msos/fs/utils.hpp"
 
-#include "msos/usart_printer.hpp"
-
 namespace msos
 {
 namespace fs
 {
-
-static UsartWriter writer;
 
 RomFs::RomFs(const uint8_t* memory)
     : disk_(memory)
@@ -47,23 +43,6 @@ int RomFs::mount(drivers::storage::BlockDevice& device)
 int RomFs::umount()
 {
     return 1;
-}
-
-int RomFs::create()
-{
-    return 1;
-}
-
-int RomFs::mkdir(const eul::filesystem::path& path, int mode)
-{
-    UNUSED2(path, mode);
-    return -1;
-}
-
-int RomFs::remove(const eul::filesystem::path& path)
-{
-    UNUSED1(path);
-    return -1;
 }
 
 int RomFs::stat(const eul::filesystem::path& path)
@@ -87,6 +66,7 @@ std::unique_ptr<IFile> RomFs::get(const eul::filesystem::path& path)
     {
         path_in_fs = "/";
     }
+
     auto dir = disk_.get_directory(path_in_fs.c_str());
     if (dir)
     {
@@ -107,13 +87,6 @@ std::unique_ptr<IFile> RomFs::get(const eul::filesystem::path& path)
 
     return nullptr;
 }
-
-std::unique_ptr<IFile> RomFs::create(const eul::filesystem::path& path)
-{
-    UNUSED1(path);
-    return nullptr;
-}
-
 
 std::vector<std::unique_ptr<IFile>> RomFs::list(const eul::filesystem::path& path)
 {

@@ -18,36 +18,21 @@
 
 #include <string_view>
 
-#include <romfs/romfs.hpp>
-
-#include "msos/fs/read_only_filesystem.hpp"
+#include "msos/fs/i_file.hpp"
 
 namespace msos
 {
-namespace fs
+namespace drivers
 {
 
-class RomFs : public ReadOnlyFileSystem
+class IDriver
 {
 public:
-    RomFs(const uint8_t* memory);
-
-    int mount(drivers::storage::BlockDevice& device) override;
-
-    int umount() override;
-
-    int stat(const eul::filesystem::path& path) override;
-
-    std::unique_ptr<IFile> get(const eul::filesystem::path& path) override;
-
-    std::vector<std::unique_ptr<IFile>> list(const eul::filesystem::path& path) override;
-    std::string_view name() const override;
-
-protected:
-    static bool mounted_;
-    romfs::RomFsDisk disk_;
-
+    virtual ~IDriver() = default;
+    virtual void load() = 0;
+    virtual void unload() = 0;
+    virtual std::unique_ptr<fs::IFile> file(std::string_view path) = 0;
 };
 
-} // namespace fs
+} // namespace drivers
 } // namespace msos

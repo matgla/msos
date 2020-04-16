@@ -16,6 +16,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <fcntl.h>
 #include <unistd.h>
 #include <string_view>
 
@@ -132,7 +133,6 @@ void remove_newlines(char* str, size_t len)
         {
             str[i] = str[i + number_of_newlines];
         }
-
     }
 }
 
@@ -145,8 +145,8 @@ int app_start()
     while (std::string_view(buffer).find("exit") == std::string_view::npos)
     {
         write(1, "> \0", 3);
-        buffer[0] = 0;
-        scanf("%s", &buffer);
+        fgets(buffer, sizeof(buffer), stdin);
+        // scanf("%s", &buffer); // <- replace to fgets
         if (std::string_view(buffer).find("ls") == 0)
         {
             ls_command(pwd);

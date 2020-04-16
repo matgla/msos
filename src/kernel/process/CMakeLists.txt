@@ -49,6 +49,7 @@ target_link_libraries(msos_kernel_process
         eul_error
     PRIVATE
         msos_arch
+        msos_dynamic_linker
         msos_fs
         hal
 )

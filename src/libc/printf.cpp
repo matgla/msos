@@ -16,7 +16,7 @@
 
 #include <stdarg.h>
 #include <stddef.h>
-#include <cstdio>
+#include <stdio.h>
 #include <string_view>
 #include <string_view>
 #include <type_traits>
@@ -30,16 +30,77 @@
 
 static UsartWriter writer_b_;
 
+char* _fgets(char* buffer, int n, FILE* fp)
+{
+    int readed = -1;
+    int fd = fp->_file;
+    char c = 0;
+    while (c != '\n')
+    {
+        if (!read(fd, &c, 1))
+        {
+            continue;
+        }
+        if (c == '\b')
+        {
+            if (readed >= 0)
+            {
+                --readed;
+                ++n;
+            }
+            continue;
+        }
+        buffer[++readed] = c;
+        --n;
+        if (n == 1)
+        {
+            break;
+        }
+    }
+    buffer[readed] = 0;
+
+    return nullptr;
+
+}
+
 int __vfscanf_(int fd, const char* format, va_list argptr,
                     unsigned int mode_flags)
 {
     UNUSED1(mode_flags);
+    int readed = -1;
     if (std::string_view(format) == "%s")
     {
         char* buffer = va_arg(argptr, char*);
-        return static_cast<int>(read(fd, buffer, 0));
+        char c = 0;
+        while (c != '\n')
+        {
+            if (!read(fd, &c, 1))
+            {
+                continue;
+            }
+            if (c == '\b')
+            {
+                if (readed >= 0)
+                {
+                    --readed;
+                }
+                continue;
+            }
+            buffer[++readed] = c;
+        }
+        buffer[readed] = 0;
+        int i =0;
+        while (true)
+        {
+            if (buffer[i] == 0)
+            {
+                break;
+            }
+            ++i;
+        }
     }
-    return 0;
+
+    return readed;
 }
 
 int _scanf(const char* format, ...)
@@ -56,11 +117,6 @@ int __vfprintf_(T& writer, int fd, const char* format, va_list argptr,
                     unsigned int mode_flags)
 {
     UNUSED2(fd, mode_flags);
-    // if (std::string_view(format) == "%s")
-    // {
-    //     char* buffer = va_arg(argptr, char*);
-    //     return read(fd, buffer, 0);
-    // }
     std::string_view data(format);
     std::size_t position = 0, previous_position = 0, size = 0;
     //  %[flags][width][.precision][length]specifier
@@ -104,7 +160,6 @@ int __vfprintf_(T& writer, int fd, const char* format, va_list argptr,
     } while (position != std::string_view::npos);
     return static_cast<int>(size);
 }
-
 
 int _printf(const char* format, ...)
 {

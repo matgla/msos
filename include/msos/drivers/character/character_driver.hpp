@@ -16,38 +16,32 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string_view>
 
-#include <romfs/romfs.hpp>
+#include <gsl/span>
 
-#include "msos/fs/read_only_filesystem.hpp"
+#include "msos/drivers/i_driver.hpp"
 
 namespace msos
 {
-namespace fs
+namespace drivers
+{
+namespace character
 {
 
-class RomFs : public ReadOnlyFileSystem
+struct CharacterDriver : public IDriver
 {
 public:
-    RomFs(const uint8_t* memory);
+    using DataType = gsl::span<uint8_t>;
+    using ConstDataType = gsl::span<const uint8_t>;
 
-    int mount(drivers::storage::BlockDevice& device) override;
-
-    int umount() override;
-
-    int stat(const eul::filesystem::path& path) override;
-
-    std::unique_ptr<IFile> get(const eul::filesystem::path& path) override;
-
-    std::vector<std::unique_ptr<IFile>> list(const eul::filesystem::path& path) override;
-    std::string_view name() const override;
-
-protected:
-    static bool mounted_;
-    romfs::RomFsDisk disk_;
-
+    virtual ssize_t read(DataType data) = 0;
+    virtual ssize_t write(const ConstDataType data) = 0;
+    virtual void close() = 0;
+    virtual ssize_t size() = 0;
 };
 
-} // namespace fs
+} // namespace character
+} // namespace drivers
 } // namespace msos

@@ -22,7 +22,7 @@
 
 #include <msos/usart_printer.hpp>
 #include <msos/libc/printf.hpp>
-
+#include <symbol_codes.h>
 #include <msos/dynamic_linker/dynamic_linker.hpp>
 #include <msos/dynamic_linker/environment.hpp>
 #include <hal/core/backupRegisters.hpp>
@@ -68,10 +68,10 @@ int main()
     module_address += 32 * 1024;
     int extern_data = 123;
     msos::dl::Environment<4> env{
-        msos::dl::SymbolAddress{300, &strlen},
-        msos::dl::SymbolAddress{1100, &write},
-        msos::dl::SymbolAddress{100, &_printf},
-        msos::dl::SymbolAddress{102, &sprintf},
+        msos::dl::SymbolAddress{SymbolCode::libc_strlen, &strlen},
+        msos::dl::SymbolAddress{SymbolCode::posix_write, &write},
+        msos::dl::SymbolAddress{SymbolCode::libc_printf, &_printf},
+        msos::dl::SymbolAddress{SymbolCode::libc_sprintf, &sprintf},
     };
     writer << "[TEST START]" << endl;
 

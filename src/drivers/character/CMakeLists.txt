@@ -15,24 +15,26 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-add_library(msos_drivers STATIC)
+add_library(msos_drivers_character STATIC)
 
-set (library_includes ${PROJECT_SOURCE_DIR}/include/msos/drivers)
+set (library_includes ${PROJECT_SOURCE_DIR}/include/msos/drivers/character)
 
-target_sources(msos_drivers
+target_sources(msos_drivers_character
     PUBLIC
-        ${library_includes}/i_driver.hpp
-        ${library_includes}/device_fs.hpp
+        ${library_includes}/usart/usart_file.hpp
+        ${library_includes}/usart/usart_driver.hpp
+
     PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/device_fs.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/usart/usart_file.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/usart/usart_driver.cpp
 )
 
-target_include_directories(msos_drivers
+target_include_directories(msos_drivers_character
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
 )
 
-target_compile_options(msos_drivers
+target_compile_options(msos_drivers_character
     PUBLIC
         $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a>
         $<$<CONFIG:DEBUG>:-Og -g>
@@ -41,16 +43,9 @@ target_compile_options(msos_drivers
         $<$<COMPILE_LANGUAGE:CXX>:-Werror -Wall -Wextra -Wpedantic -Wconversion -Wcast-align -Wunused -Wshadow -Wold-style-cast -Wpointer-arith -Wcast-qual -Wno-missing-braces>
 )
 
-add_subdirectory(character)
-
-target_link_libraries(msos_drivers
+target_link_libraries(msos_drivers_character
     PRIVATE
-        msos_fs
-        eul_filesystem
+        eul
         msos_printer
-        hal_flags
-    PUBLIC
-        msos_drivers_character
+        board
 )
-
-add_subdirectory(storage)

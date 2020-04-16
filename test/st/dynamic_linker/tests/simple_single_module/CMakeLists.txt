@@ -32,3 +32,5 @@ add_module(simple_module simple_module)
 include (TestUtils)
 register_system_test_binary(simple_module)
 
+add_dependencies(simple_module host)
+

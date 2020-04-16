@@ -16,6 +16,7 @@
 
 #include "msos/kernel/process/spawn.hpp"
 
+#include "symbol_codes.h"
 #include "msos/posix/dirent.h"
 #include "msos/kernel/process/process.hpp"
 #include "msos/kernel/process/context_switch.hpp"
@@ -65,24 +66,9 @@ extern "C"
 }
 
 static msos::dl::Environment<3> env{
-        msos::dl::SymbolAddress{300, &strlen},
-        // msos::dl::SymbolAddress{"memcpy", &memcpy},
-        // msos::dl::SymbolAddress{"memcmp", &memcmp},
-        // msos::dl::SymbolAddress{"memset", &memset},
-        // msos::dl::SymbolAddress{"strstr", &strstr},
-        // msos::dl::SymbolAddress{"write", &write},
-        msos::dl::SymbolAddress{101, reinterpret_cast<uint32_t*>(&_scanf)},
-        msos::dl::SymbolAddress{100, reinterpret_cast<uint32_t*>(&_printf)},
-        // msos::dl::SymbolAddress{"spawn_exec", reinterpret_cast<uint32_t*>(&spawn_exec)},
-        // msos::dl::SymbolAddress{"exec", reinterpret_cast<uint32_t*>(&exec)},
-        // msos::dl::SymbolAddress{"opendir", reinterpret_cast<uint32_t*>(&opendir)},
-        // msos::dl::SymbolAddress{"readdir", reinterpret_cast<uint32_t*>(&readdir)},
-        // msos::dl::SymbolAddress{"closedir", reinterpret_cast<uint32_t*>(&closedir)},
-        // msos::dl::SymbolAddress{"memchr", reinterpret_cast<uint32_t*>(&memchr_wrapper)},
-        // msos::dl::SymbolAddress{"_ZSt24__throw_out_of_range_fmtPKcz", reinterpret_cast<uint32_t*>(&std::__throw_out_of_range_fmt)},
-        // msos::dl::SymbolAddress{"isspace", reinterpret_cast<uint32_t*>(&isspace)},
-
-
+    msos::dl::SymbolAddress{SymbolCode::libc_strlen, &strlen},
+    msos::dl::SymbolAddress{SymbolCode::libc_scanf, reinterpret_cast<uint32_t*>(&_scanf)},
+    msos::dl::SymbolAddress{SymbolCode::libc_printf, reinterpret_cast<uint32_t*>(&_printf)},
 };
 
 pid_t spawn(void (*start_routine) (void *), void *arg)
@@ -107,15 +93,12 @@ pid_t spawn_root_process(void (*start_routine) (void *), void *arg, std::size_t 
 
 int exec_process(ExecInfo* info)
 {
-    writer << "Trying to execute process: " << info->path << endl;
     std::string_view path_to_executable(info->path);
     eul::filesystem::path path = eul::filesystem::path(info->path).lexically_normal();
 
     msos::fs::Vfs& root_fs = msos::fs::Vfs::instance();
 
-    writer << "Go further" << endl;
     msos::fs::IFileSystem* dest_fs = root_fs.get_child_fs(path.c_str());
-    writer << "destfs: " << dest_fs->name() << endl;
 
     std::unique_ptr<msos::fs::IFile> file = root_fs.get(path.c_str());
 
@@ -123,8 +106,6 @@ int exec_process(ExecInfo* info)
     {
         return -1;
     }
-    writer << "File exists" << endl;
-    writer << "File name: " << file->name() << endl;
     if (file->name().rfind(".bin") == std::string_view::npos)
     {
         writer << "Bin not exists" << endl;
@@ -133,7 +114,6 @@ int exec_process(ExecInfo* info)
 
     if (dest_fs->name() == "AppFs")
     {
-        writer << "AppFs is my fs" << endl;
         if (file->data() != nullptr)
         {
             int(*fun)() = reinterpret_cast<int(*)()>(file->data());

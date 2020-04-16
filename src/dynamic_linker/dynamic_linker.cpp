@@ -226,7 +226,6 @@ bool DynamicLinker::process_external_relocations(std::size_t external_relocation
 
         external_relocations_address += relocation.size();
         const Symbol& symbol = relocation.symbol();
-        writer << "Processing symbol: " << symbol.code() << endl;
         const auto* env_symbol = find_symbol(entries, number_of_entries, symbol.code());
         if (env_symbol)
         {

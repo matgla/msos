@@ -75,7 +75,6 @@ int Vfs::stat(const eul::filesystem::path& path)
 std::unique_ptr<IFile> Vfs::get(const eul::filesystem::path& path)
 {
     const MountPoint* mp = mount_points_.get_best_mount_point(path);
-    writer << "VFS get: " << path.native() << endl;
     return mp == nullptr ? nullptr : mp->filesystem->get(path.lexically_relative(mp->point));
 }
 

@@ -10,13 +10,15 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #pragma once
 
 #include <cstdint>
+
+#include "msos/drivers/i_driver.hpp"
 
 namespace msos
 {
@@ -61,33 +63,43 @@ public:
     SSD1306_I2C(const uint8_t address = SSD1306_DEFAULT_ADDRESS) : address_(address)
     {
         I2CInterface::init();
+
         sendCommand(SSD1306_SET_DISPLAY_OFF);
-        sendCommand(SSD1306_SET_DISPLAY_CLOCK_DIVIDE_RATIO);
-        sendCommand(0x80);
         sendCommand(SSD1306_SET_MULTIPLEX_RATIO);
         sendCommand(0x3f);
         sendCommand(SSD1306_SET_DISPLAY_OFFSET);
         sendCommand(0x00);
         sendCommand(SSD1306_SET_DISPLAY_START_LINE);
+        sendCommand(SSD1306_SET_SEGMENT_REMAP_2);
+        sendCommand(SSD1306_SET_COM_OUTPUT_SCAN_DECREMENTAL);
+        sendCommand(SSD1306_SET_COM_PINS_HARDWARE_CONFIGURATION);
+        sendCommand(0x12);
+        sendCommand(SSD1306_SET_CONTRAST_CONTROL_FOR_BANK0);
+        sendCommand(0xFF);
+        sendCommand(SSD1306_ENTIRE_DISPLAY_ON_RESUME);
+
+        sendCommand(SSD1306_SET_NORMAL_DISPLAY);
+
+        sendCommand(SSD1306_SET_DISPLAY_CLOCK_DIVIDE_RATIO);
+        sendCommand(0xF0);
+
         sendCommand(SSD1306_CHARGE_PUMP);
         sendCommand(0x14);
 
         sendCommand(SSD1306_SET_MEMORY_ADDRESSING_MODE);
         sendCommand(0x00);
 
-        sendCommand(SSD1306_SET_SEGMENT_REMAP_2);
-        sendCommand(SSD1306_SET_COM_OUTPUT_SCAN_DECREMENTAL);
-        sendCommand(SSD1306_SET_COM_PINS_HARDWARE_CONFIGURATION);
-        sendCommand(0x12);
-        sendCommand(SSD1306_SET_CONTRAST_CONTROL_FOR_BANK0);
-        sendCommand(0xCF);
+
         sendCommand(SSD1306_SET_PRE_CHARGE_PERIOD);
         sendCommand(0x14);
-        sendCommand(SSD1306_SET_VCOMH_DESELECT_LEVEL);
-        sendCommand(0x40);
-        sendCommand(SSD1306_ENTIRE_DISPLAY_ON_RESUME);
+        // sendCommand(SSD1306_SET_VCOMH_DESELECT_LEVEL);
+        // sendCommand(0x20);
         sendCommand(SSD1306_SET_DISPLAY_ON);
     }
+
+    // void unload() override
+    // {
+    // }
 
     constexpr uint32_t height() const
     {
@@ -172,7 +184,7 @@ public:
     }
 
 private:
-    void setHome() const
+    void setHome()
     {
         sendCommand(SSD1306_SET_COLUMN_ADDRESS);
         sendCommand(0x00);
@@ -183,7 +195,7 @@ private:
         sendCommand(0x07);
     }
 
-    void sendCommand(const uint8_t command) const
+    void sendCommand(const uint8_t command)
     {
         I2CInterface::start(address_);
         I2CInterface::write(0x00);

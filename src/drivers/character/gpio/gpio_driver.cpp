@@ -14,40 +14,51 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
-
-#include <string_view>
-
-#include <romfs/romfs.hpp>
-
-#include "msos/fs/read_only_filesystem.hpp"
+#include <board.hpp>
 
 namespace msos
 {
-namespace fs
+namespace drivers
+{
+namespace character
 {
 
-class RomFs : public ReadOnlyFileSystem
-{
-public:
-    RomFs(const uint8_t* memory);
+    void GpioDriver::load()
+    {
 
-    int mount(drivers::storage::BlockDevice& device) override;
+    }
+    void GpioDriver::unload()
+    {
 
-    int umount() override;
+    }
 
-    int stat(const eul::filesystem::path& path) override;
+    ssize_t GpioDriver::read(DataType data)
+    {
 
-    std::unique_ptr<IFile> get(const eul::filesystem::path& path) override;
+    }
+    ssize_t GpioDriver::write(const ConstDataType data)
+    {
 
-    std::vector<std::unique_ptr<IFile>> list(const eul::filesystem::path& path) override;
-    std::string_view name() const override;
+    }
+    void GpioDriver::close()
+    {
 
-protected:
-    static bool mounted_;
-    romfs::RomFsDisk disk_;
+    }
+    ssize_t GpioDriver::size()
+    {
 
+    }
+
+    std::string_view GpioDriver::name() const
+    {
+
+    }
+    std::unique_ptr<fs::IFile> GpioDriver::file(std::string_view path)
+    {
+
+    }
 };
 
-} // namespace fs
+} // namespace character
+} // namespace drivers
 } // namespace msos

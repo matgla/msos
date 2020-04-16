@@ -59,7 +59,8 @@ UsartWriter& UsartWriter::operator<<(const logging_flags::base base)
 
 void UsartWriter::write(const std::string_view& str)
 {
-    board::interfaces::Usart1::write(str);
+    static_cast<void>(str);
+    board::interfaces::usarts[0]->write(str);
 }
 
 

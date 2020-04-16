@@ -27,6 +27,7 @@
 #include <msos/dynamic_linker/environment.hpp>
 #include <hal/core/backupRegisters.hpp>
 #include <hal/core/core.hpp>
+#include <symbol_codes.h>
 
 
 static msos::dl::DynamicLinker dynamic_linker;
@@ -51,8 +52,8 @@ int main()
     std::size_t module_address = 0x08000000;
     module_address += 32 * 1024;
     msos::dl::Environment<2> env{
-        msos::dl::SymbolAddress{200, &atoi},
-        msos::dl::SymbolAddress{100, &_printf}
+        msos::dl::SymbolAddress{SymbolCode::libc_atoi, &atoi},
+        msos::dl::SymbolAddress{SymbolCode::libc_printf, &_printf}
     };
     writer << "[TEST START]" << endl;
 

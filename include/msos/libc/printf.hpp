@@ -19,6 +19,8 @@
 int _printf(const char* format, ...);
 int _printf_via_usart(const char* format, ...);
 int _scanf(const char* format, ...);
+char* _fgets(char* buffer, int n, FILE* fp);
 
 #define printf _printf
 #define scanf _scanf
+#define fgets _fgets

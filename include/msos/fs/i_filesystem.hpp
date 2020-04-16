@@ -49,8 +49,6 @@ public:
 
     virtual std::unique_ptr<IFile> get(const eul::filesystem::path& path) = 0;
     virtual std::unique_ptr<IFile> create(const eul::filesystem::path& path) = 0;
-protected:
-    static bool mounted_;
 };
 
 } // namespace fs

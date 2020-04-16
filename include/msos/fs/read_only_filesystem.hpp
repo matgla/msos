@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include <string_view>
-
 #include "msos/fs/i_filesystem.hpp"
 
 namespace msos
@@ -25,23 +23,13 @@ namespace msos
 namespace fs
 {
 
-struct UsartFile : public IFile
+class ReadOnlyFileSystem : public IFileSystem
 {
 public:
-    ssize_t read(DataType data) override;
-    ssize_t write(const ConstDataType data) override;
-    off_t seek(off_t offset, int base) const override;
-    int close() override;
-    int sync() override;
-
-    off_t tell() const override;
-    ssize_t size() const override;
-
-    std::string_view name() const override;
-
-    std::unique_ptr<IFile> clone() const override;
-
-    const char* data() const override;
+    int create() override;
+    int mkdir(const eul::filesystem::path& path, int mode) override;
+    int remove(const eul::filesystem::path& path) override;
+    std::unique_ptr<IFile> create(const eul::filesystem::path& path) override;
 };
 
 } // namespace fs

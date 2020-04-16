@@ -47,3 +47,5 @@ add_module(interface_and_classes interface_and_classes)
 
 include(TestUtils)
 register_system_test_binary(interface_and_classes)
+
+add_dependencies(interface_and_classes host)

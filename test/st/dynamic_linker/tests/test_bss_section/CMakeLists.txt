@@ -39,3 +39,4 @@ add_module(test_bss_section test_bss_section)
 include (TestUtils)
 register_system_test_binary(test_bss_section)
 
+add_dependencies(test_bss_section host)

@@ -48,8 +48,8 @@ endif ()
 
 add_custom_command(
     TARGET host
-    COMMAND ${qemu_img} resize ${CMAKE_CURRENT_BINARY_DIR}/host.bin 32K
     POST_BUILD
+    COMMAND ${qemu_img} resize ${CMAKE_CURRENT_BINARY_DIR}/host.bin 32K
     VERBATIM
 )
 

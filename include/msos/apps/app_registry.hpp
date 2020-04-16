@@ -19,7 +19,6 @@
 #include <string_view>
 
 #include "msos/fs/i_filesystem.hpp"
-#include "msos/fs/ramfs_file.hpp"
 
 namespace msos
 {
@@ -67,6 +66,9 @@ public:
 
     static bool register_executable(std::string_view name, std::size_t address);
     std::string_view name() const override;
+
+private:
+    std::vector<AppEntry> apps_;
 };
 
 } // namespace apps

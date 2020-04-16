@@ -14,9 +14,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(msos_dynamic_linker STATIC)
+find_file (GENERATE_API generate_api.py ${PROJECT_SOURCE_DIR}/scripts)
+
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/symbol_codes.h
+    COMMAND python3 ${GENERATE_API} --api=${PROJECT_SOURCE_DIR}/api/symbol_codes.json --output ${CMAKE_CURRENT_BINARY_DIR}/symbol_codes.h
+    DEPENDS ${GENERATE_API} ${PROJECT_SOURCE_DIR}/api/symbol_codes.json
+    VERBATIM
+)
+
+
+set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/symbol_codes.h PROPERTIES GENERATED 1 )
 
 set (library_includes ${PROJECT_SOURCE_DIR}/include/msos/dynamic_linker)
+add_library(msos_dynamic_linker STATIC ${CMAKE_CURRENT_BINARY_DIR}/symbol_codes.h)
 
 target_sources(msos_dynamic_linker
     PUBLIC
@@ -45,6 +56,7 @@ target_sources(msos_dynamic_linker
 target_include_directories(msos_dynamic_linker
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 target_compile_options(msos_dynamic_linker

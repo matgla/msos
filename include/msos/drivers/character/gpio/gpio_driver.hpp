@@ -16,38 +16,30 @@
 
 #pragma once
 
-#include <string_view>
-
-#include <romfs/romfs.hpp>
-
-#include "msos/fs/read_only_filesystem.hpp"
+#include "msos/drivers/character/character_driver.hpp"
 
 namespace msos
 {
-namespace fs
+namespace drivers
+{
+namespace character
 {
 
-class RomFs : public ReadOnlyFileSystem
+class GpioDriver : public CharacterDriver
 {
 public:
-    RomFs(const uint8_t* memory);
+    void load() override;
+    void unload() override;
 
-    int mount(drivers::storage::BlockDevice& device) override;
+    ssize_t read(DataType data) override;
+    ssize_t write(const ConstDataType data) override;
+    void close() override;
+    ssize_t size() override;
 
-    int umount() override;
-
-    int stat(const eul::filesystem::path& path) override;
-
-    std::unique_ptr<IFile> get(const eul::filesystem::path& path) override;
-
-    std::vector<std::unique_ptr<IFile>> list(const eul::filesystem::path& path) override;
     std::string_view name() const override;
-
-protected:
-    static bool mounted_;
-    romfs::RomFsDisk disk_;
-
+    std::unique_ptr<fs::IFile> file(std::string_view path) override;
 };
 
-} // namespace fs
+} // namespace character
+} // namespace drivers
 } // namespace msos

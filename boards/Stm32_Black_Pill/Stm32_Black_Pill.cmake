@@ -30,25 +30,27 @@ endfunction()
 
 function(add_device_hal_library hal_device_library)
     message(STATUS "Configuring STM32_Black_Pill")
-    set(${hal_device_library} "black_pill_board_library")
-    set(hal_device_library ${hal_device_library} PARENT_SCOPE)
-    add_library(${hal_device_library} STATIC)
+    set(hal_device_library board PARENT_SCOPE)
+    add_library(board STATIC)
 
-    target_sources(${hal_device_library} PUBLIC
-        ${user_boards_path}/Stm32_Black_Pill/board.hpp
-        ${user_boards_path}/Stm32_Black_Pill/board.cpp
+    target_sources(board PUBLIC
+        PUBLIC
+            ${user_boards_path}/Stm32_Black_Pill/board.hpp
+        PRIVATE
+            ${user_boards_path}/Stm32_Black_Pill/board.cpp
     )
 
-    target_include_directories(${hal_device_library} PUBLIC
+    target_include_directories(board PUBLIC
         ${user_boards_path}/Stm32_Black_Pill)
 
-    include(${PROJECT_SOURCE_DIR}/devices/arm/stm32/stm32f1/stm32f103c8t6/configure_stm32f103c8t6.cmake)
-    configure_device()
 
-    target_link_libraries(${hal_device_library}
+    target_link_libraries(board
         PUBLIC
             hal_interface
+        PRIVATE
             hal_devices_arm_stm32f103c8t6
     )
 
+    include(${PROJECT_SOURCE_DIR}/devices/arm/stm32/stm32f1/stm32f103c8t6/configure_stm32f103c8t6.cmake)
+    configure_device()
 endfunction()

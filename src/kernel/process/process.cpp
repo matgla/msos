@@ -17,12 +17,14 @@
 #include <cstring>
 #include <utility>
 
+#include <fcntl.h>
+
 #include "msos/usart_printer.hpp"
 
 #include "msos/kernel/process/process.hpp"
 #include "msos/kernel/process/registers.hpp"
 #include "msos/syscalls/syscalls.hpp"
-#include "msos/fs/usart_file.hpp"
+#include "msos/drivers/device_fs.hpp"
 
 namespace msos
 {
@@ -107,9 +109,14 @@ Process::Process(const std::size_t process_entry, const std::size_t stack_size, 
     hw_registers->pc = process_entry;
     sw_registers->lr = return_to_thread_mode_psp;
     current_stack_pointer_ = reinterpret_cast<std::size_t*>(stack_ptr);
-    fd_[0] = std::make_unique<msos::fs::UsartFile>();
-    fd_[1] = std::make_unique<msos::fs::UsartFile>();
-    fd_[2] = std::make_unique<msos::fs::UsartFile>();
+    auto* tty = drivers::DeviceFs::get_instance().get_driver("tty1");
+    if (tty)
+    {
+        fd_[0] = tty->file("tty1");
+        fd_[1] = tty->file("tty1");
+        fd_[2] = tty->file("tty1");
+    }
+
 }
 
 const std::size_t* Process::stack_pointer() const

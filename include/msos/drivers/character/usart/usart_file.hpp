@@ -18,35 +18,28 @@
 
 #include <string_view>
 
-#include <romfs/romfs.hpp>
-
-#include "msos/fs/read_only_filesystem.hpp"
+#include "msos/fs/character_file.hpp"
+#include "msos/drivers/character/usart/usart_driver.hpp"
 
 namespace msos
 {
 namespace fs
 {
 
-class RomFs : public ReadOnlyFileSystem
+struct UsartFile : public CharacterFile
 {
 public:
-    RomFs(const uint8_t* memory);
+    UsartFile(drivers::character::UsartDriver& driver, std::string_view path);
+    ssize_t read(DataType data) override;
+    ssize_t write(const ConstDataType data) override;
+    int close() override;
 
-    int mount(drivers::storage::BlockDevice& device) override;
-
-    int umount() override;
-
-    int stat(const eul::filesystem::path& path) override;
-
-    std::unique_ptr<IFile> get(const eul::filesystem::path& path) override;
-
-    std::vector<std::unique_ptr<IFile>> list(const eul::filesystem::path& path) override;
     std::string_view name() const override;
 
-protected:
-    static bool mounted_;
-    romfs::RomFsDisk disk_;
-
+    std::unique_ptr<IFile> clone() const override;
+private:
+    drivers::character::UsartDriver& driver_;
+    std::string_view path_;
 };
 
 } // namespace fs

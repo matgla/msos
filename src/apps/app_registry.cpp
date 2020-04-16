@@ -28,11 +28,9 @@ namespace msos
 namespace apps
 {
 
-static AppRegistry a;
-static std::vector<AppEntry> apps_;
-
 AppRegistry& AppRegistry::get_instance()
 {
+    static AppRegistry a;
     return a;
 }
 
@@ -107,7 +105,7 @@ std::vector<std::unique_ptr<fs::IFile>> AppRegistry::list(const eul::filesystem:
 
 bool AppRegistry::register_executable(std::string_view name, std::size_t address)
 {
-    apps_.push_back(AppEntry{name, address});
+    get_instance().apps_.push_back(AppEntry{name, address});
     return true;
 }
 

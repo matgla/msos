@@ -14,40 +14,37 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
-
-#include <string_view>
-
-#include <romfs/romfs.hpp>
-
 #include "msos/fs/read_only_filesystem.hpp"
+
+#include <eul/utils/unused.hpp>
 
 namespace msos
 {
 namespace fs
 {
 
-class RomFs : public ReadOnlyFileSystem
+int ReadOnlyFileSystem::create()
 {
-public:
-    RomFs(const uint8_t* memory);
+    return -1;
+}
 
-    int mount(drivers::storage::BlockDevice& device) override;
+int ReadOnlyFileSystem::mkdir(const eul::filesystem::path& path, int mode)
+{
+    UNUSED2(path, mode);
+    return -1;
+}
 
-    int umount() override;
+int ReadOnlyFileSystem::remove(const eul::filesystem::path& path)
+{
+    UNUSED1(path);
+    return -1;
+}
 
-    int stat(const eul::filesystem::path& path) override;
-
-    std::unique_ptr<IFile> get(const eul::filesystem::path& path) override;
-
-    std::vector<std::unique_ptr<IFile>> list(const eul::filesystem::path& path) override;
-    std::string_view name() const override;
-
-protected:
-    static bool mounted_;
-    romfs::RomFsDisk disk_;
-
-};
+std::unique_ptr<IFile> ReadOnlyFileSystem::create(const eul::filesystem::path& path)
+{
+    UNUSED1(path);
+    return nullptr;
+}
 
 } // namespace fs
 } // namespace msos

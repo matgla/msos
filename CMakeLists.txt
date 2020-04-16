@@ -34,6 +34,8 @@ endif()
 
 fetch_module_via_branch(lib/hal ${PROJECT_SOURCE_DIR}/lib/hal ${CMAKE_CURRENT_SOURCE_DIR} "master")
 enable_language(ASM C CXX)
+set (msgui_cxx_compilation_flags ${hal_cxx_compilation_flags} CACHE STRING "msgui compilation flags" FORCE)
+set (msgui_linking_flags ${hal_linker_flags} CACHE STRING "msgui linking flags" FORCE)
 fetch_module_via_branch(lib/msgui ${PROJECT_SOURCE_DIR}/lib/msgui ${CMAKE_CURRENT_SOURCE_DIR} "master")
 set (DISABLE_ROMFS_TESTS "1")
 set (romfs_cxx_compilation_flags ${hal_cxx_compilation_flags} CACHE STRING "romfs compilation flags" FORCE)
@@ -44,7 +46,6 @@ fetch_module_via_branch(lib/gsl/gsl ${PROJECT_SOURCE_DIR}/lib/gsl/gsl ${CMAKE_CU
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 set(CMAKE_EXECUTABLE_SUFFIX "${CMAKE_EXECUTABLE_SUFFIX}")
 
-add_subdirectory(include/msos/drivers)
 include_directories(BEFORE SYSTEM ${PROJECT_SOURCE_DIR}/include/msos/posix)
 add_subdirectory(src)
 add_subdirectory(modules)

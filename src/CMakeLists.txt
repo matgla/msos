@@ -63,6 +63,7 @@ target_link_libraries(msos
         msos_kernel_memory
         msos_syscalls
         msos_dynamic_linker
+        msos_drivers
         msos_drivers_storage
         msos_fs
         msos_libc
@@ -71,6 +72,7 @@ target_link_libraries(msos
         msos_apps
         msos_printer
         hal_flags
+        msgui
 )
 
 target_include_directories(msos
@@ -125,7 +127,7 @@ add_custom_command(
     POST_BUILD
     COMMAND rm -f ${PROJECT_BINARY_DIR}/rootfs.img
     COMMAND genromfs -f ${PROJECT_BINARY_DIR}/rootfs.img -d ${PROJECT_BINARY_DIR}/rootfs -v -V msos_romfs
-    COMMAND ${truncate_exec} --size 32K ${executable_file}
+    COMMAND ${truncate_exec} --size 40K ${executable_file}
     COMMAND cp ${executable_file} ${executable_file}.tmp
     COMMAND cat ${executable_file}.tmp ${PROJECT_BINARY_DIR}/rootfs.img > ${executable_file}
     VERBATIM

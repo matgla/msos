@@ -15,38 +15,45 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 function (configure_virtual_env)
-    find_program (virtualenv_exec virtualenv)
+    if (NOT TARGET configure-venv)
+        find_program (virtualenv_exec virtualenv)
 
-    if(NOT virtualenv_exec)
-        message(FATAL_ERROR "Couldn't find virtualenv")
-    endif()
+        if(NOT virtualenv_exec)
+            message(FATAL_ERROR "Couldn't find virtualenv")
+        endif()
 
-    set(virtualenv_exec ${virtualenv_exec} -p python3)
-    find_file (VIRTUALENV_FILE venv.stamp ${PROJECT_BINARY_DIR}/)
-    if (${VIRTUALENV_FILE} STREQUAL VIRTUALENV_FILE-NOTFOUND)
-        execute_process(
-            COMMAND ${virtualenv_exec} module_generator_env
+        add_custom_command(
+            OUTPUT venv.stamp
+            COMMAND ${virtualenv_exec} ${PROJECT_BINARY_DIR}/module_generator_env
+            COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/pip install -r ${PROJECT_SOURCE_DIR}/scripts/requirements.txt --upgrade
+            DEPENDS ${PROJECT_SOURCE_DIR}/scripts/requirements.txt
         )
-        file (TOUCH ${PROJECT_BINARY_DIR}/venv.stamp)
-        find_file (VIRTUALENV_FILE venv.stamp ${PROJECT_BINARY_DIR}/)
-    endif ()
+
+        add_custom_target(
+            configure-venv
+            DEPENDS venv.stamp
+        )
+    endif()
 
 endfunction()
 
 function (add_module module_name module_library)
     if (${arch} STREQUAL "ARM")
         configure_virtual_env()
-        find_file (VIRTUALENV_FILE venv.stamp ${PROJECT_BINARY_DIR}/)
+
+        find_file (GENERATE_BINARY generate_binary.py ${PROJECT_SOURCE_DIR}/scripts)
 
         add_custom_command(
             TARGET ${module_name}
             POST_BUILD
-            COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/pip install -r ${PROJECT_SOURCE_DIR}/scripts/requirements.txt --upgrade -q -q -q
-            COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/python3 ${PROJECT_SOURCE_DIR}/scripts/generate_binary.py
+            COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/python3 ${GENERATE_BINARY}
             generate_wrapper_code --disable_logs --elf_filename=$<TARGET_FILE:${module_name}> --module_name=${module_name}
             --objcopy=${CMAKE_OBJCOPY} --as_executable --api=${PROJECT_SOURCE_DIR}/api/symbol_codes.json
-            DEPENDS ${PROJECT_SOURCE_DIR}/scripts/generate_binary.py
+            DEPENDS ${GENERATE_BINARY} ${module_name} venv.stamp
+            VERBATIM
         )
+
+        add_dependencies(${module_name} configure-venv)
     elseif (${arch} STREQUAL "x86")
     endif()
 endfunction ()

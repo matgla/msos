@@ -43,6 +43,7 @@
 
 #include <msos/kernel/process/spawn.hpp>
 
+#include <symbol_codes.h>
 // #include "msos/fs/"
 
 UsartWriter writer;
@@ -86,9 +87,9 @@ void child_process(void* arg)
 
     int extern_data = 123;
     msos::dl::Environment<3> env{
-        msos::dl::SymbolAddress{300, &strlen},
-        msos::dl::SymbolAddress{1100, &write},
-        msos::dl::SymbolAddress{100, &printf},
+        msos::dl::SymbolAddress{SymbolCode::libc_strlen, &strlen},
+        msos::dl::SymbolAddress{SymbolCode::posix_write, &write},
+        msos::dl::SymbolAddress{SymbolCode::libc_printf, &printf},
     };
 
     exec("/rom/interface_and_classes.bin", NULL, reinterpret_cast<const SymbolEntry*>(env.data().data()), env.data().size());

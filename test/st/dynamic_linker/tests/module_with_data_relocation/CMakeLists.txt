@@ -38,3 +38,4 @@ add_module(module_with_data module_with_data)
 
 include(TestUtils)
 register_system_test_binary(module_with_data)
+add_dependencies(module_with_data host)

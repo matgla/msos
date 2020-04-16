@@ -1,4 +1,4 @@
-// This file is part of MSOS project.
+// This file is part of MSOS project. This is simple OS for embedded development devices.
 // Copyright (C) 2020 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
@@ -16,38 +16,23 @@
 
 #pragma once
 
-#include <string_view>
-
-#include <romfs/romfs.hpp>
-
-#include "msos/fs/read_only_filesystem.hpp"
+#include <cstdint>
 
 namespace msos
 {
-namespace fs
+namespace drivers
+{
+namespace displays
 {
 
-class RomFs : public ReadOnlyFileSystem
+class IDisplay
 {
 public:
-    RomFs(const uint8_t* memory);
-
-    int mount(drivers::storage::BlockDevice& device) override;
-
-    int umount() override;
-
-    int stat(const eul::filesystem::path& path) override;
-
-    std::unique_ptr<IFile> get(const eul::filesystem::path& path) override;
-
-    std::vector<std::unique_ptr<IFile>> list(const eul::filesystem::path& path) override;
-    std::string_view name() const override;
-
-protected:
-    static bool mounted_;
-    romfs::RomFsDisk disk_;
+    virtual void write(const uint8_t byte) = 0;
 
 };
 
-} // namespace fs
+} // namespace displays
+} // namespace drivers
 } // namespace msos
+

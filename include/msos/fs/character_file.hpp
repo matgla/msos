@@ -16,37 +16,22 @@
 
 #pragma once
 
-#include <string_view>
-
-#include <romfs/romfs.hpp>
-
-#include "msos/fs/read_only_filesystem.hpp"
+#include "msos/fs/i_file.hpp"
 
 namespace msos
 {
 namespace fs
 {
 
-class RomFs : public ReadOnlyFileSystem
+class CharacterFile : public IFile
 {
 public:
-    RomFs(const uint8_t* memory);
-
-    int mount(drivers::storage::BlockDevice& device) override;
-
-    int umount() override;
-
-    int stat(const eul::filesystem::path& path) override;
-
-    std::unique_ptr<IFile> get(const eul::filesystem::path& path) override;
-
-    std::vector<std::unique_ptr<IFile>> list(const eul::filesystem::path& path) override;
-    std::string_view name() const override;
-
-protected:
-    static bool mounted_;
-    romfs::RomFsDisk disk_;
-
+    off_t seek(off_t offset, int base) const override;
+    off_t tell() const override;
+    ssize_t size() const override;
+    /* for XIP filesystems pointer to memory must be returned somehow */
+    const char* data() const override;
+    int sync() override;
 };
 
 } // namespace fs

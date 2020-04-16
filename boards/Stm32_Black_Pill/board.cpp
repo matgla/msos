@@ -18,12 +18,21 @@
 
 #include <stm32f10x.h>
 
+#include <devices/arm/stm32/stm32f1/stm32f103c8t6/usart.hpp>
+
 namespace board
 {
+
+namespace interfaces
+{
+    static hal::devices::interfaces::Usart1 usart1;
+    std::array<hal::interfaces::Usart*, 1> usarts;
+}
 
 void board_init()
 {
     SystemInit();
+    interfaces::usarts[0] = &interfaces::usart1;
 }
 
 }

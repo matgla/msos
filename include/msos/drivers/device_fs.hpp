@@ -18,19 +18,18 @@
 
 #include <string_view>
 
-#include <romfs/romfs.hpp>
-
 #include "msos/fs/read_only_filesystem.hpp"
+#include "msos/drivers/i_driver.hpp"
 
 namespace msos
 {
-namespace fs
+namespace drivers
 {
 
-class RomFs : public ReadOnlyFileSystem
+class DeviceFs : public fs::ReadOnlyFileSystem
 {
 public:
-    RomFs(const uint8_t* memory);
+    static DeviceFs& get_instance();
 
     int mount(drivers::storage::BlockDevice& device) override;
 
@@ -38,16 +37,16 @@ public:
 
     int stat(const eul::filesystem::path& path) override;
 
-    std::unique_ptr<IFile> get(const eul::filesystem::path& path) override;
+    std::unique_ptr<fs::IFile> get(const eul::filesystem::path& path) override;
+    IDriver* get_driver(const eul::filesystem::path& path);
 
-    std::vector<std::unique_ptr<IFile>> list(const eul::filesystem::path& path) override;
+    std::vector<std::unique_ptr<fs::IFile>> list(const eul::filesystem::path& path) override;
+
+    static bool register_driver(std::string_view name, IDriver& driver);
     std::string_view name() const override;
-
-protected:
-    static bool mounted_;
-    romfs::RomFsDisk disk_;
-
 };
 
-} // namespace fs
+} // namespace drivers
 } // namespace msos
+
+#define REGISTER_DRIVER(name, driver) bool app_name ## _entry = msos::driver::DeviceFsz::register_driver(#name".bin", driver)

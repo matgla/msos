@@ -16,38 +16,42 @@
 
 #pragma once
 
+#include <vector>
 #include <string_view>
 
-#include <romfs/romfs.hpp>
+#include <eul/container/ring_buffer.hpp>
 
-#include "msos/fs/read_only_filesystem.hpp"
+#include <hal/interfaces/usart.hpp>
+
+#include "msos/drivers/i_driver.hpp"
 
 namespace msos
 {
-namespace fs
+namespace drivers
+{
+namespace character
 {
 
-class RomFs : public ReadOnlyFileSystem
+struct UsartDriver : public IDriver
 {
 public:
-    RomFs(const uint8_t* memory);
+    using BufferType = eul::container::ring_buffer<uint8_t, 64>;
+    UsartDriver(int usart_number);
 
-    int mount(drivers::storage::BlockDevice& device) override;
+    void load() override;
+    void unload() override;
 
-    int umount() override;
+    std::unique_ptr<fs::IFile> file(std::string_view path) override;
 
-    int stat(const eul::filesystem::path& path) override;
+    hal::interfaces::Usart& get();
+    BufferType& buffer();
 
-    std::unique_ptr<IFile> get(const eul::filesystem::path& path) override;
-
-    std::vector<std::unique_ptr<IFile>> list(const eul::filesystem::path& path) override;
-    std::string_view name() const override;
-
-protected:
-    static bool mounted_;
-    romfs::RomFsDisk disk_;
-
+private:
+    int usart_number_;
+    int readed_before_newline_;
+    BufferType buffer_;
 };
 
+} // namespace character
 } // namespace fs
 } // namespace msos

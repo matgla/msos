@@ -90,37 +90,6 @@ extern char __heap_end;
 
 static char* current_heap_end = &__heap_start;
 
-char stdin_data[100];
-int writer_position = 0;
-volatile bool new_line_readed = false;
-
-void write_to_stdin(char c)
-{
-    if (writer_position >= 99)
-    {
-        writer_position = 0;
-    }
-    if (c == 127)
-    {
-        --writer_position;
-        char backspace = '\b';
-        char space = ' ';
-        write(1, &backspace, 1);
-        write(1, &space, 1);
-        write(1, &backspace, 1);
-        return;
-    }
-    if (c == '\n' || c == '\r')
-    {
-        new_line_readed = true;
-        c = '\n';
-        stdin_data[writer_position + 1] = 0;
-    }
-    stdin_data[writer_position] = c;
-    write(1, stdin_data + writer_position, 1);
-    ++writer_position;
-}
-
 caddr_t _sbrk(int incr)
 {
     if (current_heap_end + incr > (&__heap_end))
@@ -148,16 +117,6 @@ int _write(int fd, const char* ptr, int len)
 
 int _read(int fd, char* ptr, int len)
 {
-    if (fd == 0)
-    {
-        while (!new_line_readed) {}
-        std::memcpy(ptr, stdin_data, writer_position + 1);
-        auto ind = writer_position;
-        new_line_readed = false;
-        writer_position = 0;
-        return ind ;
-    }
-
     msos::fs::IFile* file = msos::kernel::process::Scheduler::get().current_process().get_file(fd);
 
     if (file)
@@ -206,7 +165,7 @@ int _fstat(int file, struct stat* st)
 
 int _open(const char* filename, int flags)
 {
-    // printf("opening file: %s\n", filename);
+    writer << "opening file: " <<  filename << endl;
 
     auto& vfs = msos::fs::Vfs::instance();
     eul::filesystem::path path(filename);
@@ -215,12 +174,20 @@ int _open(const char* filename, int flags)
     if ((flags & O_ACCMODE) == O_RDONLY)
     {
         file = vfs.get(path.lexically_normal().c_str());
+        if (!file)
+        {
+            return -1;
+        }
         int fd = msos::kernel::process::Scheduler::get().current_process().add_file(std::move(file));
         return fd;
     }
     else if ((flags & O_CREAT) == O_CREAT)
     {
         file = vfs.create(path.lexically_normal().c_str());
+        if (!file)
+        {
+            return -1;
+        }
 
         int fd = msos::kernel::process::Scheduler::get().current_process().add_file(std::move(file));
         return fd;

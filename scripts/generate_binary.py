@@ -217,9 +217,7 @@ def add_indexes_to_symbols(processed_symbols):
 def find_symbol_code(api, symbol):
     for lib in api:
         for sym in api[lib]:
-            print(sym, " == ", symbol)
             if sym == symbol:
-                print("Returnig: ", api[lib][sym])
                 return api[lib][sym]
     return None
 
@@ -493,20 +491,7 @@ def generate_module(module_name, elf_filename, objcopy_executable, api_file):
 
 
     i = 0
-    # for sym in symbol_to_image:
-    #     value = sym["value"]
-    #     if sym["section"] == 1:
-    #         print(sym["name"], " --- offset ")
-    #         value = sym["value"] - len(code_data)
-
-    #     image += struct.pack("<IHHI", sym["size"], sym["visibility"], sym["section"], value)
-    #     image += bytearray(sym["name"], "ascii")
-    #     row = [sym["name"], sym["size"], sym["visibility"], sym["section"], value]
-    #     print_step(str(i) + "{: >45} {: >10} {: >10} {: >10} {: >15}".format(*row))
-    #     i += 1
-
     api = {}
-    print("Opening file: ", api_file)
     with open(api_file) as codes_json:
         api = json.loads(codes_json.read())
 
@@ -554,7 +539,7 @@ parser.add_argument("--objcopy", dest="objcopy_executable", action="store", help
 parser.add_argument("--as_executable", dest="as_executable", action="store_true", help="Generate module as executable")
 parser.add_argument("-v", "--verbose", dest="enable_debugs", action="store_true", help="Additional logs")
 parser.add_argument("--disable_logs", dest="disable_logs", action="store_true", help="Disable logs")
-parser.add_argument("--api", dest="api_file", action="store", help="Disable logs", required="true")
+parser.add_argument("--api", dest="api_file", action="store", help="API description file", required="true")
 args, rest = parser.parse_known_args()
 
 def configure_logs(args):
