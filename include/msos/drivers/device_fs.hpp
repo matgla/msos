@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <list>
 #include <string_view>
 
 #include "msos/fs/read_only_filesystem.hpp"
@@ -25,6 +26,37 @@ namespace msos
 {
 namespace drivers
 {
+
+class DriverEntry
+{
+public:
+    DriverEntry(const std::string_view& path, IDriver* driver)
+        : path_(path)
+        , driver_(driver)
+    {
+
+    }
+
+    std::string_view path() const
+    {
+        return path_;
+    }
+
+    IDriver* driver()
+    {
+        return driver_;
+    }
+
+    const IDriver* driver() const
+    {
+        return driver_;
+    }
+
+private:
+    std::string path_;
+    IDriver* driver_;
+};
+
 
 class DeviceFs : public fs::ReadOnlyFileSystem
 {
@@ -42,11 +74,18 @@ public:
 
     std::vector<std::unique_ptr<fs::IFile>> list(const eul::filesystem::path& path) override;
 
-    static bool register_driver(std::string_view name, IDriver& driver);
+    int register_driver(std::string_view name, IDriver& driver);
     std::string_view name() const override;
+
+    const std::list<DriverEntry>& get_drivers() const;
+    std::list<DriverEntry>& get_drivers();
+private:
+
+    std::list<DriverEntry> drivers;
 };
 
 } // namespace drivers
 } // namespace msos
 
-#define REGISTER_DRIVER(name, driver) bool app_name ## _entry = msos::driver::DeviceFsz::register_driver(#name".bin", driver)
+#define REGISTER_DRIVER(name, driver) \
+    static int driver_##name __attribute__((section(".drivers"))) = msos::drivers::DeviceFs::get_instance().register_driver(#name, driver::get())

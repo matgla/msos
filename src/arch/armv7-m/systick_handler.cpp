@@ -28,7 +28,7 @@ namespace msos
 namespace process
 {
 
-static std::chrono::milliseconds context_switch_period(100);
+static std::chrono::milliseconds context_switch_period(20);
 
 void initialize_systick()
 {

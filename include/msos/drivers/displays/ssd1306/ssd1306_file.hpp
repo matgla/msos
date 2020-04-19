@@ -16,42 +16,39 @@
 
 #pragma once
 
-#include <vector>
 #include <string_view>
 
-#include <board.hpp>
-
-#include <eul/container/ring_buffer.hpp>
-
-#include "msos/drivers/i_driver.hpp"
+#include "msos/fs/character_file.hpp"
 
 namespace msos
 {
+
 namespace drivers
 {
-namespace character
+namespace displays
+{
+class SSD1306_I2C;
+}
+}
+
+namespace fs
 {
 
-struct UsartDriver : public IDriver
+struct Ssd1306File : public CharacterFile
 {
 public:
-    using BufferType = eul::container::ring_buffer<uint8_t, 64>;
-    UsartDriver(int usart_number);
+    Ssd1306File(drivers::displays::SSD1306_I2C& driver, std::string_view path);
+    ssize_t read(DataType data) override;
+    ssize_t write(const ConstDataType data) override;
+    int close() override;
 
-    void load() override;
-    void unload() override;
+    std::string_view name() const override;
 
-    std::unique_ptr<fs::IFile> file(std::string_view path) override;
-
-    hal::interfaces::Usart& get();
-    BufferType& buffer();
-
+    std::unique_ptr<IFile> clone() const override;
 private:
-    int usart_number_;
-    int readed_before_newline_;
-    BufferType buffer_;
+    drivers::displays::SSD1306_I2C& driver_;
+    std::string_view path_;
 };
 
-} // namespace character
 } // namespace fs
 } // namespace msos

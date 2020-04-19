@@ -85,37 +85,8 @@ public:
 };
 
 
-class DriverEntry
-{
-public:
-    DriverEntry(const std::string_view& path, IDriver* driver)
-        : path_(path)
-        , driver_(driver)
-    {
 
-    }
-
-    std::string_view path() const
-    {
-        return path_;
-    }
-
-    IDriver* driver()
-    {
-        return driver_;
-    }
-
-    const IDriver* driver() const
-    {
-        return driver_;
-    }
-
-private:
-    std::string path_;
-    IDriver* driver_;
-};
-
-static std::list<DriverEntry> drivers;
+static int instances = 0;
 
 DeviceFs& DeviceFs::get_instance()
 {
@@ -179,11 +150,23 @@ std::vector<std::unique_ptr<fs::IFile>> DeviceFs::list(const eul::filesystem::pa
     return files;
 }
 
-bool DeviceFs::register_driver(std::string_view name, IDriver& driver)
+int DeviceFs::register_driver(std::string_view name, IDriver& driver)
 {
     drivers.push_back(DriverEntry{name, &driver});
-    return true;
+    return instances++;
 }
+
+const std::list<DriverEntry>& DeviceFs::get_drivers() const
+{
+    return drivers;
+}
+
+
+std::list<DriverEntry>& DeviceFs::get_drivers()
+{
+    return drivers;
+}
+
 
 std::string_view DeviceFs::name() const
 {
@@ -193,5 +176,3 @@ std::string_view DeviceFs::name() const
 
 } // namespace drivers
 } // namespace msos
-
-#define REGISTER_DRIVER(name, driver) bool app_name ## _entry = msos::driver::DeviceFsz::register_driver(#name".bin", driver)

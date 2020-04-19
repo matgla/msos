@@ -18,7 +18,13 @@
 
 #include <cstdint>
 
+#include <board.hpp>
+#include <hal/time/sleep.hpp>
+
+#include <eul/utils/unused.hpp>
+
 #include "msos/drivers/i_driver.hpp"
+#include "msos/drivers/displays/ssd1306/ssd1306_file.hpp"
 
 namespace msos
 {
@@ -56,13 +62,20 @@ constexpr uint8_t SSD1306_CHARGE_PUMP = 0x8D;
 
 constexpr uint8_t SSD1306_DEFAULT_ADDRESS = 0x3C;
 
-template <typename I2CInterface>
-class SSD1306_I2C
+class SSD1306_I2C : public msos::drivers::IDriver
 {
 public:
-    SSD1306_I2C(const uint8_t address = SSD1306_DEFAULT_ADDRESS) : address_(address)
+    SSD1306_I2C(hal::interfaces::I2C& i2c,
+        const uint8_t address = SSD1306_DEFAULT_ADDRESS)
+        : i2c_(i2c)
+        , address_(address)
     {
-        I2CInterface::init();
+    }
+
+    void load() override
+    {
+        hal::time::sleep(std::chrono::milliseconds(100));
+        i2c_.init();
 
         sendCommand(SSD1306_SET_DISPLAY_OFF);
         sendCommand(SSD1306_SET_MULTIPLEX_RATIO);
@@ -95,11 +108,13 @@ public:
         // sendCommand(SSD1306_SET_VCOMH_DESELECT_LEVEL);
         // sendCommand(0x20);
         sendCommand(SSD1306_SET_DISPLAY_ON);
+
+        clear();
     }
 
-    // void unload() override
-    // {
-    // }
+    void unload() override
+    {
+    }
 
     constexpr uint32_t height() const
     {
@@ -113,6 +128,7 @@ public:
 
     void setPixel(uint16_t x, uint16_t y)
     {
+        UNUSED2(x, y);
         // sendCommand(SSD1306_SET_COLUMN_ADDRESS);
         // sendCommand(x);
         // sendCommand(x);
@@ -121,9 +137,9 @@ public:
         // sendCommand(y/8);
         // sendCommand(y/8);
 
-        // I2CInterface::start(address_ | 0x01);
-        // uint8_t old_byte = I2CInterface::read();
-        // old_byte = I2CInterface::read();
+        // i2c_.start(address_ | 0x01);
+        // uint8_t old_byte = i2c_.read();
+        // old_byte = i2c_.read();
         // using Serial = board::interfaces::SERIAL;
         // char data[20];
         // Serial::write("Requesting x: ");
@@ -138,12 +154,12 @@ public:
         // Serial::write("Old: ");
         // Serial::write(data);
         // Serial::write("\n");
-        // I2CInterface::stop();
+        // i2c_.stop();
 
-        // I2CInterface::start(address_);
-        // I2CInterface::write(SSD1306_SET_DISPLAY_START_LINE);
-        // I2CInterface::write(old_byte | (1 << (y % 8)));
-        // I2CInterface::stop();
+        // i2c_.start(address_);
+        // i2c_.write(SSD1306_SET_DISPLAY_START_LINE);
+        // i2c_.write(old_byte | (1 << (y % 8)));
+        // i2c_.stop();
     }
     void clear()
     {
@@ -152,10 +168,10 @@ public:
         {
             for (int page = 0; page < 8; page++)
             {
-                I2CInterface::start(address_);
-                I2CInterface::write(SSD1306_SET_DISPLAY_START_LINE);
-                I2CInterface::write(0);
-                I2CInterface::stop();
+                i2c_.start(address_);
+                i2c_.write(SSD1306_SET_DISPLAY_START_LINE);
+                i2c_.write(0);
+                i2c_.stop();
             }
         }
     }
@@ -165,22 +181,27 @@ public:
 
         for (uint8_t packet = 0; packet < buffer.size()/16; packet++)
         {
-            I2CInterface::start(address_);
-            I2CInterface::write(SSD1306_SET_DISPLAY_START_LINE);
+            i2c_.start(address_);
+            i2c_.write(SSD1306_SET_DISPLAY_START_LINE);
             for (uint8_t packet_byte = 0; packet_byte < 16; ++packet_byte)
             {
-                I2CInterface::write(buffer[packet*16+packet_byte]);
+                i2c_.write(buffer[packet*16+packet_byte]);
             }
-            I2CInterface::stop();
+            i2c_.stop();
         }
     }
 
     void write(const uint8_t byte)
     {
-        I2CInterface::start(address_);
-        I2CInterface::write(SSD1306_SET_DISPLAY_START_LINE);
-        I2CInterface::write(byte);
-        I2CInterface::stop();
+        i2c_.start(address_);
+        i2c_.write(SSD1306_SET_DISPLAY_START_LINE);
+        i2c_.write(byte);
+        i2c_.stop();
+    }
+
+    virtual std::unique_ptr<fs::IFile> file(std::string_view path)
+    {
+        return std::make_unique<fs::Ssd1306File>(*this, path);
     }
 
 private:
@@ -197,12 +218,13 @@ private:
 
     void sendCommand(const uint8_t command)
     {
-        I2CInterface::start(address_);
-        I2CInterface::write(0x00);
-        I2CInterface::write(command);
-        I2CInterface::stop();
+        i2c_.start(address_);
+        i2c_.write(0x00);
+        i2c_.write(command);
+        i2c_.stop();
     }
 
+    hal::interfaces::I2C& i2c_;
     const uint8_t address_;
 };
 

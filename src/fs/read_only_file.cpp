@@ -1,5 +1,5 @@
-// This file is part of MSOS project. This is simple OS for embedded development devices.
-// Copyright (C) 2019 Mateusz Stadnik
+// This file is part of MSOS project.
+// Copyright (C) 2020 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,16 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
+#include "msos/fs/read_only_file.hpp"
 
-extern "C"
+#include <eul/utils/unused.hpp>
+
+namespace msos
 {
-    int _printf(const char* format, ...);
-    int _printf_via_usart(const char* format, ...);
-    int _scanf(const char* format, ...);
-    char* _fgets(char* buffer, int n, FILE* fp);
+namespace fs
+{
 
-    #define printf _printf
-    #define scanf _scanf
-    #define fgets _fgets
+ssize_t ReadOnlyFile::write(const ConstDataType data)
+{
+    UNUSED1(data);
+    return 0;
 }
+
+} // namespace fs
+} // namespace msos

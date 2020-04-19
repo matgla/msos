@@ -85,7 +85,7 @@ const LoadedModule* DynamicLinker::load_module(const std::size_t* module_address
     }
     else
     {
-        module.set_text(gsl::make_span(reinterpret_cast<uint8_t*>(code_address), header.code_size()));
+        module.set_text(gsl::span(reinterpret_cast<uint8_t*>(code_address), header.code_size()));
     }
 
     if (!module.allocate_data())

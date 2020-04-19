@@ -88,16 +88,21 @@ target_include_directories(msos_interface SYSTEM BEFORE
     INTERFACE ${PROJECT_SOURCE_DIR}/include/msos/posix
 )
 
+target_link_libraries(msos_interface INTERFACE
+    gsl
+    eul_filesystem
+)
+
 if (${vendor} STREQUAL "STM32")
 
-add_executable(msos_test)
+add_library(msos_main)
 
-target_sources(msos_test
+target_sources(msos_main
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 
-target_link_libraries(msos_test
+target_link_libraries(msos_main
     PUBLIC
         msos
         msos_shell
@@ -105,11 +110,13 @@ target_link_libraries(msos_test
 
 )
 
-set_target_properties(msos_test
+set_target_properties(msos_main
     PROPERTIES
         SUFFIX ".elf"
 )
 
+add_executable(msos_test)
+target_link_libraries(msos_test PRIVATE msos_main)
 include (GenerateBinary)
 generate_binary(msos_test ${vendor})
 

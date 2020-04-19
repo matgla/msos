@@ -38,13 +38,13 @@ Module::Module(const ModuleHeader& header)
 
 Module::DataSpan Module::get_text() const
 {
-    return gsl::make_span(text_, module_header_->code_size());
+    return gsl::span(text_, module_header_->code_size());
 }
 
 
 Module::DataSpan Module::get_data() const
 {
-    return gsl::make_span(data_, module_header_->data_size());
+    return gsl::span(data_, module_header_->data_size());
 }
 
 const ModuleHeader& Module::get_header() const

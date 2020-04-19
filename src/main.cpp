@@ -49,97 +49,6 @@ extern uint32_t _fs_flash_start;
 msos::fs::RamFs ramfs;
 UsartWriter writer;
 
-// void image_drawer()
-// {
-//     msos::drivers::displays::SSD1306_I2C<board::interfaces::LCD_I2C> lcd;
-//     msgui::Factory<decltype(lcd), msgui::policies::data::DefaultMemoryPolicy<uint8_t>, msgui::policies::chunk::ChunkPolicy, msgui::policies::chunk::SSD1308ChunkPolicyParameters> factory(lcd);
-//     const auto font = factory.make_font<msgui::fonts::Font5x7>();
-//     const auto text = factory.make_text("To kiedys", font, {0, 0});
-
-//     constexpr static auto heart = factory.make_bitmap<15, 12>(
-//         0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0,
-//         0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0,
-//         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-//         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-//         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-//         0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-//         0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0,
-//         0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0,
-//         0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
-//         0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
-//         0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0,
-//         0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0
-//     );
-//     msgui::Position heart_position = msgui::Position{72, 32};
-//     auto heart_image = factory.make_image(heart_position, heart);
-
-//     const auto window = factory.configure_window()
-//                             .width(lcd.width())
-//                             .height(lcd.height())
-//                             .make(text, heart_image);
-//     lcd.clear();
-
-//     while (board::gpio::MID_KEY::read())
-//     {
-//         if (board::gpio::LEFT_KEY::read())
-//         {
-//             board::gpio::LED_RED::setLow();
-//         }
-//         else
-//         {
-//             board::gpio::LED_RED::setHigh();
-//             if (heart_position.x > 0)
-//             {
-//                 heart_position.x -= 1;
-//             }
-//             else
-//             {
-//                 heart_position.x = 127;
-//             }
-//             heart_image.move(heart_position);
-//         }
-
-//         if (board::gpio::MID_KEY::read())
-//         {
-//             board::gpio::LED_YELLOW::setLow();
-//         }
-//         else
-//         {
-//             board::gpio::LED_YELLOW::setHigh();
-//             if (heart_position.y > 0)
-//             {
-//                 heart_position.y -= 1;
-//             }
-//             else
-//             {
-//                 heart_position.y = 63;
-//             }
-//             heart_image.move(heart_position);
-//         }
-
-//         if (board::gpio::RIGHT_KEY::read())
-//         {
-//             board::gpio::LED_BLUE::setLow();
-//         }
-//         else
-//         {
-//             board::gpio::LED_BLUE::setHigh();
-//             if (heart_position.x <= 123)
-//             {
-//                 heart_position.x += 1;
-//             }
-//             else
-//             {
-//                 heart_position.x = 0;
-//             }
-//             heart_image.move(heart_position);
-//         }
-//         window.draw();
-
-//     }
-//     lcd.clear();
-// }
-
 void kernel_process(void*)
 {
     msos::fs::Vfs& vfs = msos::fs::Vfs::instance();
@@ -150,11 +59,17 @@ void kernel_process(void*)
 
     uint8_t* romfs_disk = reinterpret_cast<uint8_t*>(&_fs_flash_start);
     msos::fs::RomFs romfs(romfs_disk);
-    msos::drivers::DeviceFs devfs;
+    msos::drivers::DeviceFs& devfs = msos::drivers::DeviceFs::get_instance();
 
     msos::drivers::character::UsartDriver usart(0);
-    usart.load();
+    msos::drivers::displays::SSD1306_I2C lcd(*board::interfaces::LCD_I2C);
+    devfs.register_driver("fb0", lcd);
     devfs.register_driver("tty1", usart);
+    for (auto& driver : devfs.get_drivers())
+    {
+        driver.driver()->load();
+    }
+    writer << "Sziziizi: " << devfs.get_drivers().size() << endl;
     vfs.mount_fs("/rom", &romfs);
     vfs.mount_fs("/dev", &devfs);
 
@@ -162,7 +77,7 @@ void kernel_process(void*)
     // apps.register_executable("test.bin", reinterpret_cast<std::size_t>(&image_drawer));
     vfs.mount_fs("/bin", &apps);
 
-    spawn_exec("/bin/msos_shell.bin", NULL, NULL, 0, 2048);
+    spawn_exec("/bin/msos_shell.bin", NULL, NULL, 0, 4096);
 
     while (true)
     {

@@ -14,44 +14,56 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
+#include "msos/drivers/displays/ssd1306/ssd1306_file.hpp"
 
-#include <vector>
-#include <string_view>
+#include <eul/utils/unused.hpp>
 
-#include <board.hpp>
+#include "msos/drivers/displays/ssd1306/ssd1306.hpp"
 
-#include <eul/container/ring_buffer.hpp>
-
-#include "msos/drivers/i_driver.hpp"
 
 namespace msos
 {
-namespace drivers
-{
-namespace character
+namespace fs
 {
 
-struct UsartDriver : public IDriver
+Ssd1306File::Ssd1306File(drivers::displays::SSD1306_I2C& driver, std::string_view path)
+    : driver_(driver)
+    , path_(path)
 {
-public:
-    using BufferType = eul::container::ring_buffer<uint8_t, 64>;
-    UsartDriver(int usart_number);
+}
 
-    void load() override;
-    void unload() override;
+ssize_t Ssd1306File::read(DataType data)
+{
+    UNUSED1(data);
+    return 0;
+}
 
-    std::unique_ptr<fs::IFile> file(std::string_view path) override;
+ssize_t Ssd1306File::write(const ConstDataType data)
+{
+    for (auto byte : data)
+    {
+        driver_.write(byte);
+    }
+    return 0;
+}
 
-    hal::interfaces::Usart& get();
-    BufferType& buffer();
+int Ssd1306File::close()
+{
+    return 0;
+}
 
-private:
-    int usart_number_;
-    int readed_before_newline_;
-    BufferType buffer_;
-};
 
-} // namespace character
+std::string_view Ssd1306File::name() const
+{
+    return path_;
+}
+
+
+std::unique_ptr<IFile> Ssd1306File::clone() const
+{
+    return std::make_unique<Ssd1306File>(*this);
+}
+
+
 } // namespace fs
 } // namespace msos

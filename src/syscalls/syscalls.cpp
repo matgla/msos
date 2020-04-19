@@ -121,7 +121,7 @@ int _read(int fd, char* ptr, int len)
 
     if (file)
     {
-        return static_cast<int>(file->read(gsl::make_span<char>(ptr, static_cast<std::size_t>(len))));
+        return static_cast<int>(file->read(gsl::span<char>(ptr, static_cast<std::size_t>(len))));
     }
 
     return 0;

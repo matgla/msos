@@ -42,15 +42,19 @@ target_compile_options(msos_drivers
 )
 
 add_subdirectory(character)
+add_subdirectory(displays)
 
 target_link_libraries(msos_drivers
     PRIVATE
-        msos_fs
-        eul_filesystem
+        # msos_fs
         msos_printer
         hal_flags
     PUBLIC
+        gsl
+        msos_fs
+        eul_filesystem
         msos_drivers_character
+        msos_drivers_displays
 )
 
 add_subdirectory(storage)

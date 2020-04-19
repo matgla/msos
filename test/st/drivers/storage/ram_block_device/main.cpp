@@ -53,7 +53,7 @@ int main()
         << "Erase size: " << bd.erase_size() << endl;
 
     char buffer[24];
-    gsl::span<uint8_t> buffer_span = gsl::make_span(reinterpret_cast<uint8_t*>(buffer), 24);
+    gsl::span<uint8_t> buffer_span = gsl::span(reinterpret_cast<uint8_t*>(buffer), 24);
 
     std::strncpy(buffer, "Hello", sizeof(buffer));
 

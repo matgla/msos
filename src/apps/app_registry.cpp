@@ -103,9 +103,9 @@ std::vector<std::unique_ptr<fs::IFile>> AppRegistry::list(const eul::filesystem:
     return files;
 }
 
-bool AppRegistry::register_executable(std::string_view name, std::size_t address)
+bool AppRegistry::register_executable(std::string_view name, std::size_t address, bool autostart)
 {
-    get_instance().apps_.push_back(AppEntry{name, address});
+    get_instance().apps_.push_back(AppEntry{name, address, autostart});
     return true;
 }
 
@@ -113,6 +113,12 @@ std::string_view AppRegistry::name() const
 {
     return "AppFs";
 }
+
+const std::vector<AppEntry>& AppRegistry::get_apps() const
+{
+    return apps_;
+}
+
 
 
 } // namespace apps

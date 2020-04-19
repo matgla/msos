@@ -76,12 +76,13 @@ function (add_module_flags_target)
 
             $<$<CONFIG:DEBUG>:-Og -g>
             $<$<CONFIG:RELEASE>:-Os>)
-            else ()
-    target_compile_options(module_flags
-        INTERFACE
-            $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a;-fPIC>
-            $<$<CONFIG:DEBUG>:-Og -g>
-            $<$<CONFIG:RELEASE>:-Os>
+        target_include_directories(module_flags INTERFACE ${PROJECT_SOURCE_DIR}/include)
+    else ()
+        target_compile_options(module_flags
+            INTERFACE
+                $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a;-fPIC>
+                $<$<CONFIG:DEBUG>:-Og -g>
+                $<$<CONFIG:RELEASE>:-Os>
     )
     endif ()
 endfunction()

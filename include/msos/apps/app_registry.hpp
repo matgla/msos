@@ -27,19 +27,21 @@ namespace apps
 
 struct AppEntry
 {
-    AppEntry() : name("/"), address(0xdeadbeef)
+    AppEntry() : name("/"), address(0xdeadbeef), autostart(false)
     {
 
     }
-    AppEntry(const std::string_view& n, std::size_t a)
+    AppEntry(const std::string_view& n, std::size_t a, bool autostart_)
         : name{n}
         , address{a}
+        , autostart{autostart_}
     {
     }
 
 
     std::string_view name;
     std::size_t address;
+    bool autostart;
 };
 
 class AppRegistry : public fs::IFileSystem
@@ -64,14 +66,18 @@ public:
 
     std::vector<std::unique_ptr<fs::IFile>> list(const eul::filesystem::path& path) override;
 
-    static bool register_executable(std::string_view name, std::size_t address);
+    static bool register_executable(std::string_view name, std::size_t address, bool autostart = false);
     std::string_view name() const override;
 
+    const std::vector<AppEntry>& get_apps() const;
+
 private:
+    AppRegistry() = default;
     std::vector<AppEntry> apps_;
 };
 
 } // namespace apps
 } // namespace msos
 
-#define REGISTER_APP(name, address) bool app_name ## _entry = msos::apps::AppRegistry::register_executable(#name".bin", reinterpret_cast<std::size_t>(address))
+#define REGISTER_APP(name, address) static bool app_##name = msos::apps::AppRegistry::register_executable(#name".bin", reinterpret_cast<std::size_t>(address))
+#define REGISTER_APP_AUTOSTART(name, address) static bool app_##name = msos::apps::AppRegistry::register_executable(#name".bin", reinterpret_cast<std::size_t>(address), true)

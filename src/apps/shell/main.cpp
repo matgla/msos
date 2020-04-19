@@ -139,6 +139,21 @@ void remove_newlines(char* str, size_t len)
 int app_start()
 {
     printf("MSOS shell:\n");
+
+    for (const auto& app : msos::apps::AppRegistry::get_instance().get_apps())
+    {
+        printf("%s\n", app.name.data());
+        printf("%d\n", app.autostart);
+        if (app.autostart)
+        {
+            std::string path = "/bin/";
+            path += app.name;
+            printf("Execuing app: %s\n", path.c_str());
+            exec(path.c_str(), NULL, NULL, 0);
+
+        }
+    }
+
     char buffer[100] = {};
     char pwd[100] = {'/', '\0'};
 

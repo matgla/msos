@@ -20,7 +20,6 @@
 // #include <devices/arm/stm32/stm32f1/stm32f103c8t6/usart.hpp>
 // #include <devices/arm/stm32/stm32f1/stm32f103c8t6/i2c.hpp>
 #include <hal/interfaces/usart.hpp>
-#include <hal/gpio/digital_input_output_pin.hpp>
 
 namespace board
 {

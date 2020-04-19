@@ -47,7 +47,6 @@ function(add_device_hal_library hal_device_library)
     target_link_libraries(board
         PUBLIC
             hal_interface
-        PRIVATE
             hal_devices_arm_stm32f103c8t6
     )
 
