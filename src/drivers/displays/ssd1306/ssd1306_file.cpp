@@ -40,10 +40,8 @@ ssize_t Ssd1306File::read(DataType data)
 
 ssize_t Ssd1306File::write(const ConstDataType data)
 {
-    for (auto byte : data)
-    {
-        driver_.write(byte);
-    }
+    while (driver_.busy());
+    driver_.write(data);
     return 0;
 }
 

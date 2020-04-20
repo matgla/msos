@@ -26,6 +26,7 @@ target_sources(msos_drivers_displays
 
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/ssd1306/ssd1306_file.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/ssd1306/ssd1306.cpp
 )
 
 target_include_directories(msos_drivers_displays

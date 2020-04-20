@@ -48,6 +48,7 @@ extern uint32_t _fs_flash_start;
 
 msos::fs::RamFs ramfs;
 UsartWriter writer;
+// }
 
 void kernel_process(void*)
 {
@@ -62,13 +63,14 @@ void kernel_process(void*)
     msos::drivers::DeviceFs& devfs = msos::drivers::DeviceFs::get_instance();
 
     msos::drivers::character::UsartDriver usart(0);
+    devfs.register_driver("tty1", usart);
     msos::drivers::displays::SSD1306_I2C lcd(*board::interfaces::LCD_I2C);
     devfs.register_driver("fb0", lcd);
-    devfs.register_driver("tty1", usart);
     for (auto& driver : devfs.get_drivers())
     {
         driver.driver()->load();
     }
+
     writer << "Sziziizi: " << devfs.get_drivers().size() << endl;
     vfs.mount_fs("/rom", &romfs);
     vfs.mount_fs("/dev", &devfs);
@@ -77,7 +79,7 @@ void kernel_process(void*)
     // apps.register_executable("test.bin", reinterpret_cast<std::size_t>(&image_drawer));
     vfs.mount_fs("/bin", &apps);
 
-    spawn_exec("/bin/msos_shell.bin", NULL, NULL, 0, 4096);
+    spawn_exec("/bin/msos_shell.bin", NULL, NULL, 0, 3072);
 
     while (true)
     {
