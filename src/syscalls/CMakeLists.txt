@@ -36,11 +36,7 @@ target_link_libraries(msos_syscalls
         msos_kernel_synchronization
         gsl
         eul_filesystem
-<<<<<<< HEAD
-        hal_interface
-=======
         hal
->>>>>>> 39924f0cb237fb7aaa99744921bc62223f361bb3
 )
 
 target_compile_options(msos_syscalls
