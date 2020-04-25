@@ -17,6 +17,7 @@
 #include <hal/interrupt/pendsv.hpp>
 
 #include "msos/kernel/process/scheduler.hpp"
+#include "msos/kernel/process/context_switch.hpp"
 #include "msos/syscalls/syscalls.hpp"
 
 
@@ -26,13 +27,12 @@ extern "C"
 void block(void* value)
 {
     msos::kernel::process::Scheduler::get().current_process().block(value);
-    hal::interrupt::trigger_pendsv();
+    yield();
 }
 
 void unblock(void* value)
 {
     msos::kernel::process::Scheduler::get().unblock_all(value);
-    hal::interrupt::trigger_pendsv();
 }
 
 }

@@ -20,7 +20,7 @@
 #include <hal/interrupt/svc.hpp>
 #include <hal/interrupt/systick.hpp>
 
-#include "msos/kernel/process/context_switch.hpp"
+#include "msos/syscalls/syscalls.hpp"
 #include "msos/kernel/process/scheduler.hpp"
 #include "msos/usart_printer.hpp"
 
@@ -52,6 +52,14 @@ void initialize_context_switching()
 
 static UsartWriter writer;
 
+extern "C"
+{
+
+void yield()
+{
+    trigger_syscall(SyscallNumber::YIELD, NULL, NULL);
+}
+
 const std::size_t* get_next_task()
 {
     if (!msos::kernel::process::Scheduler::get().current_process().validate_stack())
@@ -64,4 +72,6 @@ const std::size_t* get_next_task()
 void update_stack_pointer(const std::size_t* stack)
 {
     msos::kernel::process::Scheduler::get().current_process().current_stack_pointer(stack);
+}
+
 }

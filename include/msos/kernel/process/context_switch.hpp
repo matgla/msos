@@ -25,6 +25,7 @@ void update_stack_pointer(const std::size_t* stack);
 const std::size_t* get_next_task();
 void switch_to_next_task();
 void store_and_switch_to_next_task();
+void yield();
 
 }
 

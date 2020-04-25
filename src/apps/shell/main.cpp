@@ -148,7 +148,6 @@ int app_start()
         {
             std::string path = "/bin/";
             path += app.name;
-            printf("Execuing app: %s\n", path.c_str());
             exec(path.c_str(), NULL, NULL, 0);
 
         }

@@ -21,7 +21,9 @@
 #include <hal/core/core.hpp>
 #include <hal/time/sleep.hpp>
 #include <hal/time/time.hpp>
+#include <hal/interrupt/systick.hpp>
 
+#include "msos/kernel/process/context_switch.hpp"
 #include "msos/fs/romfs.hpp"
 #include "msos/drivers/storage/ram_block_device.hpp"
 #include "msos/drivers/character/usart/usart_driver.hpp"
@@ -78,10 +80,13 @@ void kernel_process(void*)
     // apps.register_executable("test.bin", reinterpret_cast<std::size_t>(&image_drawer));
     vfs.mount_fs("/bin", &apps);
 
-    spawn_exec("/bin/msos_shell.bin", NULL, NULL, 0, 3072);
+    // hal::interrupt::set_systick_period(std::chrono::milliseconds(1));
+
+    exec("/bin/msos_shell.bin", NULL, NULL, 0);
 
     while (true)
     {
+        yield();
     }
 }
 
@@ -108,7 +113,7 @@ int main()
     // });
 
 
-    spawn_root_process(&kernel_process, NULL, 2048);
+    spawn_root_process(&kernel_process, NULL, 4048);
 
     while (true)
     {

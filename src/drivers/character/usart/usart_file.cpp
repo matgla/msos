@@ -25,7 +25,6 @@ namespace msos
 {
 namespace fs
 {
-UsartWriter writer;
 
 UsartFile::UsartFile(drivers::character::UsartDriver& driver, std::string_view path)
     : driver_(driver)

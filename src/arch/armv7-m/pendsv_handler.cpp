@@ -31,8 +31,6 @@ namespace msos
 namespace process
 {
 
-static bool first = true;
-
 void initialize_pendsv()
 {
 }
