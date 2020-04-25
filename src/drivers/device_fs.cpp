@@ -28,7 +28,6 @@ namespace msos
 {
 namespace drivers
 {
-static UsartWriter writer;
 struct DeviceFsRootFile : public fs::IFile
 {
 public:

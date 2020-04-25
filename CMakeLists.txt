@@ -18,6 +18,8 @@ cmake_minimum_required(VERSION 3.9)
 
 project(msos NONE)
 
+include_directories(BEFORE SYSTEM ${PROJECT_SOURCE_DIR}/include/msos/libc)
+
 set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(${PROJECT_SOURCE_DIR}/cmake/GitModules.cmake)
@@ -32,7 +34,11 @@ else ()
     set(BUILD_MSOS_UT OFF CACHE BOOL "Build UT" FORCE)
 endif()
 
+include_directories(BEFORE SYSTEM ${PROJECT_SOURCE_DIR}/include/msos/libc)
+
 fetch_module_via_branch(lib/hal ${PROJECT_SOURCE_DIR}/lib/hal ${CMAKE_CURRENT_SOURCE_DIR} "master")
+include_directories(BEFORE SYSTEM ${PROJECT_SOURCE_DIR}/include/msos/libc)
+
 enable_language(ASM C CXX)
 set (msgui_cxx_compilation_flags ${hal_cxx_compilation_flags} CACHE STRING "msgui compilation flags" FORCE)
 set (msgui_linking_flags ${hal_linker_flags} CACHE STRING "msgui linking flags" FORCE)
@@ -47,6 +53,12 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 set(CMAKE_EXECUTABLE_SUFFIX "${CMAKE_EXECUTABLE_SUFFIX}")
 
 include_directories(BEFORE SYSTEM ${PROJECT_SOURCE_DIR}/include/msos/posix)
+include_directories(BEFORE SYSTEM ${PROJECT_SOURCE_DIR}/include/msos/libc)
+
+set(msos_system_include_directories CACHE INTERNAL "")
+set(msos_system_include_directories ${msos_system_include_directories} ${PROJECT_SOURCE_DIR}/include/msos/posix CACHE INTERNAL "")
+set(msos_system_include_directories ${msos_system_include_directories} ${PROJECT_SOURCE_DIR}/include/msos/libc CACHE INTERNAL "")
+
 add_subdirectory(src)
 add_subdirectory(modules)
 

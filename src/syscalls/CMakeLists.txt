@@ -21,7 +21,6 @@ set (library_includes ${PROJECT_SOURCE_DIR}/include/msos/syscalls)
 target_sources(msos_syscalls
     PUBLIC
         ${library_includes}/syscalls.hpp
-    PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/syscalls.cpp
 )
 
@@ -36,7 +35,7 @@ target_link_libraries(msos_syscalls
         msos_kernel_synchronization
         gsl
         eul_filesystem
-        hal_flags
+        hal
 )
 
 target_compile_options(msos_syscalls
@@ -45,6 +44,6 @@ target_compile_options(msos_syscalls
         $<$<CONFIG:DEBUG>:-Og -g>
         $<$<CONFIG:RELEASE>:-Os>
     PRIVATE
-        $<$<COMPILE_LANGUAGE:CXX>:-Werror -Wall -Wextra -Wpedantic -Wconversion -Wcast-align -Wunused -Wshadow -Wold-style-cast -Wpointer-arith -Wcast-qual -Wno-missing-braces>
+        $<$<COMPILE_LANGUAGE:CXX>:-Werror -Wall -Wextra -Wpedantic -Wcast-align -Wunused -Wshadow -Wpointer-arith -Wcast-qual -Wno-missing-braces>
 )
 

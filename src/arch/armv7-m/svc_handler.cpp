@@ -17,6 +17,7 @@
 #include <cstdio>
 
 #include <hal/interrupt/svc.hpp>
+#include <hal/interrupt/pendsv.hpp>
 
 #include "msos/syscalls/syscalls.hpp"
 #include "msos/kernel/synchronization/semaphore.hpp"
@@ -50,7 +51,10 @@ void initialize_svc()
             {
                 semaphore_wait(reinterpret_cast<int*>(args));
             } break;
-
+            case SyscallNumber::YIELD:
+            {
+                hal::interrupt::trigger_pendsv();
+            } break;
         }
     });
 }

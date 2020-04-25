@@ -24,8 +24,17 @@
 #include <fcntl.h>
 #include <gsl/span>
 
+#include <stm32f10x.h>
+#include <core_cm3.h>
+
+#include <sys/times.h>
+#include <time.h>
+
 #include <eul/filesystem/path.hpp>
 #include <eul/utils/unused.hpp>
+
+#include <hal/time/time.hpp>
+#include <hal/time/sleep.hpp>
 
 #include "msos/syscalls/syscalls.hpp"
 #include "msos/fs/vfs.hpp"
@@ -49,7 +58,8 @@ extern "C"
     int _fstat(int file, struct stat* st);
     int _open(const char* filename, int flags);
     pid_t _fork();
-
+    clock_t _times (struct tms *buf);
+    // int nanosleep(const struct timespec* req, struct timespec* rem);
 }
 
 static UsartWriter writer;
@@ -62,7 +72,11 @@ pid_t process_fork(uint32_t sp, uint32_t return_address);
 
 int _gettimeofday(struct timeval* tv, void* tzvp)
 {
-    UNUSED2(tv, tzvp);
+    UNUSED1(tzvp);
+    time_t t = 0;
+    t = hal::time::Time::microseconds().count();
+    tv->tv_sec = t / 1000000;
+    tv->tv_usec = t - (tv->tv_sec * 1000000);
     return 0;
 }
 
@@ -201,6 +215,25 @@ pid_t _fork()
     return 0;
 }
 
+extern "C"
+{
+int nanosleep(const struct timespec* req, struct timespec* rem)
+{
+    UNUSED1(rem);
+    hal::time::sleep(std::chrono::microseconds(req->tv_sec * 1000000 + req->tv_nsec / 1000));
+    return 0;
+}
+}
+
+clock_t _times (struct tms *buf)
+{
+    clock_t clk = hal::time::Time::microseconds().count();
+    buf->tms_utime = 0;
+    buf->tms_stime = clk;
+    buf->tms_cutime = 0;
+    buf->tms_cstime = 0;
+    return clk;
+}
 
 namespace msos
 {
