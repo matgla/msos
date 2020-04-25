@@ -22,6 +22,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <fcntl.h>
+#include <board.hpp>
 #include <gsl/span>
 
 #include <eul/filesystem/path.hpp>
@@ -106,7 +107,17 @@ caddr_t _sbrk(int incr)
 
 int _write(int fd, const char* ptr, int len)
 {
-    msos::fs::IFile* file = msos::kernel::process::Scheduler::get().current_process().get_file(fd);
+    const auto& scheduler = msos::kernel::process::Scheduler::get();
+    if (scheduler.empty())
+    {
+        if (board::interfaces::usarts[0])
+        {
+            board::interfaces::usarts[0]->write(std::string_view(ptr, static_cast<std::size_t>(len)));
+        }
+        return len;
+    }
+
+    msos::fs::IFile* file = scheduler.current_process().get_file(fd);
     if (file)
     {
         return static_cast<int>(file->write(std::string_view(ptr, static_cast<std::size_t>(len))));

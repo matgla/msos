@@ -43,7 +43,8 @@ int main()
 {
     board::board_init();
     hal::core::Core::initializeClocks();
-    board::interfaces::Usart1::init(115200);
+    const auto& usart = board::interfaces::usarts[0];
+    usart->init(9600);
 
     uint32_t address_of_lot_getter = reinterpret_cast<uint32_t>(&get_lot_at);
     uint32_t* lot_in_memory = reinterpret_cast<uint32_t*>(0x20000000);

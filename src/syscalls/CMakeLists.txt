@@ -32,11 +32,12 @@ target_include_directories(msos_syscalls
 
 target_link_libraries(msos_syscalls
     PRIVATE
+        board
         msos_kernel_process
         msos_kernel_synchronization
         gsl
         eul_filesystem
-        hal_flags
+        hal_interface
 )
 
 target_compile_options(msos_syscalls
@@ -45,6 +46,6 @@ target_compile_options(msos_syscalls
         $<$<CONFIG:DEBUG>:-Og -g>
         $<$<CONFIG:RELEASE>:-Os>
     PRIVATE
-        $<$<COMPILE_LANGUAGE:CXX>:-Werror -Wall -Wextra -Wpedantic -Wconversion -Wcast-align -Wunused -Wshadow -Wold-style-cast -Wpointer-arith -Wcast-qual -Wno-missing-braces>
+        $<$<COMPILE_LANGUAGE:CXX>:-Werror -Wall -Wextra -Wpedantic -Wcast-align -Wunused -Wshadow -Wpointer-arith -Wcast-qual -Wno-missing-braces>
 )
 

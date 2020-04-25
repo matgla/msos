@@ -57,6 +57,8 @@ public:
         current_process_was_deleted_ = v;
     }
 
+    bool empty() const;
+
 private:
     Scheduler();
 

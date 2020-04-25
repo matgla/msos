@@ -14,17 +14,27 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(msos_arch INTERFACE)
+add_library(msos_arch_newlib)
 
-if (${arch} STREQUAL "ARM")
-    add_subdirectory(armv7-m)
-    add_subdirectory(newlib)
-    target_link_libraries(msos_arch INTERFACE msos_arch_armv7m msos_arch_newlib)
-endif()
+target_sources(msos_arch_newlib
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/posix_file.cpp
+)
 
-if (${arch} STREQUAL "x86")
-    add_subdirectory(unittest)
-    target_link_libraries(msos_arch INTERFACE msos_arch_unittest)
-endif ()
+target_include_directories(msos_arch_newlib
+    PUBLIC
+        ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/src
+)
 
+target_compile_options(msos_arch_newlib
+    PRIVATE
+        $<$<CONFIG:DEBUG>:-Og -g>
+        $<$<CONFIG:RELEASE>:-Os>
+)
+
+target_link_libraries(msos_arch_newlib
+    PRIVATE
+        hal_interface
+)
 

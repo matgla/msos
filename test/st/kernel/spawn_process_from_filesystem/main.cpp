@@ -30,6 +30,9 @@
 #include "msos/fs/romfs.hpp"
 #include "msos/fs/vfs.hpp"
 #include "msos/fs/mount_points.hpp"
+#include "msos/drivers/device_fs.hpp"
+#include "msos/fs/vfs.hpp"
+#include "msos/drivers/character/usart/usart_driver.hpp"
 
 #include "msos/kernel/process/process.hpp"
 #include "msos/kernel/process/process_manager.hpp"
@@ -70,7 +73,7 @@ void trap()
 
 void child_process(void* arg)
 {
-    writer << "Welcome in child process with arg " << reinterpret_cast<uint32_t>(arg);
+    writer << "Welcome in child process with arg " << reinterpret_cast<uint32_t>(arg) << endl;
     auto& romfs = *reinterpret_cast<msos::fs::RomFs*>(arg);
     /* get raw file and execute */
     auto file = romfs.get("/interface_and_classes.bin");
@@ -119,8 +122,19 @@ void kernel_process(void *)
 
     msos::fs::Vfs& vfs = msos::fs::Vfs::instance();
     msos::fs::RamFs ramfs;
+    ramfs.mkdir("dev", 1);
+
     vfs.mount_fs("/", &ramfs);
 
+    msos::drivers::character::UsartDriver usart(0);
+    msos::drivers::DeviceFs& devfs = msos::drivers::DeviceFs::get_instance();
+    devfs.register_driver("tty1", usart);
+    vfs.mount_fs("/dev", &devfs);
+
+    for (auto& driver : devfs.get_drivers())
+    {
+        driver.driver()->load();
+    }
     writer << "Creating file with name: /test.txt" << endl;
     FILE* test_file = fopen("/test.txt", "w");
 
@@ -200,11 +214,10 @@ void kernel_process(void *)
 
 int main()
 {
+    board::board_init();
     hal::core::Core::initializeClocks();
-    using LED = board::gpio::LED_BLUE;
-    LED::init(hal::gpio::Output::OutputPushPull, hal::gpio::Speed::Default);
-    using Usart = board::interfaces::Usart1;
-    Usart::init(9600);
+    const auto& usart = board::interfaces::usarts[0];
+    usart->init(9600);
 
     writer << "[TEST START]" << endl;
     spawn_root_process(&kernel_process, NULL, 1024);

@@ -171,11 +171,10 @@ void kernel_process(void *arg)
 
 int main()
 {
+    board::board_init();
     hal::core::Core::initializeClocks();
-    using LED = board::gpio::LED_BLUE;
-    LED::init(hal::gpio::Output::OutputPushPull, hal::gpio::Speed::Default);
-    using Usart = board::interfaces::Usart1;
-    Usart::init(9600);
+    const auto& usart = board::interfaces::usarts[0];
+    usart->init(9600);
 
     writer << "[TEST START]" << endl;
 

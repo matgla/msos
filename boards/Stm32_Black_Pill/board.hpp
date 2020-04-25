@@ -19,7 +19,11 @@
 // #include <devices/arm/stm32/stm32f1/stm32f103c8t6/gpio.hpp>
 // #include <devices/arm/stm32/stm32f1/stm32f103c8t6/usart.hpp>
 // #include <devices/arm/stm32/stm32f1/stm32f103c8t6/i2c.hpp>
+#include <devices/arm/stm32/stm32f1/stm32f103c8t6/usart.hpp>
 #include <hal/interfaces/usart.hpp>
+
+#include <devices/arm/stm32/stm32f1/stm32f103c8t6/usart.hpp>
+#include <devices/arm/stm32/stm32f1/stm32f103c8t6/i2c.hpp>
 
 namespace board
 {
@@ -44,6 +48,8 @@ namespace interfaces
 {
 
 extern std::array<hal::interfaces::Usart*, 1> usarts;
+extern hal::interfaces::I2C* LCD_I2C;
+
 // using LCD_I2C = hal::devices::interfaces::I2C_1;
 // std::array<hal::interfaces::I2C, 1> i2cs;
 

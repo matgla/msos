@@ -16,7 +16,9 @@
 
 #pragma once
 
-#include "msos/drivers/character/character_driver.hpp"
+#include "msos/drivers/i_driver.hpp"
+
+#include <hal/gpio/digital_input_output_pin.hpp>
 
 namespace msos
 {
@@ -25,18 +27,12 @@ namespace drivers
 namespace character
 {
 
-class GpioDriver : public CharacterDriver
+class GpioDriver : public IDriver
 {
 public:
     void load() override;
     void unload() override;
 
-    ssize_t read(DataType data) override;
-    ssize_t write(const ConstDataType data) override;
-    void close() override;
-    ssize_t size() override;
-
-    std::string_view name() const override;
     std::unique_ptr<fs::IFile> file(std::string_view path) override;
 };
 

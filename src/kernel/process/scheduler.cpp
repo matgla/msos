@@ -43,6 +43,11 @@ Scheduler::Scheduler()
 {
 }
 
+bool Scheduler::empty() const
+{
+    return processes_->get_processes().empty();
+}
+
 const Process& Scheduler::current_process() const
 {
     return *current_process_;

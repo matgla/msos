@@ -71,7 +71,6 @@ void kernel_process(void*)
         driver.driver()->load();
     }
 
-    writer << "Sziziizi: " << devfs.get_drivers().size() << endl;
     vfs.mount_fs("/rom", &romfs);
     vfs.mount_fs("/dev", &devfs);
 

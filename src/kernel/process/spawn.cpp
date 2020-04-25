@@ -104,6 +104,7 @@ int exec_process(ExecInfo* info)
 
     if (!file)
     {
+        writer << "File not found" << endl;
         return -1;
     }
     if (file->name().rfind(".bin") == std::string_view::npos)
@@ -128,16 +129,20 @@ int exec_process(ExecInfo* info)
 
     if (info->entries)
     {
+        writer << "Loading module " << endl;
         module = dynamic_linker.load_module(module_address, msos::dl::LoadingModeCopyData, info->entries, info->number_of_entries, ec);
         delete info;
     }
     else
     {
+        writer << "Loading module 2" << endl;
+
         module = dynamic_linker.load_module(module_address, msos::dl::LoadingModeCopyData, env, ec);
         delete info;
     }
     if (module)
     {
+        writer << "Moduel execute" << endl;
         return module->execute();
     }
     else

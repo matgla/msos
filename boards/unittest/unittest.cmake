@@ -24,28 +24,30 @@ endfunction()
 
 function(add_device_hal_library hal_device_library)
     set(${hal_device_library} "x86_unittest")
-    set(hal_device_library ${hal_device_library} PARENT_SCOPE)
-    add_library(${hal_device_library} STATIC)
+    set(hal_device_library board PARENT_SCOPE)
+    add_library(board STATIC)
 
     set(source_path "${PROJECT_SOURCE_DIR}/boards/x86/mock")
-    target_sources(${hal_device_library} PUBLIC
-        ${user_boards_path}/unittest/board.hpp
-        ${user_boards_path}/unittest/board.cpp
+    target_sources(board
+        PUBLIC
+            ${user_boards_path}/unittest/board.hpp
+        PRIVATE
+            ${user_boards_path}/unittest/board.cpp
     )
 
-    target_include_directories(${hal_device_library} PUBLIC
+    target_include_directories(board PUBLIC
         ${user_boards_path}/unittest)
 
     include(${PROJECT_SOURCE_DIR}/devices/x86/mock/configure_mock.cmake)
     configure_device()
 
-    target_link_libraries(${hal_device_library}
+    target_link_libraries(board
         PUBLIC
             hal_interface
             hal_x86_mock
     )
 
-    target_compile_options(${hal_device_library} PUBLIC
+    target_compile_options(board PUBLIC
         $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a>
         $<$<CONFIG:DEBUG>:-Og -g>
         $<$<CONFIG:RELEASE>:-Os>

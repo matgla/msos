@@ -15,7 +15,7 @@
 
 #include "msos/drivers/displays/ssd1306/ssd1306.hpp"
 
-#include <misc.h>
+// #include <misc.h>
 
 #include <cstring>
 
@@ -109,26 +109,7 @@ void SSD1306_I2C::load()
     sendCommand(SSD1306_SET_DISPLAY_ON);
 
     clear();
-    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
-    DMA_DeInit(DMA1_Channel6);
-    dma_config_.DMA_PeripheralBaseAddr = (uint32_t)&(I2C1->DR);
-    dma_config_.DMA_DIR = DMA_DIR_PeripheralDST;
-    dma_config_.DMA_MemoryBaseAddr = (uint32_t)buffer_;
-    dma_config_.DMA_BufferSize = 1024;
-    dma_config_.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-    dma_config_.DMA_MemoryInc = DMA_MemoryInc_Enable;
-    dma_config_.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
-    dma_config_.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
-    dma_config_.DMA_Mode = DMA_Mode_Normal;
-    dma_config_.DMA_Priority = DMA_Priority_High;
-    dma_config_.DMA_M2M = DMA_M2M_Disable;
-    DMA_Init(DMA1_Channel6, &dma_config_);
-    NVIC_InitTypeDef nvicStructure;
-    nvicStructure.NVIC_IRQChannel = DMA1_Channel6_IRQn;
-    nvicStructure.NVIC_IRQChannelPreemptionPriority = 0;
-    nvicStructure.NVIC_IRQChannelSubPriority = 1;
-    nvicStructure.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Init(&nvicStructure);
+    i2c_.initialize_dma(buffer_);
 }
 
 bool SSD1306_I2C::busy()
@@ -190,15 +171,9 @@ void SSD1306_I2C::write(gsl::span<const char> buffer)
 
     setHome();
 
-    while (waiting_for_write_);
-    waiting_for_write_ = true;
     i2c_.start(address_);
     i2c_.write(SSD1306_SET_DISPLAY_START_LINE);
-    DMA1_Channel6->CNDTR = 1024;
-    I2C_DMACmd(I2C1, ENABLE);
-    DMA_Cmd(DMA1_Channel6, ENABLE);
-    DMA_ClearITPendingBit(DMA1_IT_TC6);
-    DMA_ITConfig(DMA1_Channel6, DMA_IT_TC, ENABLE);
+    i2c_.dma_write(1024);
 }
 
 std::unique_ptr<fs::IFile> SSD1306_I2C::file(std::string_view path)
@@ -208,8 +183,6 @@ std::unique_ptr<fs::IFile> SSD1306_I2C::file(std::string_view path)
 
 void SSD1306_I2C::setHome()
 {
-    while (waiting_for_write_);
-
     sendCommand(SSD1306_SET_COLUMN_ADDRESS);
     sendCommand(0x00);
     sendCommand(0x7F);
@@ -221,7 +194,6 @@ void SSD1306_I2C::setHome()
 
 void SSD1306_I2C::sendCommand(const uint8_t command)
 {
-    while (waiting_for_write_);
 
     i2c_.start(address_);
     i2c_.write(0x00);
@@ -234,11 +206,4 @@ void SSD1306_I2C::sendCommand(const uint8_t command)
 } // namespace msos
 
 
-extern "C" void DMA1_Channel6_IRQHandler()
-{
-    DMA_ClearITPendingBit(DMA1_IT_TC6);
-    DMA_Cmd(DMA1_Channel6, DISABLE);
-    DMA_ITConfig(DMA1_Channel6, DMA_IT_TC, DISABLE);
-    msos::drivers::displays::i2cc->stop();
-    msos::drivers::displays::waiting_for_write_ = false;
-}
+

@@ -21,10 +21,6 @@
 #include <board.hpp>
 #include <hal/time/sleep.hpp>
 
-#include <stm32f10x_dma.h>
-#include <stm32f10x_rcc.h>
-#include <stm32f10x_i2c.h>
-
 #include <eul/utils/unused.hpp>
 
 #include "msos/drivers/i_driver.hpp"
@@ -79,8 +75,6 @@ private:
     hal::interfaces::I2C& i2c_;
     const uint8_t address_;
     uint8_t *buffer_;
-
-    DMA_InitTypeDef dma_config_;
 };
 
 

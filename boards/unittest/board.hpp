@@ -16,7 +16,10 @@
 
 #pragma once
 
+#include <array>
+
 #include <devices/x86/mock/usart.hpp>
+#include <devices/x86/mock/i2c.hpp>
 
 namespace board
 {
@@ -29,7 +32,7 @@ namespace gpio
 
 namespace interfaces
 {
-using Usart1 = hal::devices::interfaces::Usart1;
+extern std::array<hal::interfaces::Usart*, 1> usarts;
 }
 
 }

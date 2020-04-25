@@ -82,10 +82,12 @@ int __vfprintf_(T& writer, int fd, const char* format, va_list argptr,
 extern "C"
 {
 
+int fileno(FILE *stream);
+
 char* _fgets(char* buffer, int n, FILE* fp)
 {
     int readed = -1;
-    int fd = fp->_file;
+    int fd = fileno(fp);
     char c = 0;
     while (c != '\n')
     {
