@@ -18,6 +18,8 @@
 
 #include <eul/utils/unused.hpp>
 
+#include "msos/libc/printf.hpp"
+
 #include "msos/drivers/displays/ssd1306/ssd1306.hpp"
 
 
@@ -40,6 +42,7 @@ ssize_t Ssd1306File::read(DataType data)
 
 ssize_t Ssd1306File::write(const ConstDataType data)
 {
+    static_cast<void>(data);
     while (driver_.busy());
     driver_.write(data);
     return 0;

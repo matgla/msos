@@ -58,8 +58,6 @@ constexpr uint8_t SSD1306_CHARGE_PUMP = 0x8D;
 
 static UsartWriter writer;
 
-volatile bool waiting_for_write_ = false;
-
 hal::interfaces::I2C* i2cc;
 
 SSD1306_I2C::SSD1306_I2C(hal::interfaces::I2C& i2c, const uint8_t address)
@@ -114,7 +112,7 @@ void SSD1306_I2C::load()
 
 bool SSD1306_I2C::busy()
 {
-    return waiting_for_write_;
+    return i2c_.busy();
 }
 
 void SSD1306_I2C::unload()
@@ -123,7 +121,6 @@ void SSD1306_I2C::unload()
 
 void SSD1306_I2C::clear()
 {
-    while (waiting_for_write_);
     setHome();
     for (int x = 0; x < 128; x++)
     {
@@ -139,8 +136,6 @@ void SSD1306_I2C::clear()
 
 void SSD1306_I2C::display(const gsl::span<uint8_t>& buffer)
 {
-    while (waiting_for_write_);
-
     setHome();
 
     for (uint8_t packet = 0; packet < buffer.size()/16; packet++)
@@ -157,8 +152,6 @@ void SSD1306_I2C::display(const gsl::span<uint8_t>& buffer)
 
 void SSD1306_I2C::write(const uint8_t byte)
 {
-    while (waiting_for_write_);
-
     i2c_.start(address_);
     i2c_.write(SSD1306_SET_DISPLAY_START_LINE);
     i2c_.write(byte);
@@ -167,6 +160,7 @@ void SSD1306_I2C::write(const uint8_t byte)
 
 void SSD1306_I2C::write(gsl::span<const char> buffer)
 {
+    static_cast<void>(buffer);
     std::memcpy(buffer_, buffer.data(), buffer.size());
 
     setHome();
