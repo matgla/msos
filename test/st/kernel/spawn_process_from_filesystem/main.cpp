@@ -215,7 +215,6 @@ void kernel_process(void *)
 int main()
 {
     board::board_init();
-    hal::core::Core::initializeClocks();
     const auto& usart = board::interfaces::usarts[0];
     usart->init(9600);
 

@@ -30,6 +30,12 @@
 #include "msos/kernel/process/spawn.hpp"
 #include "msos/kernel/process/context_switch.hpp"
 
+#include "msos/fs/vfs.hpp"
+#include "msos/fs/ramfs.hpp"
+#include "msos/drivers/character/usart/usart_driver.hpp"
+#include "msos/drivers/device_fs.hpp"
+
+
 UsartWriter writer;
 
 msos::kernel::synchronization::Mutex mutex_;
@@ -70,7 +76,7 @@ void child_fun(void* arg)
     stdio_mutex_.unlock();
 
     /* allow parent to execute before child */
-    hal::time::sleep(std::chrono::milliseconds(10));
+    hal::time::sleep(std::chrono::milliseconds(15));
     mutex_.lock();
     stdio_mutex_.lock();
     writer << "Child is going to sleep" << endl;
@@ -78,8 +84,9 @@ void child_fun(void* arg)
     hal::time::sleep(std::chrono::milliseconds(20));
     stdio_mutex_.lock();
     writer << "Child Done" << endl;
-    printa();
     stdio_mutex_.unlock();
+
+    printa();
     mutex_.unlock();
     int dump = 123;
 
@@ -173,8 +180,21 @@ int main()
 {
     board::board_init();
     hal::core::Core::initializeClocks();
-    const auto& usart = board::interfaces::usarts[0];
-    usart->init(9600);
+    msos::fs::Vfs& vfs = msos::fs::Vfs::instance();
+    msos::fs::RamFs ramfs;
+
+    vfs.mount_fs("/", &ramfs);
+    ramfs.mkdir("dev", 1);
+
+    msos::drivers::character::UsartDriver usart(0);
+    msos::drivers::DeviceFs& devfs = msos::drivers::DeviceFs::get_instance();
+    devfs.register_driver("tty1", usart);
+    vfs.mount_fs("/dev", &devfs);
+
+    for (auto& driver : devfs.get_drivers())
+    {
+        driver.driver()->load();
+    }
 
     writer << "[TEST START]" << endl;
 

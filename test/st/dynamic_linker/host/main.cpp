@@ -52,14 +52,11 @@ static std::size_t get_lot_at(uint32_t address)
 int main()
 {
     board::board_init();
-    hal::core::Core::initializeClocks();
-    const auto& usart = board::interfaces::usarts[0];
+    auto usart = board::interfaces::usarts[0];
     usart->init(9600);
+    usart->write("HEJOTRA\n");
 
     std::size_t address_of_lot_getter = reinterpret_cast<std::size_t>(&get_lot_at);
-    // hal::core::BackupRegisters::init();
-    // hal::core::BackupRegisters::write(1, address_of_lot_getter >> 16);
-    // hal::core::BackupRegisters::write(2, address_of_lot_getter);
     std::size_t* lot_in_memory = reinterpret_cast<std::size_t*>(0x20000000);
     *lot_in_memory = address_of_lot_getter;
     writer << "Address of lot getter: 0x" << hex << address_of_lot_getter << endl;

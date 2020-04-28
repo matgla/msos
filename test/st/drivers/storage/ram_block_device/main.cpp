@@ -31,11 +31,9 @@ UsartWriter writer;
 int main()
 {
     board::board_init();
-    hal::core::Core::initializeClocks();
 
-    const auto& usart = board::interfaces::usarts[0];
+    auto usart = board::interfaces::usarts[0];
     usart->init(9600);
-    usart->write("Test");
 
     writer << "[TEST_START]" << endl;
 

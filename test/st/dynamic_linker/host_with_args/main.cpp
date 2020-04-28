@@ -42,7 +42,6 @@ static uint32_t get_lot_at(uint32_t address)
 int main()
 {
     board::board_init();
-    hal::core::Core::initializeClocks();
     const auto& usart = board::interfaces::usarts[0];
     usart->init(9600);
 

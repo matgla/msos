@@ -25,7 +25,7 @@ namespace board
 
 namespace interfaces
 {
-    static hal::devices::interfaces::Usart1 usart1;
+    hal::devices::interfaces::Usart1 usart1;
     std::array<hal::interfaces::Usart*, 1> usarts;
 }
 
