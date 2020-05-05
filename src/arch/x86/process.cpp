@@ -51,9 +51,7 @@ Process::Process(const std::size_t process_entry, const std::size_t stack_size, 
     , fd_map_(0x7)
     , locks_{}
 {
-    std::cout << "Spawing process: " << std::hex << process_entry << std::endl;
     threads_.emplace_back(reinterpret_cast<void(*)(void*)>(process_entry), nullptr);
-
 }
 
 const std::size_t* Process::stack_pointer() const
