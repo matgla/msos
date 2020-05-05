@@ -60,20 +60,24 @@ void kernel_process(void*)
     ramfs.mkdir("bin", 1);
     ramfs.mkdir("dev", 1);
 
-    uint8_t* romfs_disk = reinterpret_cast<uint8_t*>(&_fs_flash_start);
-    msos::fs::RomFs romfs(romfs_disk);
+    if (_fs_flash_start != 0)
+    {
+        uint8_t* romfs_disk = reinterpret_cast<uint8_t*>(&_fs_flash_start);
+        msos::fs::RomFs romfs(romfs_disk);
+        vfs.mount_fs("/rom", &romfs);
+    }
+
     msos::drivers::DeviceFs& devfs = msos::drivers::DeviceFs::get_instance();
 
-    msos::drivers::character::UsartDriver usart(0);
-    devfs.register_driver("tty1", usart);
-    msos::drivers::displays::SSD1306_I2C lcd(*board::interfaces::LCD_I2C);
-    devfs.register_driver("fb0", lcd);
+    // msos::drivers::character::UsartDriver usart(0);
+    // devfs.register_driver("tty1", usart);
+    // msos::drivers::displays::SSD1306_I2C lcd(*board::interfaces::LCD_I2C);
+    // devfs.register_driver("fb0", lcd);
     for (auto& driver : devfs.get_drivers())
     {
         driver.driver()->load();
     }
 
-    vfs.mount_fs("/rom", &romfs);
     vfs.mount_fs("/dev", &devfs);
 
     msos::apps::AppRegistry& apps = msos::apps::AppRegistry::get_instance();

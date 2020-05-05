@@ -41,14 +41,14 @@ UsartDriver::UsartDriver(int usart_number)
 
 void UsartDriver::load()
 {
-    board::interfaces::usarts[usart_number_]->init(115200);
-    board::interfaces::usarts[usart_number_]->on_data([this](const uint8_t byte) {
+    board::interfaces::usarts()[usart_number_]->init(115200);
+    board::interfaces::usarts()[usart_number_]->on_data([this](const uint8_t byte) {
         char c = static_cast<char>(byte);
         if (c == 127)
         {
             if (readed_before_newline_ > 0)
             {
-                board::interfaces::usarts[usart_number_]->write("\b \b");
+                board::interfaces::usarts()[usart_number_]->write("\b \b");
                 --readed_before_newline_;
             }
             buffer_.push('\b');
@@ -61,7 +61,7 @@ void UsartDriver::load()
             readed_before_newline_ = -1;
         }
         char data[] = {c, '\0'};
-        board::interfaces::usarts[usart_number_]->write(data);
+        board::interfaces::usarts()[usart_number_]->write(data);
         buffer_.push(c);
         ++readed_before_newline_;
     });
@@ -74,7 +74,7 @@ void UsartDriver::unload()
 
 hal::interfaces::Usart& UsartDriver::get()
 {
-    return *board::interfaces::usarts[usart_number_];
+    return *board::interfaces::usarts()[usart_number_];
 }
 
 UsartDriver::BufferType& UsartDriver::buffer()

@@ -74,9 +74,18 @@ private:
 
     hal::interfaces::I2C& i2c_;
     const uint8_t address_;
-    uint8_t *buffer_;
+    std::unique_ptr<uint8_t> buffer_;
 };
 
+namespace ssd1306
+{
+
+inline SSD1306_I2C create_ssd1306(hal::interfaces::I2C& i2c, const uint8_t address)
+{
+    return std::move(SSD1306_I2C(i2c, address));
+}
+
+}
 
 } // namespace displays
 } // namespace drivers

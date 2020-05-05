@@ -16,17 +16,18 @@
 
 #include <cstdlib>
 
+#include <eul/utils/unused.hpp>
+
 extern "C"
 {
-
-int call_external(std::size_t address)
+int call_external(std::size_t address, void* lot)
 {
-    return 0;
+    UNUSED2(address, lot);
 }
 
-int call_external_with_args(int argc, char *argv[], std::size_t address)
+int call_external_with_args(int argc, const char *argv[], std::size_t address, void* lot)
 {
-    return 0;
+    UNUSED4(argc, argv, address, lot);
 }
 
 }

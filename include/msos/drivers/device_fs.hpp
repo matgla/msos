@@ -88,4 +88,5 @@ private:
 } // namespace msos
 
 #define REGISTER_DRIVER(name, driver) \
-    static int driver_##name __attribute__((section(".drivers"))) = msos::drivers::DeviceFs::get_instance().register_driver(#name, driver::get())
+    static int driver_##name __attribute__((unused, section(".drivers"))) = msos::drivers::DeviceFs::get_instance().register_driver(#name, driver)
+

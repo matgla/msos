@@ -29,10 +29,8 @@ target_sources(msos_kernel_process
         ${library_includes}/spawn.hpp
 
    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/process.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/process_manager.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/scheduler.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/spawn.cpp
 )
 
 target_compile_options(msos_kernel_process

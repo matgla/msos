@@ -31,6 +31,8 @@ target_sources(msos_arch_armv7m
         ${CMAKE_CURRENT_SOURCE_DIR}/pendsv_handler.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/systick_handler.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/svc_handler.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/process.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/spawn.cpp
 )
 
 target_include_directories(msos_arch_armv7m
@@ -48,5 +50,7 @@ target_compile_options(msos_arch_armv7m
 target_link_libraries(msos_arch_armv7m
     PRIVATE
         hal
+        msos_kernel_process
+        msos_dynamic_linker
 )
 

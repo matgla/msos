@@ -15,37 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-add_library(msos_drivers_displays STATIC)
+if (ENABLE_DRIVERS_DISPLAYS_SSD1306)
+    add_subdirectory(ssd1306)
+endif ()
 
-set (library_includes ${PROJECT_SOURCE_DIR}/include/msos/drivers/displays)
-
-target_sources(msos_drivers_displays
-    PUBLIC
-        ${library_includes}/ssd1306/ssd1306.hpp
-        ${library_includes}/ssd1306/ssd1306_file.hpp
-
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/ssd1306/ssd1306_file.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/ssd1306/ssd1306.cpp
-)
-
-target_include_directories(msos_drivers_displays
-    PUBLIC
-        ${PROJECT_SOURCE_DIR}/include
-)
-
-target_compile_options(msos_drivers_displays
-    PUBLIC
-        $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a>
-        $<$<CONFIG:DEBUG>:-Og -g>
-        $<$<CONFIG:RELEASE>:-Os>
-    PRIVATE
-        $<$<COMPILE_LANGUAGE:CXX>:-Werror -Wall -Wextra -Wpedantic -Wcast-align -Wunused -Wshadow -Wpointer-arith -Wcast-qual -Wno-missing-braces>
-)
-
-target_link_libraries(msos_drivers_displays
-    PRIVATE
-        eul
-        msos_printer
-        board
-)

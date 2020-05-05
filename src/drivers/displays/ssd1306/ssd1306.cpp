@@ -58,19 +58,17 @@ constexpr uint8_t SSD1306_CHARGE_PUMP = 0x8D;
 
 static UsartWriter writer;
 
-hal::interfaces::I2C* i2cc;
-
 SSD1306_I2C::SSD1306_I2C(hal::interfaces::I2C& i2c, const uint8_t address)
     : i2c_(i2c)
     , address_(address)
     , buffer_(new uint8_t[1024])
 {
-    std::memset(buffer_, 0 , 1024);
-    i2cc = &i2c;
+    std::memset(buffer_.get(), 0 , 1024);
 }
 
 void SSD1306_I2C::load()
 {
+    // writer << "Initializing SSD1306" << endl;
     hal::time::sleep(std::chrono::milliseconds(100));
     i2c_.init();
 
@@ -107,7 +105,7 @@ void SSD1306_I2C::load()
     sendCommand(SSD1306_SET_DISPLAY_ON);
 
     clear();
-    i2c_.initialize_dma(buffer_);
+    i2c_.initialize_dma(buffer_.get());
 }
 
 bool SSD1306_I2C::busy()
@@ -161,7 +159,7 @@ void SSD1306_I2C::write(const uint8_t byte)
 void SSD1306_I2C::write(gsl::span<const char> buffer)
 {
     static_cast<void>(buffer);
-    std::memcpy(buffer_, buffer.data(), buffer.size());
+    std::memcpy(buffer_.get(), buffer.data(), buffer.size());
 
     setHome();
 

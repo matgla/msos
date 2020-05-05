@@ -14,27 +14,32 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(msos_arch_unittest)
+add_library(msos_arch_x86)
 
-target_sources(msos_arch_unittest
+target_sources(msos_arch_x86
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/call_external.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/context_switch.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/process.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/syscalls.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/spawn.cpp
 )
 
-target_include_directories(msos_arch_unittest
+target_include_directories(msos_arch_x86
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/src
 )
 
-target_compile_options(msos_arch_unittest
+target_compile_options(msos_arch_x86
     PRIVATE
         $<$<CONFIG:DEBUG>:-Og -g>
         $<$<CONFIG:RELEASE>:-Os>
 )
 
-target_link_libraries(msos_arch_unittest
+target_link_libraries(msos_arch_x86
     PRIVATE
         hal
+        msos_kernel_process
 )
 

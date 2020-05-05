@@ -47,11 +47,8 @@ namespace gpio
 namespace interfaces
 {
 
-extern std::array<hal::interfaces::Usart*, 1> usarts;
-extern hal::interfaces::I2C* LCD_I2C;
-
-// using LCD_I2C = hal::devices::interfaces::I2C_1;
-// std::array<hal::interfaces::I2C, 1> i2cs;
+std::array<hal::interfaces::Usart*, 1>& usarts();
+hal::interfaces::I2C& LCD_I2C();
 
 }
 

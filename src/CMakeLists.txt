@@ -59,11 +59,12 @@ target_compile_options(msos_printer
 
 target_link_libraries(msos
     INTERFACE
+        msos_kernel_process
         msos_kernel_synchronization
         msos_kernel_memory
-        msos_syscalls
         msos_dynamic_linker
-        msos_drivers
+        msos_drivers_character_usart
+        device_tree
         msos_drivers_storage
         msos_fs
         msos_libc
@@ -74,6 +75,13 @@ target_link_libraries(msos
         hal_flags
         msgui
 )
+
+if (${vendor} STREQUAL "STM32")
+    target_link_libraries(msos
+        INTERFACE
+            msos_syscalls
+    )
+endif ()
 
 target_include_directories(msos
     INTERFACE
@@ -93,7 +101,6 @@ target_link_libraries(msos_interface INTERFACE
     eul_filesystem
 )
 
-if (${vendor} STREQUAL "STM32")
 
 add_library(msos_main)
 
@@ -101,6 +108,8 @@ target_sources(msos_main
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
+
+
 
 target_link_libraries(msos_main
     PUBLIC
@@ -110,35 +119,45 @@ target_link_libraries(msos_main
 
 )
 
-set_target_properties(msos_main
-    PROPERTIES
-        SUFFIX ".elf"
-)
+if (${vendor} STREQUAL "STM32")
+    target_compile_definitions(msos_main
+        PUBLIC
+            -DSTM32_MICROSECONDS_COUNTER
+    )
+    set_target_properties(msos_main
+        PROPERTIES
+            SUFFIX ".elf"
+    )
+
+endif ()
+
 
 add_executable(msos_test)
 target_link_libraries(msos_test PRIVATE msos_main)
 include (GenerateBinary)
 generate_binary(msos_test ${vendor})
 
-find_program(truncate_exec truncate)
-set (executable_file "${CMAKE_CURRENT_BINARY_DIR}/msos_test.bin")
+if (${vendor} STREQUAL "STM32")
 
-add_custom_target(generate_romfs
-    ALL
-    DEPENDS msos_test simple_game msos_ls
+    find_program(truncate_exec truncate)
+    set (executable_file "${CMAKE_CURRENT_BINARY_DIR}/msos_test.bin")
 
-)
+    add_custom_target(generate_romfs
+        ALL
+        DEPENDS msos_test simple_game msos_ls
 
-add_custom_command(
-    TARGET generate_romfs
-    POST_BUILD
-    COMMAND rm -f ${PROJECT_BINARY_DIR}/rootfs.img
-    COMMAND genromfs -f ${PROJECT_BINARY_DIR}/rootfs.img -d ${PROJECT_BINARY_DIR}/rootfs -v -V msos_romfs
-    COMMAND ${truncate_exec} --size 40K ${executable_file}
-    COMMAND cp ${executable_file} ${executable_file}.tmp
-    COMMAND cat ${executable_file}.tmp ${PROJECT_BINARY_DIR}/rootfs.img > ${executable_file}
-    VERBATIM
-)
+    )
 
-endif ()
+    add_custom_command(
+        TARGET generate_romfs
+        POST_BUILD
+        COMMAND rm -f ${PROJECT_BINARY_DIR}/rootfs.img
+        COMMAND genromfs -f ${PROJECT_BINARY_DIR}/rootfs.img -d ${PROJECT_BINARY_DIR}/rootfs -v -V msos_romfs
+        COMMAND ${truncate_exec} --size 40K ${executable_file}
+        COMMAND cp ${executable_file} ${executable_file}.tmp
+        COMMAND cat ${executable_file}.tmp ${PROJECT_BINARY_DIR}/rootfs.img > ${executable_file}
+        VERBATIM
+    )
+endif()
+
 

@@ -23,8 +23,8 @@ if (${arch} STREQUAL "ARM")
 endif()
 
 if (${arch} STREQUAL "x86")
-    add_subdirectory(unittest)
-    target_link_libraries(msos_arch INTERFACE msos_arch_unittest)
+    add_subdirectory(x86)
+    target_link_libraries(msos_arch INTERFACE msos_arch_x86)
 endif ()
 
 

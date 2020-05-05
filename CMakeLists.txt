@@ -59,8 +59,13 @@ set(msos_system_include_directories CACHE INTERNAL "")
 set(msos_system_include_directories ${msos_system_include_directories} ${PROJECT_SOURCE_DIR}/include/msos/posix CACHE INTERNAL "")
 set(msos_system_include_directories ${msos_system_include_directories} ${PROJECT_SOURCE_DIR}/include/msos/libc CACHE INTERNAL "")
 
+include(${board_path}/device_tree/configure_device_tree.cmake)
+configure_device_tree()
+
 add_subdirectory(src)
 add_subdirectory(modules)
+
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/scripts/generate_device_tree.py)
 
 if (NOT DISABLE_TESTS OR DISABLE_ST_TESTS)
     include (CTest)

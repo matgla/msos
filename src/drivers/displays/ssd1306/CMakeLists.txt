@@ -15,24 +15,26 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-add_library(msos_drivers STATIC)
+add_library(msos_drivers_displays_ssd1306 STATIC)
 
-set (library_includes ${PROJECT_SOURCE_DIR}/include/msos/drivers)
+set (library_includes ${PROJECT_SOURCE_DIR}/include/msos/drivers/displays/ssd1306)
 
-target_sources(msos_drivers
+target_sources(msos_drivers_displays_ssd1306
     PUBLIC
-        ${library_includes}/i_driver.hpp
-        ${library_includes}/device_fs.hpp
+        ${library_includes}/ssd1306.hpp
+        ${library_includes}/ssd1306_file.hpp
+
     PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/device_fs.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/ssd1306_file.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/ssd1306.cpp
 )
 
-target_include_directories(msos_drivers
+target_include_directories(msos_drivers_displays_ssd1306
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
 )
 
-target_compile_options(msos_drivers
+target_compile_options(msos_drivers_displays_ssd1306
     PUBLIC
         $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a>
         $<$<CONFIG:DEBUG>:-Og -g>
@@ -41,20 +43,10 @@ target_compile_options(msos_drivers
         $<$<COMPILE_LANGUAGE:CXX>:-Werror -Wall -Wextra -Wpedantic -Wcast-align -Wunused -Wshadow -Wpointer-arith -Wcast-qual -Wno-missing-braces>
 )
 
-add_subdirectory(character)
-add_subdirectory(displays)
-
-target_link_libraries(msos_drivers
-    PUBLIC
-        # msos_fs
+target_link_libraries(msos_drivers_displays_ssd1306
+    PRIVATE
+        eul
         msos_printer
-        hal_flags
-        device_tree
-
     PUBLIC
-        gsl
-        msos_fs
-        eul_filesystem
+        board
 )
-
-add_subdirectory(storage)
