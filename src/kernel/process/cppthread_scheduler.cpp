@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
+#include "msos/kernel/process/cppthread_scheduler.hpp"
 
+#include <thread>
 
-#include "msos/kernel/process/process.hpp"
+#include "msos/kernel/process/process_manager.hpp"
 
 namespace msos
 {
@@ -26,23 +27,31 @@ namespace kernel
 namespace process
 {
 
-class IScheduler
+void delete_process(pid_t pid)
 {
-public:
-    virtual const Process* current_process() const = 0;
-    virtual Process* current_process() = 0;
+    ProcessManager::get().delete_process(pid);
+}
 
-    virtual void delete_process(pid_t pid) = 0;
-    virtual void schedule_next() = 0;
-    virtual void unblock_all(void* semaphore) = 0;
-};
-
-class Scheduler
+const Process* current_process() const
 {
-public:
-    static IScheduler* get();
-    static void set(IScheduler* scheduler);
-};
+
+}
+
+Process* current_process()
+{
+
+}
+
+void schedule_next()
+{
+    std::this_thread::yield();
+}
+
+void unblock_all(void* semaphore)
+{
+
+}
+
 
 
 } // namespace process

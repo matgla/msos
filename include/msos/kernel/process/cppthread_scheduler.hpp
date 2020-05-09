@@ -16,8 +16,9 @@
 
 #pragma once
 
+#include "msos/kernel/process/fwd.hpp"
 
-#include "msos/kernel/process/process.hpp"
+#include "msos/kernel/process/scheduler.hpp"
 
 namespace msos
 {
@@ -26,23 +27,17 @@ namespace kernel
 namespace process
 {
 
-class IScheduler
+class CppThreadScheduler : public IScheduler
 {
 public:
-    virtual const Process* current_process() const = 0;
-    virtual Process* current_process() = 0;
+    void delete_process(pid_t pid) override;
 
-    virtual void delete_process(pid_t pid) = 0;
-    virtual void schedule_next() = 0;
-    virtual void unblock_all(void* semaphore) = 0;
+    const Process* current_process() const override;
+    Process* current_process() override;
+    void schedule_next() override;
+    void unblock_all(void* semaphore) override;
 };
 
-class Scheduler
-{
-public:
-    static IScheduler* get();
-    static void set(IScheduler* scheduler);
-};
 
 
 } // namespace process

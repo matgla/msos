@@ -62,16 +62,30 @@ void yield()
 
 const std::size_t* get_next_task()
 {
-    if (!msos::kernel::process::Scheduler::get().current_process().validate_stack())
+    auto* scheduler = msos::kernel::process::Scheduler::get();
+    if (!scheduler)
     {
-        writer << "Detected stack overflow, data of rest tasks may be corrupted" << endl;
+        return nullptr;
     }
-    return msos::kernel::process::Scheduler::get().schedule_next();
+    scheduler->schedule_next();
+    return scheduler->current_process()->current_stack_pointer();
 }
 
 void update_stack_pointer(const std::size_t* stack)
 {
-    msos::kernel::process::Scheduler::get().current_process().current_stack_pointer(stack);
+    auto* scheduler = msos::kernel::process::Scheduler::get();
+    if (!scheduler)
+    {
+        // TODO: handle this crash -> panic()
+        return;
+    }
+    auto* process = scheduler->current_process();
+    if (!process)
+    {
+        // TODO: handle this crash -> panic()
+        return;
+    }
+    process->current_stack_pointer(stack);
 }
 
 }

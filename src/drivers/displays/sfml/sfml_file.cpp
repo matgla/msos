@@ -22,6 +22,7 @@
 
 #include "msos/drivers/displays/sfml/sfml.hpp"
 
+#include <iostream>
 
 namespace msos
 {
@@ -42,8 +43,6 @@ ssize_t SfmlFile::read(DataType data)
 
 ssize_t SfmlFile::write(const ConstDataType data)
 {
-    static_cast<void>(data);
-    while (driver_.busy());
     driver_.write(data);
     return 0;
 }

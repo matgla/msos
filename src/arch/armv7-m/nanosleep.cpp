@@ -1,4 +1,4 @@
-// This file is part of MSOS project.
+// This file is part of MSOS project. This is simple OS for embedded development devices.
 // Copyright (C) 2019 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,38 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
+#include <hal/time/sleep.hpp>
+
+#include <eul/utils/unused.hpp>
 
 
-#include "msos/kernel/process/process.hpp"
-
-namespace msos
-{
-namespace kernel
-{
-namespace process
+extern "C"
 {
 
-class IScheduler
+int nanosleep(const struct timespec* req, struct timespec* rem)
 {
-public:
-    virtual const Process* current_process() const = 0;
-    virtual Process* current_process() = 0;
+    UNUSED1(rem);
+    hal::time::sleep(std::chrono::microseconds(req->tv_sec * 1000000 + req->tv_nsec / 1000));
+    return 0;
+}
 
-    virtual void delete_process(pid_t pid) = 0;
-    virtual void schedule_next() = 0;
-    virtual void unblock_all(void* semaphore) = 0;
-};
-
-class Scheduler
-{
-public:
-    static IScheduler* get();
-    static void set(IScheduler* scheduler);
-};
-
-
-} // namespace process
-} // namespace kernel
-} // namespace msos
-
+}

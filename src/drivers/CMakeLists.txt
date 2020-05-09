@@ -49,7 +49,7 @@ target_link_libraries(msos_drivers
         # msos_fs
         msos_printer
         hal_flags
-        device_tree
+        # device_tree
 
     PUBLIC
         gsl

@@ -17,8 +17,9 @@
 #pragma once
 
 #include <cstdint>
-
-#include <SFML/Window.hpp>
+#include <thread>
+#include <mutex>
+#include <SFML/Graphics.hpp>
 
 #include <board.hpp>
 #include <hal/time/sleep.hpp>
@@ -66,8 +67,11 @@ public:
 
 private:
 
+    std::mutex buffer_mutex_;
     std::unique_ptr<uint8_t> buffer_;
-    std::unique_ptr<sf::Window> window_;
+    sf::Image screen_;
+    // std::unique_ptr<sf::RenderWindow> window_;
+    std::unique_ptr<std::thread> thread_;
 };
 
 namespace sfml
@@ -75,7 +79,7 @@ namespace sfml
 
 inline SfmlDisplay create_sfml()
 {
-    return std::move(SfmlDisplay());
+    return SfmlDisplay();
 }
 
 }

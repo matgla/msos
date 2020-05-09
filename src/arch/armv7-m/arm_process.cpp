@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include "arch/armv7-m/arm_process.hpp"
+
 #include <cstring>
 #include <utility>
 
@@ -21,16 +23,15 @@
 
 #include "msos/usart_printer.hpp"
 
-#include "msos/kernel/process/process.hpp"
-#include "msos/kernel/process/registers.hpp"
+#include "arch/armv7-m/registers.hpp"
 #include "msos/syscalls/syscalls.hpp"
 #include "msos/drivers/device_fs.hpp"
 
 namespace msos
 {
-namespace kernel
+namespace arch
 {
-namespace process
+namespace armv7m
 {
 
 void exit_handler()
@@ -46,11 +47,9 @@ static pid_t pid_counter = 1;
 
 static UsartWriter writer;
 
-Process::Process(const Process& process)
-    : state_(process.state_)
-    , pid_(process.pid_)
+ArmProcess::ArmProcess(const ArmProcess& process)
+    : Process(process)
     , stack_size_(process.stack_size_)
-    , fd_map_(process.fd_map_)
     , locks_{}
 {
     if (process.stack_ != nullptr)
@@ -63,18 +62,12 @@ Process::Process(const Process& process)
     {
         current_stack_pointer_ = process.current_stack_pointer_;
     }
-    for (int i = 0; i < 8; i++)
-    {
-        fd_[i] = std::move(process.fd_[i]->clone());
-    }
 }
 
-Process::Process(const std::size_t process_entry, const std::size_t stack_size, std::size_t arg)
-    : state_(State::Ready)
-    , pid_(pid_counter++)
+ArmProcess::ArmProcess(const std::size_t process_entry, const std::size_t stack_size, std::size_t arg)
+    : Process(State::Ready, pid_counter++)
     , stack_size_(stack_size)
     , stack_(new std::size_t[stack_size/(sizeof(std::size_t))]())
-    , fd_map_(0x7)
     , locks_{}
 {
     stack_[0] = 0xdeadbeef;
@@ -109,57 +102,49 @@ Process::Process(const std::size_t process_entry, const std::size_t stack_size, 
     hw_registers->pc = process_entry;
     sw_registers->lr = return_to_thread_mode_psp;
     current_stack_pointer_ = reinterpret_cast<std::size_t*>(stack_ptr);
-    auto* tty = drivers::DeviceFs::get_instance().get_driver("tty1");
-    if (tty)
-    {
-        fd_[0] = tty->file("tty1");
-        fd_[1] = tty->file("tty1");
-        fd_[2] = tty->file("tty1");
-    }
-
 }
 
-const std::size_t* Process::stack_pointer() const
+const std::size_t* ArmProcess::stack_pointer() const
 {
     return stack_.get();
 }
 
-std::size_t Process::stack_usage() const
+std::size_t ArmProcess::stack_usage() const
 {
     return reinterpret_cast<const uint8_t*>(stack_.get()) + stack_size_ - reinterpret_cast<const uint8_t*>(current_stack_pointer_);
 }
 
-pid_t Process::pid() const
-{
-    return pid_;
-}
-
-std::size_t Process::stack_size() const
+std::size_t ArmProcess::stack_size() const
 {
     return stack_size_;
 }
 
-const std::size_t* Process::current_stack_pointer()
+const std::size_t* ArmProcess::current_stack_pointer()
 {
+    if (!validate_stack())
+    {
+        // TODO panic
+        return nullptr;
+    }
     return current_stack_pointer_;
 }
 
-const std::size_t* Process::current_stack_pointer() const
+const std::size_t* ArmProcess::current_stack_pointer() const
 {
+    if (!validate_stack())
+    {
+        // TODO panic
+        return nullptr;
+    }
     return current_stack_pointer_;
 }
 
-void Process::current_stack_pointer(const std::size_t* stack_pointer)
+void ArmProcess::current_stack_pointer(const std::size_t* stack_pointer)
 {
     current_stack_pointer_ = stack_pointer;
 }
 
-void Process::print() const
-{
-    writer << "Process pid " << pid_ << ": " << (current_stack_pointer_ - stack_.get()) << "/" << stack_size_ << " bytes" << endl;
-}
-
-void Process::block(void* semaphore)
+void ArmProcess::block(void* semaphore)
 {
     auto lock = std::find(locks_.begin(), locks_.end(), reinterpret_cast<std::size_t>(semaphore));
     if (lock == locks_.end())
@@ -169,7 +154,7 @@ void Process::block(void* semaphore)
     state_ = State::Blocked;
 }
 
-void Process::unblock(void* semaphore)
+void ArmProcess::unblock(void* semaphore)
 {
     auto lock = std::find(locks_.begin(), locks_.end(), reinterpret_cast<std::size_t>(semaphore));
     if (lock != locks_.end())
@@ -183,53 +168,14 @@ void Process::unblock(void* semaphore)
     }
 }
 
-Process::State Process::get_state() const
-{
-    return state_;
-}
-
-int Process::add_file(std::unique_ptr<msos::fs::IFile>&& file)
-{
-    for (int i = 0; i < 8; i++)
-    {
-        if ((fd_map_ & (1 << i)) == 0)
-        {
-            fd_map_ |= (1 << i);
-            fd_[i] = std::move(file);
-            return i;
-        }
-    }
-    return -1;
-}
-
-msos::fs::IFile* Process::get_file(int fd) const
-{
-    if (fd_map_ & (1 << fd))
-    {
-        return fd_[fd].get();
-    }
-    return nullptr;
-}
-
-int Process::remove_file(int fd)
-{
-    if (fd_map_ & (1 << fd))
-    {
-        fd_map_ &= ~(1 << fd);
-        fd_[fd].reset();
-        return 0;
-    }
-    return -1;
-}
-
-bool Process::validate_stack() const
+bool ArmProcess::validate_stack() const
 {
     return stack_[0] == 0xdeadbeef;
 }
 
 
 
-} // namespace process
-} // namespace kernel
+} // namespace archv7m
+} // namespace arch
 } // namespace msos
 

@@ -26,12 +26,12 @@
 
 #include <eul/filesystem/path.hpp>
 #include "msos/apps/app_registry.hpp"
-#include "msos/libc/printf.hpp"
 
 #include "msos/kernel/process/spawn.hpp"
 
 void ls_command(const char* path)
 {
+    static_cast<void>(path);
     DIR *d;
     struct dirent *dir;
     d = opendir(path);
@@ -160,7 +160,7 @@ int app_start()
     {
         write(1, "> \0", 3);
         fgets(buffer, sizeof(buffer), stdin);
-        // scanf("%s", &buffer); // <- replace to fgets
+        // // scanf("%s", &buffer); // <- replace to fgets
         if (std::string_view(buffer).find("ls") == 0)
         {
             ls_command(pwd);
@@ -188,7 +188,7 @@ int app_start()
 
             if (is_absolute_path(buffer))
             {
-                printf("executing %s\n", path);
+                printf("executing %s\n", path.c_str());
                 exec(buffer, NULL, NULL, 0);
             }
             else

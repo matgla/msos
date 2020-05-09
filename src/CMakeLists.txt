@@ -76,6 +76,7 @@ target_link_libraries(msos
         msgui
 )
 
+
 if (${vendor} STREQUAL "STM32")
     target_link_libraries(msos
         INTERFACE
@@ -104,19 +105,19 @@ target_link_libraries(msos_interface INTERFACE
 
 add_library(msos_main)
 
+find_package(SFML COMPONENTS graphics REQUIRED)
+
 target_sources(msos_main
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 
-
-
 target_link_libraries(msos_main
     PUBLIC
         msos
+        sysconfig
         msos_shell
         hal
-
 )
 
 if (${vendor} STREQUAL "STM32")

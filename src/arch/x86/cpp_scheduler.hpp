@@ -16,36 +16,41 @@
 
 #pragma once
 
+#include <list>
 
+#include "msos/kernel/process/fwd.hpp"
 #include "msos/kernel/process/process.hpp"
+#include "msos/kernel/process/process_manager.hpp"
+
+#include "msos/kernel/process/scheduler.hpp"
+
+#include "arch/x86/cpp_process.hpp"
 
 namespace msos
 {
-namespace kernel
+namespace arch
 {
-namespace process
+namespace x86
 {
 
-class IScheduler
-{
-public:
-    virtual const Process* current_process() const = 0;
-    virtual Process* current_process() = 0;
-
-    virtual void delete_process(pid_t pid) = 0;
-    virtual void schedule_next() = 0;
-    virtual void unblock_all(void* semaphore) = 0;
-};
-
-class Scheduler
+class CppScheduler : public kernel::process::IScheduler
 {
 public:
-    static IScheduler* get();
-    static void set(IScheduler* scheduler);
+    CppScheduler();
+    void delete_process(pid_t pid) override;
+
+    const kernel::process::Process* current_process() const override;
+    kernel::process::Process* current_process() override;
+    void schedule_next() override;
+    void unblock_all(void* semaphore) override;
+private:
+
+    kernel::process::ProcessManager<CppProcess>::ContainerType::iterator get_next();
+
+    kernel::process::ProcessManager<CppProcess>::ContainerType::iterator current_process_;
 };
 
-
-} // namespace process
-} // namespace kernel
+} // namespace x86
+} // namespace arch
 } // namespace msos
 

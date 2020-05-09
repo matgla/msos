@@ -17,9 +17,11 @@
 
 #include <cstring>
 
+#include <iostream>
 #include <thread>
 
 #include <SFML/Window.hpp>
+#include <SFML/Graphics.hpp>
 
 #include <hal/time/sleep.hpp>
 
@@ -36,16 +38,38 @@ namespace displays
 static UsartWriter writer;
 
 SfmlDisplay::SfmlDisplay()
-    : buffer_(new uint8_t[1024])
-    , window_(nullptr)
+    // : window_(nullptr)
 {
-    std::memset(buffer_.get(), 0 , 1024);
+    screen_.create(128, 64);
     // run the program as long as the window is open
 }
 
 void SfmlDisplay::load()
 {
-    window_.reset(new sf::Window(sf::VideoMode(128, 64), "My window"));
+    std::cerr << "Loading display" << std::endl;
+    thread_ = std::make_unique<std::thread>([this]{
+        sf::RenderWindow window(sf::VideoMode(200, 200), "SFML works!");
+
+        while (window.isOpen())
+        {
+            sf::Event event;
+            while (window.pollEvent(event))
+            {
+                if (event.type == sf::Event::Closed)
+                    window.close();
+            }
+
+            window.clear();
+            buffer_mutex_.lock();
+            sf::Texture tex;
+            tex.loadFromImage(screen_);
+            sf::Sprite spr;
+            spr.setTexture(tex);
+            window.draw(spr);
+            buffer_mutex_.unlock();
+            window.display();
+        }
+    });
 }
 
 bool SfmlDisplay::busy()
@@ -68,12 +92,34 @@ void SfmlDisplay::display(const gsl::span<uint8_t>& buffer)
 
 void SfmlDisplay::write(const uint8_t byte)
 {
+
     UNUSED1(byte);
 }
 
 void SfmlDisplay::write(gsl::span<const char> buffer)
 {
     UNUSED1(buffer);
+    int x = 0;
+    int y = 0;
+    buffer_mutex_.lock();
+    for (auto byte : buffer)
+    {
+        if (x == 128)
+        {
+            y += 8;
+            x = 0;
+        }
+        for (int bit = 0; bit < 8; ++bit)
+        {
+
+            if (byte & (1 << bit))
+            {
+                screen_.setPixel(x, y+bit, sf::Color::White);
+            }
+        }
+        x++;
+    }
+    buffer_mutex_.unlock();
 }
 
 std::unique_ptr<fs::IFile> SfmlDisplay::file(std::string_view path)

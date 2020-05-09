@@ -18,6 +18,7 @@
 
 #include "msos/posix/dirent.h"
 #include "msos/kernel/process/process.hpp"
+#include "msos/kernel/process/process_manager.hpp"
 #include "msos/kernel/process/context_switch.hpp"
 #include "msos/kernel/process/scheduler.hpp"
 #include "msos/fs/mount_points.hpp"
@@ -37,9 +38,9 @@
 
 #include "msos/usart_printer.hpp"
 
-#include <iostream>
+#include "arch/x86/cpp_process.hpp"
 
-msos::kernel::process::ProcessManager processes;
+#include <iostream>
 
 struct ExecInfo
 {
@@ -64,9 +65,12 @@ pid_t spawn(void (*start_routine) (void *), void *arg)
 pid_t spawn_root_process(void (*start_routine) (void *), void *arg, std::size_t stack_size)
 {
     UNUSED1(arg);
-    // msos::kernel::process::Scheduler::get().set_process_manager(processes);
-    processes.create_process(reinterpret_cast<std::size_t>(start_routine), stack_size);
-    // msos::kernel::process::Scheduler::get().schedule_next();
+    msos::kernel::process::ProcessManager<msos::arch::x86::CppProcess>::get().create_process(reinterpret_cast<std::size_t>(start_routine), stack_size);
+    auto* scheduler = msos::kernel::process::Scheduler::get();
+    if (scheduler)
+    {
+        scheduler->schedule_next();
+    }
 
     msos::process::initialize_context_switching();
     trigger_syscall(SyscallNumber::SYSCALL_START_ROOT_PROCESS, NULL, NULL);

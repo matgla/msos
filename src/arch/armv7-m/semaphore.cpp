@@ -26,13 +26,25 @@ extern "C"
 
 void block(void* value)
 {
-    msos::kernel::process::Scheduler::get().current_process().block(value);
+    auto* scheduler = msos::kernel::process::Scheduler::get();
+    if (scheduler)
+    {
+        auto* process = scheduler->current_process();
+        if (process)
+        {
+            process->block(value);
+        }
+    }
     yield();
 }
 
 void unblock(void* value)
 {
-    msos::kernel::process::Scheduler::get().unblock_all(value);
+    auto* scheduler = msos::kernel::process::Scheduler::get();
+    if (scheduler)
+    {
+        scheduler->unblock_all(value);
+    }
 }
 
 }

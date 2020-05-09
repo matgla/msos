@@ -29,42 +29,48 @@ namespace kernel
 namespace process
 {
 
-ProcessManager::ProcessManager() : processes_{}
-{
-}
+// ProcessManager& ProcessManager::get()
+// {
+//     static ProcessManager p;
+//     return p;
+// }
 
-Process& ProcessManager::create_process(std::size_t process_entry, std::size_t stack_size, std::size_t arg)
-{
-    processes_.emplace_back(process_entry, stack_size, arg);
-    return processes_.back();
-}
+// ProcessManager::ProcessManager() : processes_{}
+// {
+// }
 
-const ProcessManager::ContainerType& ProcessManager::get_processes() const
-{
-    return processes_;
-}
+// Process& ProcessManager::create_process(std::size_t process_entry, std::size_t stack_size, std::size_t arg)
+// {
+//     processes_.emplace_back(process_entry, stack_size, arg);
+//     return processes_.back();
+// }
 
-ProcessManager::ContainerType& ProcessManager::get_processes()
-{
-    return processes_;
-}
+// const ProcessManager::ContainerType& ProcessManager::get_processes() const
+// {
+//     return processes_;
+// }
 
-void ProcessManager::print() const
-{
-}
+// ProcessManager::ContainerType& ProcessManager::get_processes()
+// {
+//     return processes_;
+// }
 
-void ProcessManager::delete_process(pid_t pid)
-{
-    auto it = std::find_if(processes_.begin(), processes_.end(), [pid](const Process& process) {
-        return process.pid() == pid;
-    });
+// void ProcessManager::print() const
+// {
+// }
 
-    if (it != processes_.end())
-    {
-        processes_.erase(it);
-    }
-    print();
-}
+// void ProcessManager::delete_process(pid_t pid)
+// {
+//     auto it = std::find_if(processes_.begin(), processes_.end(), [pid](const Process& process) {
+//         return process.pid() == pid;
+//     });
+
+//     if (it != processes_.end())
+//     {
+//         processes_.erase(it);
+//     }
+//     print();
+// }
 
 } // namespace process
 } // namespace kernel

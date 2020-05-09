@@ -18,9 +18,9 @@
 
 namespace msos
 {
-namespace kernel
+namespace arch
 {
-namespace process
+namespace armv7m
 {
 
 struct SoftwareStoredRegisters
@@ -66,7 +66,7 @@ struct RegistersDump
     std::size_t lr;
 };
 
-} // namespace process
-} // namespace kernel
+} // namespace armv7m
+} // namespace arch
 } // namespace msos
 

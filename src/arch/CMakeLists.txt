@@ -22,7 +22,7 @@ if (${arch} STREQUAL "ARM")
     target_link_libraries(msos_arch INTERFACE msos_arch_armv7m msos_arch_newlib)
 endif()
 
-if (${arch} STREQUAL "x86")
+if (${arch} STREQUAL "x86" OR ${arch} STREQUAL "X86")
     add_subdirectory(x86)
     target_link_libraries(msos_arch INTERFACE msos_arch_x86)
 endif ()

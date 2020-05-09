@@ -18,15 +18,17 @@
 
 namespace msos
 {
-namespace kernel 
+namespace kernel
 {
-namespace process 
+namespace process
 {
 
 class Process;
+
+template <typename ProcessType>
 class ProcessManager;
 
-} // namespace process 
-} // namespace kernel 
-} // namespace msos 
+} // namespace process
+} // namespace kernel
+} // namespace msos
 

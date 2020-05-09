@@ -34,7 +34,7 @@ struct DIRImpl
 
 }
 
-DIR* opendir(const char* dirname)
+DIR* _opendir(const char* dirname)
 {
     eul::filesystem::path path(dirname);
     path = path.lexically_normal();
@@ -58,7 +58,7 @@ DIR* opendir(const char* dirname)
     return dir;
 }
 
-dirent* readdir(DIR *dirp)
+dirent* _readdir(DIR *dirp)
 {
     // writer << "Read dir" << endl;
     const auto& files = dirp->impl->files;
@@ -110,7 +110,7 @@ dirent* readdir(DIR *dirp)
     return nullptr;
 }
 
-int closedir(DIR *dirp)
+int _closedir(DIR *dirp)
 {
     delete dirp->impl;
     delete dirp;

@@ -21,7 +21,11 @@ target_sources(msos_arch_armv7m
         ${CMAKE_CURRENT_SOURCE_DIR}/pendsv_handler.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/systick_handler.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/svc_handler.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/registers.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/arm_process.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/normal_scheduler.hpp
 
+        ${CMAKE_CURRENT_SOURCE_DIR}/arm_process.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/context_switch.s
         ${CMAKE_CURRENT_SOURCE_DIR}/call_external.s
         ${CMAKE_CURRENT_SOURCE_DIR}/semaphore.s
@@ -31,8 +35,11 @@ target_sources(msos_arch_armv7m
         ${CMAKE_CURRENT_SOURCE_DIR}/pendsv_handler.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/systick_handler.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/svc_handler.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/process.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/arm_process.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/spawn.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/normal_scheduler.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/nanosleep.cpp
+
 )
 
 target_include_directories(msos_arch_armv7m

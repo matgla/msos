@@ -18,6 +18,7 @@
 #include <filesystem>
 
 #include <board.hpp>
+#include <config.hpp>
 #include <hal/core/core.hpp>
 #include <hal/time/sleep.hpp>
 #include <hal/time/time.hpp>
@@ -42,6 +43,9 @@
 #include "msgui/policies/chunk/SSD1308ChunkPolicy.hpp"
 #include "msgui/policies/data/DefaultMemoryPolicy.hpp"
 #include "msgui/fonts/Font5x7.hpp"
+
+#include <SFML/Graphics.hpp>
+
 
 extern "C"
 {
@@ -98,24 +102,7 @@ int main()
 {
     board::board_init();
     hal::core::Core::initializeClocks();
-
-    // using Usart = board::interfaces::Usart1;
-    // Usart::init(115200);
-    // board::gpio::LED_GREEN::init(hal::gpio::Output::OutputPushPull, hal::gpio::Speed::Low);
-    // board::gpio::LED_RED::init(hal::gpio::Output::OutputPushPull, hal::gpio::Speed::Low);
-    // board::gpio::LED_YELLOW::init(hal::gpio::Output::OutputPushPull, hal::gpio::Speed::Low);
-    // board::gpio::LED_BLUE::init(hal::gpio::Output::OutputPushPull, hal::gpio::Speed::Low);
-
-    // board::gpio::LEFT_KEY::init(hal::gpio::Input::InputPullUpDown);
-    // board::gpio::MID_KEY::init(hal::gpio::Input::InputPullUpDown);
-    // board::gpio::RIGHT_KEY::init(hal::gpio::Input::InputPullUpDown);
-    // board::gpio::LED_GREEN::setHigh();
-
-    // Usart::on_data([](const uint8_t c)
-    // {
-    //     write_to_stdin(c);
-    // });
-
+    msos::system_config();
 
     spawn_root_process(&kernel_process, NULL, 4048);
 

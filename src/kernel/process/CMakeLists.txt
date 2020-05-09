@@ -24,13 +24,13 @@ target_sources(msos_kernel_process
         ${library_includes}/fwd.hpp
         ${library_includes}/process.hpp
         ${library_includes}/process_manager.hpp
-        ${library_includes}/registers.hpp
         ${library_includes}/scheduler.hpp
         ${library_includes}/spawn.hpp
 
    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/process_manager.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/scheduler.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/process_manager.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/process.cpp
 )
 
 target_compile_options(msos_kernel_process
@@ -45,10 +45,11 @@ target_compile_options(msos_kernel_process
 target_link_libraries(msos_kernel_process
     PUBLIC
         eul_error
+        msos_fs
     PRIVATE
         msos_arch
         msos_dynamic_linker
-        msos_fs
+        msos_drivers
         hal
 )
 

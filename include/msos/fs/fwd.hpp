@@ -1,4 +1,4 @@
-// This file is part of MSOS project.
+// This file is part of MSOS project. This is simple OS for embedded development devices.
 // Copyright (C) 2019 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
@@ -16,36 +16,13 @@
 
 #pragma once
 
-
-#include "msos/kernel/process/process.hpp"
-
 namespace msos
 {
-namespace kernel
-{
-namespace process
+namespace fs
 {
 
-class IScheduler
-{
-public:
-    virtual const Process* current_process() const = 0;
-    virtual Process* current_process() = 0;
+class IFile;
 
-    virtual void delete_process(pid_t pid) = 0;
-    virtual void schedule_next() = 0;
-    virtual void unblock_all(void* semaphore) = 0;
-};
-
-class Scheduler
-{
-public:
-    static IScheduler* get();
-    static void set(IScheduler* scheduler);
-};
-
-
-} // namespace process
-} // namespace kernel
+} // namespace fs
 } // namespace msos
 

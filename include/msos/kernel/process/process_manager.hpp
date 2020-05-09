@@ -16,11 +16,13 @@
 
 #pragma once
 
-#include <vector>
+#include <algorithm>
+#include <cstdlib>
+#include <list>
 
-#include "msos/kernel/process/fwd.hpp"
+#include <unistd.h>
+
 #include "msos/kernel/process/process.hpp"
-#include "msos/kernel/process/registers.hpp"
 
 namespace msos
 {
@@ -29,20 +31,48 @@ namespace kernel
 namespace process
 {
 
+template <typename ProcessType>
 class ProcessManager
 {
 public:
-    ProcessManager();
-    using ContainerType = std::list<Process>;
+    using SelfType = ProcessManager<ProcessType>;
+    using ContainerType = std::list<ProcessType>;
+    static SelfType& get()
+    {
+        static SelfType t;
+        return t;
+    }
 
-    Process& create_process(std::size_t process_entry, std::size_t stack_size, std::size_t arg = 0);
+    Process& create_process(std::size_t process_entry, std::size_t stack_size, std::size_t arg = 0)
+    {
+        processes_.emplace_back(process_entry, stack_size, arg);
+        return processes_.back();
+    }
 
-    void delete_process(pid_t pid);
+    void delete_process(pid_t pid)
+    {
+        auto it = std::find_if(processes_.begin(), processes_.end(), [pid](const Process& process) {
+            return process.pid() == pid;
+        });
 
-    const ContainerType& get_processes() const;
-    ContainerType& get_processes();
-    void print() const;
+        if (it != processes_.end())
+        {
+            processes_.erase(it);
+        }
+    }
+
+    const ContainerType& get_processes() const
+    {
+        return processes_;
+    }
+
+    ContainerType& get_processes()
+    {
+        return processes_;
+    }
+
 private:
+
     ContainerType processes_;
 };
 

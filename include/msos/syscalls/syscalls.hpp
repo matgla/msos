@@ -47,6 +47,7 @@ extern "C"
     int _lseek(int file, int ptr, int dir);
     int _close(int file);
     int _fstat(int file, struct stat* st);
+    int _open(const char* filename, int flags);
 
     void trigger_syscall(SyscallNumber number, void* args, void* output);
 }

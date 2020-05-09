@@ -24,7 +24,7 @@ target_sources(msos_drivers_displays_sfml
         ${library_includes}/sfml.hpp
         ${library_includes}/sfml_file.hpp
 
-    PRIVATE
+    # PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/sfml.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/sfml_file.cpp
 )
@@ -43,10 +43,7 @@ target_compile_options(msos_drivers_displays_sfml
         $<$<COMPILE_LANGUAGE:CXX>:-Werror -Wall -Wextra -Wpedantic -Wcast-align -Wunused -Wshadow -Wpointer-arith -Wcast-qual -Wno-missing-braces>
 )
 
-
-find_library(SFML REQUIRED)
-
-message("!!!!!!!!!!!!!!!!!! ${SFML_LIBRARIES}")
+find_package(SFML COMPONENTS graphics REQUIRED)
 
 target_link_libraries(msos_drivers_displays_sfml
     PRIVATE
@@ -54,8 +51,9 @@ target_link_libraries(msos_drivers_displays_sfml
         msos_printer
 
     PUBLIC
-        ${SFML_LIBRARIES}
-        ${SFML_DEPENDENCIES}
+        sfml-graphics
+        sfml-window
+        sfml-system
         board
 )
 

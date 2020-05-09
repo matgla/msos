@@ -35,8 +35,12 @@ typedef struct DIR {
     struct DIRImpl *impl;
 } DIR;
 
-DIR* opendir(const char* dirname);
-dirent* readdir(DIR *dirp);
-int closedir(DIR *dirp);
+DIR* _opendir(const char* dirname);
+dirent* _readdir(DIR *dirp);
+int _closedir(DIR *dirp);
 
 }
+
+#define opendir _opendir
+#define readdir _readdir
+#define closedir _closedir

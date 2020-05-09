@@ -118,8 +118,8 @@ caddr_t _sbrk(int incr)
 
 int _write(int fd, const char* ptr, int len)
 {
-    const auto& scheduler = msos::kernel::process::Scheduler::get();
-    if (scheduler.empty())
+    const auto* scheduler = msos::kernel::process::Scheduler::get();
+    if (scheduler == nullptr)
     {
         if (board::interfaces::usarts()[0])
         {
@@ -127,8 +127,12 @@ int _write(int fd, const char* ptr, int len)
         }
         return len;
     }
-
-    msos::fs::IFile* file = scheduler.current_process().get_file(fd);
+    const auto* process = scheduler->current_process();
+    if (!process)
+    {
+        return 0;
+    }
+    msos::fs::IFile* file = process->get_file(fd);
     if (file)
     {
         return static_cast<int>(file->write(std::string_view(ptr, static_cast<std::size_t>(len))));
@@ -139,7 +143,17 @@ int _write(int fd, const char* ptr, int len)
 
 int _read(int fd, char* ptr, int len)
 {
-    msos::fs::IFile* file = msos::kernel::process::Scheduler::get().current_process().get_file(fd);
+    const auto* scheduler = msos::kernel::process::Scheduler::get();
+    if (scheduler == nullptr)
+    {
+        return 0;
+    }
+    const auto* process = scheduler->current_process();
+    if (!process)
+    {
+        return 0;
+    }
+    msos::fs::IFile* file = process->get_file(fd);
 
     if (file)
     {
@@ -170,7 +184,18 @@ int _lseek(int file, int ptr, int dir)
 
 int _close(int file)
 {
-    return msos::kernel::process::Scheduler::get().current_process().remove_file(file);
+    auto* scheduler = msos::kernel::process::Scheduler::get();
+    if (scheduler == nullptr)
+    {
+        return -1;
+    }
+    auto* process = scheduler->current_process();
+    if (!process)
+    {
+        return -2;
+    }
+
+    return process->remove_file(file);
 }
 
 int _fstat(int file, struct stat* st)
@@ -189,6 +214,17 @@ int _open(const char* filename, int flags)
 {
     writer << "opening file: " <<  filename << endl;
 
+    auto* scheduler = msos::kernel::process::Scheduler::get();
+    if (scheduler == nullptr)
+    {
+        return -1;
+    }
+    auto* process = scheduler->current_process();
+    if (!process)
+    {
+        return -1;
+    }
+
     auto& vfs = msos::fs::Vfs::instance();
     eul::filesystem::path path(filename);
 
@@ -200,7 +236,8 @@ int _open(const char* filename, int flags)
         {
             return -1;
         }
-        int fd = msos::kernel::process::Scheduler::get().current_process().add_file(std::move(file));
+
+        int fd = process->add_file(std::move(file));
         return fd;
     }
     else if ((flags & O_CREAT) == O_CREAT)
@@ -211,7 +248,7 @@ int _open(const char* filename, int flags)
             return -1;
         }
 
-        int fd = msos::kernel::process::Scheduler::get().current_process().add_file(std::move(file));
+        int fd = process->add_file(std::move(file));
         return fd;
     }
 
@@ -221,16 +258,6 @@ int _open(const char* filename, int flags)
 pid_t _fork()
 {
     return 0;
-}
-
-extern "C"
-{
-int nanosleep(const struct timespec* req, struct timespec* rem)
-{
-    UNUSED1(rem);
-    hal::time::sleep(std::chrono::microseconds(req->tv_sec * 1000000 + req->tv_nsec / 1000));
-    return 0;
-}
 }
 
 clock_t _times (struct tms *buf)
@@ -251,8 +278,17 @@ namespace syscalls
 void process_exit(int code)
 {
     UNUSED1(code);
-    msos::kernel::process::Scheduler::get().delete_process(msos::kernel::process::Scheduler::get().current_process().pid());
-    msos::kernel::process::Scheduler::get().current_process_was_deleted(true);
+    auto* scheduler = msos::kernel::process::Scheduler::get();
+    if (scheduler == nullptr)
+    {
+        return;
+    }
+    auto* process = scheduler->current_process();
+    if (process == nullptr)
+    {
+        return;
+    }
+    scheduler->delete_process(process->pid());
     switch_to_next_task();
 }
 

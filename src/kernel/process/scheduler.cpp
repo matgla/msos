@@ -1,5 +1,5 @@
 // This file is part of MSOS project.
-// Copyright (C) 2019 Mateusz Stadnik
+// Copyright (C) 2020 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,10 +16,6 @@
 
 #include "msos/kernel/process/scheduler.hpp"
 
-#include "msos/kernel/process/process_manager.hpp"
-
-#include <cstdio>
-
 namespace msos
 {
 namespace kernel
@@ -27,80 +23,19 @@ namespace kernel
 namespace process
 {
 
-void Scheduler::set_process_manager(ProcessManager& manager)
+namespace
 {
-    processes_ = &manager;
-    current_process_ = processes_->get_processes().begin();
+static IScheduler* scheduler_  = nullptr;
 }
 
-Scheduler& Scheduler::get()
+IScheduler* Scheduler::get()
 {
-    static Scheduler scheduler;
-    return scheduler;
+    return scheduler_;
 }
 
-Scheduler::Scheduler()
+void Scheduler::set(IScheduler* scheduler)
 {
-}
-
-bool Scheduler::empty() const
-{
-    return processes_->get_processes().empty();
-}
-
-const Process& Scheduler::current_process() const
-{
-    return *current_process_;
-}
-
-Process& Scheduler::current_process()
-{
-    return *current_process_;
-}
-
-ProcessManager::ContainerType::iterator Scheduler::get_next()
-{
-    return std::next(current_process_) == processes_->get_processes().end() ?
-        processes_->get_processes().begin() : std::next(current_process_);
-}
-
-void Scheduler::delete_process(pid_t pid)
-{
-    if (pid == current_process_->pid())
-    {
-        current_process_ = get_next();
-    }
-    processes_->delete_process(pid);
-}
-
-const std::size_t* Scheduler::schedule_next()
-{
-    current_process_was_deleted_ = false;
-    if (processes_->get_processes().empty())
-    {
-        return nullptr;
-    }
-
-    auto next = get_next();
-    while (next->get_state() != Process::State::Running)
-    {
-        current_process_ = next;
-        if (current_process_->get_state() == Process::State::Ready || current_process_->get_state() == Process::State::Running)
-        {
-            return current_process_->current_stack_pointer();
-        }
-        next = get_next();
-    }
-
-    return current_process_->current_stack_pointer();
-}
-
-void Scheduler::unblock_all(void* semaphore)
-{
-    for (auto& process : processes_->get_processes())
-    {
-        process.unblock(semaphore);
-    }
+    scheduler_ = scheduler;
 }
 
 } // namespace process

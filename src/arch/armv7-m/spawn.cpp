@@ -18,7 +18,9 @@
 
 #include "symbol_codes.h"
 #include "msos/posix/dirent.h"
+#include "arch/armv7-m/arm_process.hpp"
 #include "msos/kernel/process/process.hpp"
+#include "msos/kernel/process/process_manager.hpp"
 #include "msos/kernel/process/context_switch.hpp"
 #include "msos/kernel/process/scheduler.hpp"
 #include "msos/fs/mount_points.hpp"
@@ -38,7 +40,6 @@
 
 #include "msos/usart_printer.hpp"
 
-msos::kernel::process::ProcessManager processes;
 
 constexpr std::size_t default_stack_size = 728;
 static msos::dl::DynamicLinker dynamic_linker;
@@ -73,7 +74,7 @@ static msos::dl::Environment<3> env{
 
 pid_t spawn(void (*start_routine) (void *), void *arg)
 {
-    auto& child = processes.create_process(
+    auto& child = msos::kernel::process::ProcessManager<msos::arch::armv7m::ArmProcess>::get().create_process(
         reinterpret_cast<std::size_t>(start_routine), default_stack_size, reinterpret_cast<std::size_t>(arg));
     return child.pid();
 }
@@ -82,9 +83,12 @@ pid_t spawn_root_process(void (*start_routine) (void *), void *arg, std::size_t 
 {
     UNUSED1(arg);
     hal::interrupt::disable_systick();
-    msos::kernel::process::Scheduler::get().set_process_manager(processes);
-    processes.create_process(reinterpret_cast<std::size_t>(start_routine), stack_size);
-    msos::kernel::process::Scheduler::get().schedule_next();
+    msos::kernel::process::ProcessManager<msos::arch::armv7m::ArmProcess>::get().create_process(reinterpret_cast<std::size_t>(start_routine), stack_size);
+    auto* scheduler = msos::kernel::process::Scheduler::get();
+    if (scheduler)
+    {
+        scheduler->schedule_next();
+    }
 
     msos::process::initialize_context_switching();
     trigger_syscall(SyscallNumber::SYSCALL_START_ROOT_PROCESS, NULL, NULL);
@@ -195,7 +199,7 @@ pid_t spawn_exec(const char* path, void *arg, const SymbolEntry* entries, int nu
         .number_of_entries = number_of_entries
     };
 
-    auto& child = processes.create_process(
+    auto& child = msos::kernel::process::ProcessManager<msos::arch::armv7m::ArmProcess>::get().create_process(
         reinterpret_cast<std::size_t>(exec_process), stack_size, reinterpret_cast<std::size_t>(info));
     return child.pid();
 }

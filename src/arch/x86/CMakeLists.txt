@@ -17,10 +17,16 @@
 add_library(msos_arch_x86)
 
 target_sources(msos_arch_x86
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/cpp_scheduler.hpp
+
     PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/cpp_process.hpp
+
         ${CMAKE_CURRENT_SOURCE_DIR}/call_external.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/context_switch.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/process.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/cpp_process.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/cpp_scheduler.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/syscalls.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/spawn.cpp
 )
