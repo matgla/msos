@@ -59,7 +59,9 @@ extern "C"
 
 pid_t spawn(void (*start_routine) (void *), void *arg)
 {
-    return 0;
+    auto& child = msos::kernel::process::ProcessManager<msos::arch::x86::CppProcess>::get().create_process(
+        reinterpret_cast<std::size_t>(start_routine), 0, reinterpret_cast<std::size_t>(arg));
+    return child.pid();
 }
 
 pid_t spawn_root_process(void (*start_routine) (void *), void *arg, std::size_t stack_size)

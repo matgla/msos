@@ -18,7 +18,3 @@
 if (ENABLE_DRIVERS_DISPLAYS_SSD1306)
     add_subdirectory(ssd1306)
 endif ()
-
-if (ENABLE_DRIVERS_DISPLAYS_SFML)
-    add_subdirectory(sfml)
-endif ()

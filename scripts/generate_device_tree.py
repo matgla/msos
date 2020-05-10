@@ -65,9 +65,16 @@ def generate_cmake_header(output):
 def generate_cmake_library(output, drivers):
     with open(output, "a") as file:
         for driver_path, driver in drivers:
-            file.write("set(ENABLE_DRIVERS")
-            for part in driver_path:
-                file.write("_" + part.upper())
+            if "path" in driver:
+                file.write("set(ENABLE")
+                for part in driver["path"].split("/"):
+                    file.write("_" + part.upper())
+            else:
+                file.write("set(ENABLE_DRIVERS")
+                for part in driver_path:
+                    file.write("_" + part.upper())
+
+
             file.write(" ON CACHE BOOL \"\" FORCE)\n")
         file.write("add_library(device_tree STATIC)\n\n")
         file.write("target_sources(device_tree\n")
@@ -81,9 +88,20 @@ def generate_cmake_library(output, drivers):
         file.write("        hal\n")
 
         for driver_path, driver in drivers:
-            library_name = "msos_drivers"
-            for path_part in driver_path:
-                library_name += "_" + path_part
+            if "path" in driver:
+                library_name = ""
+                for path_part in driver["path"].split("/"):
+                    if len(library_name):
+                        library_name += "_" + path_part
+                    else:
+                        library_name = path_part
+            else:
+                library_name = "msos_drivers"
+                for path_part in driver_path:
+                    if len(library_name):
+                        library_name += "_" + path_part
+                    else:
+                        library_name = path_part
             file.write("        " + library_name + "\n")
         file.write(")\n")
 
@@ -133,15 +151,24 @@ def generate_cpp(output, drivers):
     with open(output, "a") as file:
             file.write("#include <msos/drivers/device_fs.hpp>\n")
             for driver_path, driver in drivers:
-                file.write("#include <msos/drivers")
-                for path_part in driver_path:
-                    file.write("/" + path_part)
+                if "path" in driver:
+                    path = driver["path"]
+                else:
+                    path = "msos/drivers"
+                file.write("#include <" + path)
+                if not "path" in driver:
+                    for path_part in driver_path:
+                        file.write("/" + path_part)
                 file.write("/" + driver["driver_name"] + ".hpp>\n")
             file.write("\n")
             for driver_path, driver in drivers:
-                namespace = "msos::drivers"
-                for path_part in driver_path:
-                    namespace += "::" + path_part
+                if "namespace" in driver:
+                    namespace = driver["namespace"]
+                else:
+                    namespace = "msos::drivers"
+
+                    for path_part in driver_path:
+                        namespace += "::" + path_part
                 file.write("static inline auto& create_" + driver["driver_name"] + "()\n")
                 file.write("{\n")
                 file.write("    static auto driver = " + namespace + "::create_" + driver["driver_name"] + "(")
