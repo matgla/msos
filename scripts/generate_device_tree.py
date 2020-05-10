@@ -78,7 +78,7 @@ def generate_cmake_library(output, drivers):
             file.write(" ON CACHE BOOL \"\" FORCE)\n")
         file.write("add_library(device_tree STATIC)\n\n")
         file.write("target_sources(device_tree\n")
-        file.write("    PUBLIC\n")
+        file.write("    PRIVATE\n")
         file.write("         ${CMAKE_CURRENT_SOURCE_DIR}/device_tree.cpp)\n")
         file.write("\n")
         file.write("target_link_libraries(device_tree\n")

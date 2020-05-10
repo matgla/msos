@@ -24,7 +24,7 @@ target_sources(msos_apps
     PUBLIC
         ${library_includes}/app_registry.hpp
         ${library_includes}/app_file.hpp
-
+    PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/app_registry.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/app_file.cpp
 )
