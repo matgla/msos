@@ -30,6 +30,8 @@
 #include <eul/utils/unused.hpp>
 #include <memory>
 
+#include <fcntl.h>
+
 #include "msos/libc/printf.hpp"
 
 #include "msos/syscalls/syscalls.hpp"
@@ -88,7 +90,7 @@ int exec_process(ExecInfo* info)
 
     msos::fs::IFileSystem* dest_fs = root_fs.get_child_fs(path.c_str());
 
-    std::unique_ptr<msos::fs::IFile> file = root_fs.get(path.c_str());
+    std::unique_ptr<msos::fs::IFile> file = root_fs.get(path.c_str(), O_RDONLY);
 
     if (!file)
     {

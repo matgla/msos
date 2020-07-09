@@ -53,7 +53,7 @@ namespace character
     {
 
     }
-    std::unique_ptr<fs::IFile> GpioDriver::file(std::string_view path)
+    std::unique_ptr<fs::IFile> GpioDriver::file(std::string_view path, int flags)
     {
 
     }

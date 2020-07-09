@@ -45,8 +45,9 @@ int AppRegistry::umount()
     return 0;
 }
 
-int AppRegistry::create()
+int AppRegistry::create(int flags)
 {
+    UNUSED1(flags);
     return 0;
 }
 
@@ -68,8 +69,9 @@ int AppRegistry::stat(const eul::filesystem::path& path)
     return 0;
 }
 
-std::unique_ptr<fs::IFile> AppRegistry::get(const eul::filesystem::path& path)
+std::unique_ptr<fs::IFile> AppRegistry::get(const eul::filesystem::path& path, int flags)
 {
+    UNUSED1(flags);
     if (path.native() == "" || path.native() == "/")
     {
         return std::make_unique<AppFile>();
@@ -86,9 +88,9 @@ std::unique_ptr<fs::IFile> AppRegistry::get(const eul::filesystem::path& path)
     return nullptr;
 }
 
-std::unique_ptr<fs::IFile> AppRegistry::create(const eul::filesystem::path& path)
+std::unique_ptr<fs::IFile> AppRegistry::create(const eul::filesystem::path& path, int flags)
 {
-    UNUSED1(path);
+    UNUSED2(path, flags);
     return nullptr;
 }
 

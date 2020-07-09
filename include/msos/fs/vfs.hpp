@@ -19,6 +19,8 @@
 #include <string_view>
 #include <string>
 
+#include <fcntl.h>
+
 #include "msos/fs/i_filesystem.hpp"
 #include "msos/fs/mount_points.hpp"
 
@@ -35,7 +37,7 @@ public:
 
     int umount() override;
 
-    int create() override;
+    int create(int flags) override;
 
     int mkdir(const eul::filesystem::path& path, int mode) override;
 
@@ -43,8 +45,8 @@ public:
 
     int stat(const eul::filesystem::path& path) override;
 
-    std::unique_ptr<IFile> get(const eul::filesystem::path& path) override;
-    std::unique_ptr<IFile> create(const eul::filesystem::path& path) override;
+    std::unique_ptr<IFile> get(const eul::filesystem::path& path, int flags) override;
+    std::unique_ptr<IFile> create(const eul::filesystem::path& path, int flags) override;
 
     std::vector<std::unique_ptr<IFile>> list(const eul::filesystem::path& path) override;
 

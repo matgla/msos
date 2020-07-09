@@ -51,8 +51,10 @@ int RomFs::stat(const eul::filesystem::path& path)
     return 1;
 }
 
-std::unique_ptr<IFile> RomFs::get(const eul::filesystem::path& path)
+std::unique_ptr<IFile> RomFs::get(const eul::filesystem::path& path, int flags)
 {
+    UNUSED1(flags);
+
     eul::filesystem::path path_in_fs("/");
     if (path.is_absolute())
     {

@@ -38,7 +38,7 @@ public:
     virtual int mount(drivers::storage::BlockDevice& device) = 0;
     virtual int umount() = 0;
 
-    virtual int create() = 0;
+    virtual int create(int flags) = 0;
     virtual int mkdir(const eul::filesystem::path& path, int mode) = 0;
 
     virtual int remove(const eul::filesystem::path& path) = 0;
@@ -47,8 +47,8 @@ public:
 
     virtual std::vector<std::unique_ptr<IFile>> list(const eul::filesystem::path& path) = 0;
 
-    virtual std::unique_ptr<IFile> get(const eul::filesystem::path& path) = 0;
-    virtual std::unique_ptr<IFile> create(const eul::filesystem::path& path) = 0;
+    virtual std::unique_ptr<IFile> get(const eul::filesystem::path& path, int flags) = 0;
+    virtual std::unique_ptr<IFile> create(const eul::filesystem::path& path, int flags) = 0;
 };
 
 } // namespace fs

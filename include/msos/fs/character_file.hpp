@@ -16,14 +16,14 @@
 
 #pragma once
 
-#include "msos/fs/i_file.hpp"
+#include "msos/fs/file_base.hpp"
 
 namespace msos
 {
 namespace fs
 {
 
-class CharacterFile : public IFile
+class CharacterFile : public FileBase
 {
 public:
     off_t seek(off_t offset, int base) const override;

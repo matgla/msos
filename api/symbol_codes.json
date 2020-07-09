@@ -11,9 +11,9 @@
         "strlen": 300
     },
     "posix": {
-        "readdir": 1000,
-        "opendir": 1001,
-        "closedir": 1002,
+        "_readdir": 1000,
+        "_opendir": 1001,
+        "_closedir": 1002,
         "write": 1100
     }
 }

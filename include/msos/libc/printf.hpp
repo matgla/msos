@@ -19,7 +19,6 @@
 extern "C"
 {
     int _printf(const char* format, ...);
-    int _printf_via_usart(const char* format, ...);
     int _scanf(const char* format, ...);
     char* _fgets(char* buffer, int n, FILE* fp);
     int fileno(FILE *stream);

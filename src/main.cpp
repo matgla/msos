@@ -44,8 +44,6 @@
 #include "msgui/policies/data/DefaultMemoryPolicy.hpp"
 #include "msgui/fonts/Font5x7.hpp"
 
-#include <SFML/Graphics.hpp>
-
 
 extern "C"
 {
@@ -54,7 +52,6 @@ extern uint32_t _fs_flash_start;
 
 msos::fs::RamFs ramfs;
 UsartWriter writer;
-// }
 
 void kernel_process(void*)
 {
@@ -73,22 +70,16 @@ void kernel_process(void*)
 
     msos::drivers::DeviceFs& devfs = msos::drivers::DeviceFs::get_instance();
 
-    // msos::drivers::character::UsartDriver usart(0);
-    // devfs.register_driver("tty1", usart);
-    // msos::drivers::displays::SSD1306_I2C lcd(*board::interfaces::LCD_I2C);
-    // devfs.register_driver("fb0", lcd);
     for (auto& driver : devfs.get_drivers())
     {
         driver.driver()->load();
+        writer << "Driver loaded: " << driver.path() << endl;
     }
 
     vfs.mount_fs("/dev", &devfs);
 
     msos::apps::AppRegistry& apps = msos::apps::AppRegistry::get_instance();
-    // apps.register_executable("test.bin", reinterpret_cast<std::size_t>(&image_drawer));
     vfs.mount_fs("/bin", &apps);
-
-    // hal::interrupt::set_systick_period(std::chrono::milliseconds(1));
 
     exec("/bin/msos_shell.bin", NULL, NULL, 0);
 

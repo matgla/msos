@@ -16,40 +16,20 @@
 
 #pragma once
 
-#include <string_view>
+#include <cstdint>
 
-#include "msos/apps/app_registry.hpp"
-#include "msos/fs/file_base.hpp"
+#include "msos/fs/i_file.hpp"
 
 namespace msos
 {
-namespace apps
+namespace fs
 {
 
-struct AppFile : public fs::FileBase
+class FileBase : public IFile
 {
 public:
-    AppFile(const AppEntry entry);
-    AppFile();
-
-    ssize_t read(DataType data) override;
-    ssize_t write(const ConstDataType data) override;
-    off_t seek(off_t offset, int base) const override;
-    int close() override;
-    int sync() override;
-
-    off_t tell() const override;
-    ssize_t size() const override;
-
-    std::string_view name() const override;
-
-    std::unique_ptr<fs::IFile> clone() const override;
-
-    const char* data() const override;
-
-private:
-    AppEntry entry_;
+    virtual int ioctl(uint32_t cmd, void* arg) override;
 };
 
-} // namespace apps
+} // namespace fs
 } // namespace msos

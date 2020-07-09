@@ -20,7 +20,7 @@
 
 #include <eul/utils/unused.hpp>
 
-#include "msos/fs/i_file.hpp"
+#include "msos/fs/file_base.hpp"
 
 #include "msos/usart_printer.hpp"
 
@@ -28,7 +28,7 @@ namespace msos
 {
 namespace drivers
 {
-struct DeviceFsRootFile : public fs::IFile
+struct DeviceFsRootFile : public fs::FileBase
 {
 public:
     ssize_t read(DataType data) override
@@ -83,8 +83,6 @@ public:
     }
 };
 
-
-
 static int instances = 0;
 
 DeviceFs& DeviceFs::get_instance()
@@ -122,7 +120,7 @@ IDriver* DeviceFs::get_driver(const eul::filesystem::path& path)
     return nullptr;
 }
 
-std::unique_ptr<fs::IFile> DeviceFs::get(const eul::filesystem::path& path)
+std::unique_ptr<fs::IFile> DeviceFs::get(const eul::filesystem::path& path, int flags)
 {
     if (path.native().empty() || path.native() == "/")
     {
@@ -132,7 +130,7 @@ std::unique_ptr<fs::IFile> DeviceFs::get(const eul::filesystem::path& path)
     auto* driver = get_driver(path);
     if (driver)
     {
-        return driver->file(path.native());
+        return driver->file(path.native(), flags);
     }
 
     return nullptr;
@@ -144,16 +142,26 @@ std::vector<std::unique_ptr<fs::IFile>> DeviceFs::list(const eul::filesystem::pa
     std::vector<std::unique_ptr<fs::IFile>> files;
     for (auto& entry : drivers)
     {
-        files.push_back(entry.driver()->file(entry.path()));
+        if (entry.driver()->file(entry.path(), 0) != nullptr)
+        {
+            files.push_back(entry.driver()->file(entry.path(), 0));
+        }
     }
     return files;
 }
 
-int DeviceFs::register_driver(std::string_view name, IDriver& driver)
+int DeviceFs::add_driver(std::string_view name, IDriver& driver)
 {
     drivers.push_back(DriverEntry{name, &driver});
     return instances++;
 }
+
+bool DeviceFs::register_driver(std::string_view name, IDriver& driver)
+{
+    get_instance().add_driver(name, driver);
+    return true;
+}
+
 
 const std::list<DriverEntry>& DeviceFs::get_drivers() const
 {

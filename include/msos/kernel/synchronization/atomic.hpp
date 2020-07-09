@@ -57,7 +57,7 @@ static inline T increment(volatile T& source, const T value)
     //     :
     //     : [from] "r" (&source), [offset] "r" (value)
     //     );
-    source += value;
+    source = source + value;
     return true;
 }
 
@@ -73,7 +73,7 @@ static inline T decrement(volatile T& source, const T value)
 //         "dmb\n\t"
 //         :
 //         : [from] "r" (&source), [offset] "r" (value));
-    source -= value;
+    source = source - value;
 
     return true;
 }

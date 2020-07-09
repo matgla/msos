@@ -33,7 +33,7 @@ public:
     void load() override;
     void unload() override;
 
-    std::unique_ptr<fs::IFile> file(std::string_view path) override;
+    std::unique_ptr<fs::IFile> file(std::string_view path, int flags) override;
 };
 
 } // namespace character

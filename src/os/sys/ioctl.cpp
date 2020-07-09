@@ -14,42 +14,33 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
+#include "msos/os/sys/ioctl.h"
 
-#include <string_view>
+#include <cstdio>
 
-#include "msos/apps/app_registry.hpp"
-#include "msos/fs/file_base.hpp"
+#include <eul/utils/unused.hpp>
 
-namespace msos
+#include "msos/kernel/process/scheduler.hpp"
+#include "msos/kernel/process/process.hpp"
+#include "msos/fs/i_file.hpp"
+
+int _ioctl(int fd, uint32_t cmd, void* arg)
 {
-namespace apps
-{
+    const auto* scheduler = msos::kernel::process::Scheduler::get();
+    if (!scheduler)
+    {
+        return -1;
+    }
 
-struct AppFile : public fs::FileBase
-{
-public:
-    AppFile(const AppEntry entry);
-    AppFile();
-
-    ssize_t read(DataType data) override;
-    ssize_t write(const ConstDataType data) override;
-    off_t seek(off_t offset, int base) const override;
-    int close() override;
-    int sync() override;
-
-    off_t tell() const override;
-    ssize_t size() const override;
-
-    std::string_view name() const override;
-
-    std::unique_ptr<fs::IFile> clone() const override;
-
-    const char* data() const override;
-
-private:
-    AppEntry entry_;
-};
-
-} // namespace apps
-} // namespace msos
+    const auto* current_process = scheduler->current_process();
+    if (!current_process)
+    {
+        return -1;
+    }
+    msos::fs::IFile* file = current_process->get_file(fd);
+    if (file == nullptr)
+    {
+        return -1;
+    }
+    return file->ioctl(cmd, arg);
+}

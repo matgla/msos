@@ -14,42 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
-
-#include <string_view>
-
-#include "msos/apps/app_registry.hpp"
 #include "msos/fs/file_base.hpp"
+
+#include <eul/utils/unused.hpp>
 
 namespace msos
 {
-namespace apps
+namespace fs
 {
 
-struct AppFile : public fs::FileBase
+int FileBase::ioctl(uint32_t cmd, void* arg)
 {
-public:
-    AppFile(const AppEntry entry);
-    AppFile();
+    UNUSED2(cmd, arg);
+    return -1;
+}
 
-    ssize_t read(DataType data) override;
-    ssize_t write(const ConstDataType data) override;
-    off_t seek(off_t offset, int base) const override;
-    int close() override;
-    int sync() override;
-
-    off_t tell() const override;
-    ssize_t size() const override;
-
-    std::string_view name() const override;
-
-    std::unique_ptr<fs::IFile> clone() const override;
-
-    const char* data() const override;
-
-private:
-    AppEntry entry_;
-};
-
-} // namespace apps
+} // namespace fs
 } // namespace msos

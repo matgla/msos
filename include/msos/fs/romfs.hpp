@@ -38,7 +38,7 @@ public:
 
     int stat(const eul::filesystem::path& path) override;
 
-    std::unique_ptr<IFile> get(const eul::filesystem::path& path) override;
+    std::unique_ptr<IFile> get(const eul::filesystem::path& path, int flags) override;
 
     std::vector<std::unique_ptr<IFile>> list(const eul::filesystem::path& path) override;
     std::string_view name() const override;

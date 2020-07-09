@@ -14,42 +14,28 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
+#include <sys/ioctl.h>
 
-#include <string_view>
-
-#include "msos/apps/app_registry.hpp"
-#include "msos/fs/file_base.hpp"
-
-namespace msos
-{
-namespace apps
+extern "C"
 {
 
-struct AppFile : public fs::FileBase
-{
-public:
-    AppFile(const AppEntry entry);
-    AppFile();
+typedef struct audio_buf_info {
+    int fragments;
+    int fragstotal;
+    int fragsize;
+    int bytes;
+} audio_buf_info;
 
-    ssize_t read(DataType data) override;
-    ssize_t write(const ConstDataType data) override;
-    off_t seek(off_t offset, int base) const override;
-    int close() override;
-    int sync() override;
+#define SNDCTL_DSP_SPEED        _IOWR('P', 2, int)
+#define SNDCTL_DSP_GETBLKSIZE   _IOWR('P', 4, int)
+#define SNDCTL_DSP_SETFMT       _IOWR('P', 5, int)
+#define SNDCTL_DSP_CHANNELS     _IOWR('P', 6, int)
+#define SNDCTL_DSP_SETFRAGMENT  _IOWR('P', 10, int)
 
-    off_t tell() const override;
-    ssize_t size() const override;
+#define SNDCTL_DSP_GETOSPACE    _IOR('P', 12, audio_buf_info)
 
-    std::string_view name() const override;
+#define SNDCTL_DSP_NONBLOCK     _IO('P', 14)
 
-    std::unique_ptr<fs::IFile> clone() const override;
+#define AFMT_U8 0x00000008
 
-    const char* data() const override;
-
-private:
-    AppEntry entry_;
-};
-
-} // namespace apps
-} // namespace msos
+}

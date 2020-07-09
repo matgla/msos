@@ -18,8 +18,6 @@ cmake_minimum_required(VERSION 3.9)
 
 project(msos NONE)
 
-include_directories(BEFORE SYSTEM ${PROJECT_SOURCE_DIR}/include/msos/libc)
-
 set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(${PROJECT_SOURCE_DIR}/cmake/GitModules.cmake)
@@ -34,10 +32,7 @@ else ()
     set(BUILD_MSOS_UT OFF CACHE BOOL "Build UT" FORCE)
 endif()
 
-include_directories(BEFORE SYSTEM ${PROJECT_SOURCE_DIR}/include/msos/libc)
-
 fetch_module_via_branch(lib/hal ${PROJECT_SOURCE_DIR}/lib/hal ${CMAKE_CURRENT_SOURCE_DIR} "master")
-include_directories(BEFORE SYSTEM ${PROJECT_SOURCE_DIR}/include/msos/libc)
 
 enable_language(ASM C CXX)
 set (msgui_cxx_compilation_flags ${hal_cxx_compilation_flags} CACHE STRING "msgui compilation flags" FORCE)
@@ -50,14 +45,16 @@ fetch_module_via_branch(lib/romfs ${PROJECT_SOURCE_DIR}/lib/romfs ${CMAKE_CURREN
 fetch_module_via_branch(lib/gsl/gsl ${PROJECT_SOURCE_DIR}/lib/gsl/gsl ${CMAKE_CURRENT_SOURCE_DIR} "v3.0.0")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
-set(CMAKE_EXECUTABLE_SUFFIX "${CMAKE_EXECUTABLE_SUFFIX}")
+# set(CMAKE_EXECUTABLE_SUFFIX "${CMAKE_EXECUTABLE_SUFFIX}")
 
 include_directories(BEFORE SYSTEM ${PROJECT_SOURCE_DIR}/include/msos/posix)
 include_directories(BEFORE SYSTEM ${PROJECT_SOURCE_DIR}/include/msos/libc)
+include_directories(BEFORE SYSTEM ${PROJECT_SOURCE_DIR}/include/msos/os)
 
 set(msos_system_include_directories CACHE INTERNAL "")
 set(msos_system_include_directories ${msos_system_include_directories} ${PROJECT_SOURCE_DIR}/include/msos/posix CACHE INTERNAL "")
 set(msos_system_include_directories ${msos_system_include_directories} ${PROJECT_SOURCE_DIR}/include/msos/libc CACHE INTERNAL "")
+set(msos_system_include_directories ${msos_system_include_directories} ${PROJECT_SOURCE_DIR}/include/msos/os CACHE INTERNAL "")
 
 include(${board_path}/device_tree/configure_device_tree.cmake)
 configure_device_tree()

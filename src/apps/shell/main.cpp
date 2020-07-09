@@ -142,14 +142,11 @@ int app_start()
 
     for (const auto& app : msos::apps::AppRegistry::get_instance().get_apps())
     {
-        printf("%s\n", app.name.data());
-        printf("%d\n", app.autostart);
         if (app.autostart)
         {
             std::string path = "/bin/";
             path += app.name;
             exec(path.c_str(), NULL, NULL, 0);
-
         }
     }
 
@@ -158,7 +155,7 @@ int app_start()
 
     while (std::string_view(buffer).find("exit") == std::string_view::npos)
     {
-        write(1, "> \0", 3);
+        write(1, "> \0", 2);
         fgets(buffer, sizeof(buffer), stdin);
         // // scanf("%s", &buffer); // <- replace to fgets
         if (std::string_view(buffer).find("ls") == 0)
@@ -215,9 +212,7 @@ int app_start()
                 }
                 printf("executing %s\n", absolute_path);
                 exec(absolute_path, NULL, NULL, 0);
-
             }
-
         }
     }
     printf("MSOS Shell exit\n");

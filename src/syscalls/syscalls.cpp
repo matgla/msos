@@ -127,6 +127,7 @@ int _write(int fd, const char* ptr, int len)
         }
         return len;
     }
+
     const auto* process = scheduler->current_process();
     if (!process)
     {
@@ -231,7 +232,7 @@ int _open(const char* filename, int flags)
     std::unique_ptr<msos::fs::IFile> file;
     if ((flags & O_ACCMODE) == O_RDONLY)
     {
-        file = vfs.get(path.lexically_normal().c_str());
+        file = vfs.get(path.lexically_normal().c_str(), flags);
         if (!file)
         {
             return -1;
@@ -242,7 +243,7 @@ int _open(const char* filename, int flags)
     }
     else if ((flags & O_CREAT) == O_CREAT)
     {
-        file = vfs.create(path.lexically_normal().c_str());
+        file = vfs.create(path.lexically_normal().c_str(), flags);
         if (!file)
         {
             return -1;
@@ -251,8 +252,17 @@ int _open(const char* filename, int flags)
         int fd = process->add_file(std::move(file));
         return fd;
     }
+    else
+    {
+        file = vfs.get(path.lexically_normal().c_str(), flags);
+        if (!file)
+        {
+            return -1;
+        }
+        return process->add_file(std::move(file));
+    }
 
-    return 3;
+    return -1;
 }
 
 pid_t _fork()

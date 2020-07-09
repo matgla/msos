@@ -69,12 +69,13 @@ public:
 
     int stat(const eul::filesystem::path& path) override;
 
-    std::unique_ptr<fs::IFile> get(const eul::filesystem::path& path) override;
+    std::unique_ptr<fs::IFile> get(const eul::filesystem::path& path, int flags) override;
     IDriver* get_driver(const eul::filesystem::path& path);
 
     std::vector<std::unique_ptr<fs::IFile>> list(const eul::filesystem::path& path) override;
 
-    int register_driver(std::string_view name, IDriver& driver);
+    int add_driver(std::string_view name, IDriver& driver);
+    static bool register_driver(std::string_view name, IDriver& driver);
     std::string_view name() const override;
 
     const std::list<DriverEntry>& get_drivers() const;
@@ -88,5 +89,5 @@ private:
 } // namespace msos
 
 #define REGISTER_DRIVER(name, driver) \
-    static int driver_##name __attribute__((unused, section(".drivers"))) = msos::drivers::DeviceFs::get_instance().register_driver(#name, driver)
+    static volatile bool driver_##name __attribute__((unused, section(".drivers"))) = msos::drivers::DeviceFs::register_driver(#name, driver)
 

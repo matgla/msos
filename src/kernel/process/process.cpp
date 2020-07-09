@@ -16,6 +16,8 @@
 
 #include "msos/kernel/process/process.hpp"
 
+#include <fcntl.h>
+
 #include "msos/drivers/device_fs.hpp"
 
 namespace msos
@@ -33,9 +35,9 @@ Process::Process(State state, pid_t pid)
     auto* tty = drivers::DeviceFs::get_instance().get_driver("tty1");
     if (tty)
     {
-        fd_[0] = tty->file("tty1");
-        fd_[1] = tty->file("tty1");
-        fd_[2] = tty->file("tty1");
+        fd_[0] = tty->file("tty1", O_RDWR);
+        fd_[1] = tty->file("tty1", O_RDWR);
+        fd_[2] = tty->file("tty1", O_RDWR);
     }
 }
 
@@ -67,6 +69,7 @@ int Process::add_file(std::unique_ptr<msos::fs::IFile>&& file)
         if ((fd_map_ & (1 << i)) == 0)
         {
             fd_map_ |= (1 << i);
+            printf("FD to add: %d\n", i);
             fd_[i] = std::move(file);
             return i;
         }
@@ -87,6 +90,7 @@ int Process::remove_file(int fd)
 
 msos::fs::IFile* Process::get_file(int fd) const
 {
+
     if (fd_map_ & (1 << fd))
     {
         return fd_[fd].get();

@@ -49,8 +49,9 @@ int Vfs::umount()
     return 1;
 }
 
-int Vfs::create()
+int Vfs::create(int flags)
 {
+    UNUSED1(flags);
     return 1;
 }
 
@@ -72,16 +73,16 @@ int Vfs::stat(const eul::filesystem::path& path)
     return mp == nullptr ? -1 : mp->filesystem->stat(path.lexically_relative(mp->point));
 }
 
-std::unique_ptr<IFile> Vfs::get(const eul::filesystem::path& path)
+std::unique_ptr<IFile> Vfs::get(const eul::filesystem::path& path, int flags)
 {
     const MountPoint* mp = mount_points_.get_best_mount_point(path);
-    return mp == nullptr ? nullptr : mp->filesystem->get(path.lexically_relative(mp->point));
+    return mp == nullptr ? nullptr : mp->filesystem->get(path.lexically_relative(mp->point), flags);
 }
 
-std::unique_ptr<IFile> Vfs::create(const eul::filesystem::path& path)
+std::unique_ptr<IFile> Vfs::create(const eul::filesystem::path& path, int flags)
 {
     const MountPoint* mp = mount_points_.get_best_mount_point(path);
-    return mp == nullptr ? nullptr : mp->filesystem->create(path.lexically_relative(mp->point));
+    return mp == nullptr ? nullptr : mp->filesystem->create(path.lexically_relative(mp->point), flags);
 }
 
 

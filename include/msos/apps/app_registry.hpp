@@ -53,7 +53,7 @@ public:
 
     int umount() override;
 
-    int create() override;
+    int create(int flags) override;
 
     int mkdir(const eul::filesystem::path& path, int mode) override;
 
@@ -61,8 +61,8 @@ public:
 
     int stat(const eul::filesystem::path& path) override;
 
-    std::unique_ptr<fs::IFile> get(const eul::filesystem::path& path) override;
-    std::unique_ptr<fs::IFile> create(const eul::filesystem::path& path) override;
+    std::unique_ptr<fs::IFile> get(const eul::filesystem::path& path, int flags) override;
+    std::unique_ptr<fs::IFile> create(const eul::filesystem::path& path, int flags) override;
 
     std::vector<std::unique_ptr<fs::IFile>> list(const eul::filesystem::path& path) override;
 
@@ -79,5 +79,5 @@ private:
 } // namespace apps
 } // namespace msos
 
-#define REGISTER_APP(name, address) static bool app_##name = msos::apps::AppRegistry::register_executable(#name".bin", reinterpret_cast<std::size_t>(address))
-#define REGISTER_APP_AUTOSTART(name, address) static bool app_##name = msos::apps::AppRegistry::register_executable(#name".bin", reinterpret_cast<std::size_t>(address), true)
+#define REGISTER_APP(name, address) static volatile bool app_##name = msos::apps::AppRegistry::register_executable(#name".bin", reinterpret_cast<std::size_t>(address))
+#define REGISTER_APP_AUTOSTART(name, address) static volatile bool app_##name = msos::apps::AppRegistry::register_executable(#name".bin", reinterpret_cast<std::size_t>(address), true)

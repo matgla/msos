@@ -18,9 +18,6 @@
 
 #include <algorithm>
 
-#include <iostream>
-
-
 extern "C"
 {
     void switch_to_next_task()

@@ -104,7 +104,7 @@ int exec_process(ExecInfo* info)
 
     msos::fs::IFileSystem* dest_fs = root_fs.get_child_fs(path.c_str());
 
-    std::unique_ptr<msos::fs::IFile> file = root_fs.get(path.c_str());
+    std::unique_ptr<msos::fs::IFile> file = root_fs.get(path.c_str(), 0);
 
     if (!file)
     {

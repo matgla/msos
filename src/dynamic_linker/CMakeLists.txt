@@ -73,6 +73,7 @@ target_link_libraries(msos_dynamic_linker
         gsl
         eul_error
     PRIVATE
+        msos_libc
         msos_arch
         msos_printer
         hal_flags

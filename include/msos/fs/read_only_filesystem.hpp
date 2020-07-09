@@ -26,10 +26,10 @@ namespace fs
 class ReadOnlyFileSystem : public IFileSystem
 {
 public:
-    int create() override;
+    int create(int flags) override;
     int mkdir(const eul::filesystem::path& path, int mode) override;
     int remove(const eul::filesystem::path& path) override;
-    std::unique_ptr<IFile> create(const eul::filesystem::path& path) override;
+    std::unique_ptr<IFile> create(const eul::filesystem::path& path, int flags) override;
 };
 
 } // namespace fs

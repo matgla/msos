@@ -20,14 +20,14 @@
 
 #include <romfs/fileHeader.hpp>
 
-#include "msos/fs/i_filesystem.hpp"
+#include "msos/fs/file_base.hpp"
 
 namespace msos
 {
 namespace fs
 {
 
-struct RomFsFile : public IFile
+struct RomFsFile : public FileBase
 {
 public:
     RomFsFile(const romfs::FileHeader& fh);

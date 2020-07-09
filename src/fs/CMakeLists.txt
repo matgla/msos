@@ -22,6 +22,7 @@ target_sources(msos_fs
     PUBLIC
         ${library_includes}/i_file.hpp
         ${library_includes}/i_filesystem.hpp
+        ${library_includes}/file_base.hpp
         ${library_includes}/mount_point.hpp
         ${library_includes}/mount_points.hpp
         ${library_includes}/read_only_filesystem.hpp
@@ -46,6 +47,7 @@ target_sources(msos_fs
         ${CMAKE_CURRENT_SOURCE_DIR}/read_only_filesystem.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/read_only_file.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/read_only_character_file.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/file_base.cpp
 
         ${CMAKE_CURRENT_SOURCE_DIR}/ramfs.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ramfs_data.cpp

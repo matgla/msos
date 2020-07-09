@@ -66,7 +66,7 @@ public:
     void write(const uint8_t byte);
     void write(gsl::span<const char> buffer);
 
-    std::unique_ptr<fs::IFile> file(std::string_view path) override;
+    std::unique_ptr<fs::IFile> file(std::string_view path, int flags) override;
 
 private:
     void setHome();

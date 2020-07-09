@@ -40,7 +40,7 @@ DIR* _opendir(const char* dirname)
     path = path.lexically_normal();
 
     auto& vfs = msos::fs::Vfs::instance();
-    auto file = vfs.get(path);
+    auto file = vfs.get(path, O_RDONLY);
     if (!file)
     {
         return nullptr; // no such directory

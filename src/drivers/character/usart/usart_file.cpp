@@ -44,7 +44,6 @@ ssize_t UsartFile::read(DataType data)
     }
     return length;
 }
-
 ssize_t UsartFile::write(const ConstDataType data)
 {
     driver_.get().write(gsl::span<const uint8_t>(

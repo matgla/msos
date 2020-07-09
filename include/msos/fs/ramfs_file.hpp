@@ -20,13 +20,14 @@
 #include <string_view>
 
 #include "msos/fs/i_filesystem.hpp"
+#include "msos/fs/file_base.hpp"
 
 namespace msos
 {
 namespace fs
 {
 
-struct RamfsFile : public IFile
+struct RamfsFile : public FileBase
 {
 public:
     RamfsFile(const std::string_view name, std::vector<uint8_t>& data);

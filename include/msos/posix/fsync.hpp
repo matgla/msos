@@ -1,4 +1,4 @@
-// This file is part of MSOS project.
+// This file is part of MS Keychain Gamer project. This is tiny game console.
 // Copyright (C) 2020 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,25 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
-
-#include <string_view>
-
-#include "msos/fs/i_file.hpp"
-
-namespace msos
-{
-namespace drivers
+extern "C"
 {
 
-class IDriver
-{
-public:
-    virtual ~IDriver() = default;
-    virtual void load() = 0;
-    virtual void unload() = 0;
-    virtual std::unique_ptr<fs::IFile> file(std::string_view path, int flags) = 0;
-};
+int _fsync(int fd);
 
-} // namespace drivers
-} // namespace msos
+}

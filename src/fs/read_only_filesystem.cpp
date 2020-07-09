@@ -23,8 +23,9 @@ namespace msos
 namespace fs
 {
 
-int ReadOnlyFileSystem::create()
+int ReadOnlyFileSystem::create(int flags)
 {
+    UNUSED1(flags);
     return -1;
 }
 
@@ -40,9 +41,9 @@ int ReadOnlyFileSystem::remove(const eul::filesystem::path& path)
     return -1;
 }
 
-std::unique_ptr<IFile> ReadOnlyFileSystem::create(const eul::filesystem::path& path)
+std::unique_ptr<IFile> ReadOnlyFileSystem::create(const eul::filesystem::path& path, int flags)
 {
-    UNUSED1(path);
+    UNUSED2(path, flags);
     return nullptr;
 }
 

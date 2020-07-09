@@ -18,6 +18,8 @@
 
 #include <memory>
 
+#include <eul/utils/unused.hpp>
+
 #include <board.hpp>
 
 #include "msos/drivers/character/usart/usart_file.hpp"
@@ -82,8 +84,9 @@ UsartDriver::BufferType& UsartDriver::buffer()
     return buffer_;
 }
 
-std::unique_ptr<fs::IFile> UsartDriver::file(std::string_view path)
+std::unique_ptr<fs::IFile> UsartDriver::file(std::string_view path, int flags)
 {
+    UNUSED1(flags);
     return std::make_unique<fs::UsartFile>(*this, path);
 }
 

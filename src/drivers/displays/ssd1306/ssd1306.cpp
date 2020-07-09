@@ -168,8 +168,9 @@ void SSD1306_I2C::write(gsl::span<const char> buffer)
     i2c_.dma_write(1024);
 }
 
-std::unique_ptr<fs::IFile> SSD1306_I2C::file(std::string_view path)
+std::unique_ptr<fs::IFile> SSD1306_I2C::file(std::string_view path, int flags)
 {
+    UNUSED1(flags);
     return std::make_unique<fs::Ssd1306File>(*this, path);
 }
 

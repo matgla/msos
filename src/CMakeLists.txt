@@ -26,6 +26,7 @@ add_subdirectory(fs)
 add_subdirectory(drivers)
 add_subdirectory(utils)
 add_subdirectory(libc)
+add_subdirectory(os)
 
 add_library(msos_printer)
 
@@ -71,7 +72,9 @@ target_link_libraries(msos
         msos_posix
         msos_arch
         msos_apps
+        msos_drivers
         msos_printer
+        msos_os_sys
         hal_flags
         msgui
 )
@@ -94,7 +97,8 @@ target_include_directories(msos_interface
     INTERFACE
         ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(msos_interface SYSTEM BEFORE
-    INTERFACE ${PROJECT_SOURCE_DIR}/include/msos/posix
+    INTERFACE
+        ${msos_system_include_directories}
 )
 
 target_link_libraries(msos_interface INTERFACE
@@ -104,8 +108,6 @@ target_link_libraries(msos_interface INTERFACE
 
 
 add_library(msos_main)
-
-find_package(SFML COMPONENTS graphics REQUIRED)
 
 target_sources(msos_main
     PUBLIC
@@ -137,6 +139,11 @@ add_executable(msos_test)
 target_link_libraries(msos_test PRIVATE msos_main)
 include (GenerateBinary)
 generate_binary(msos_test ${vendor})
+
+set_target_properties(msos_test
+    PROPERTIES
+        SUFFIX ${HAL_EXECUTABLE_SUFFIX}
+)
 
 if (${vendor} STREQUAL "STM32")
 

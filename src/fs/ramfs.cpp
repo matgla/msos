@@ -42,8 +42,9 @@ int RamFs::umount()
     return 1;
 }
 
-int RamFs::create()
+int RamFs::create(int flags)
 {
+    UNUSED1(flags);
     return 1;
 }
 
@@ -73,8 +74,10 @@ int RamFs::stat(const eul::filesystem::path& path)
     return 1;
 }
 
-std::unique_ptr<IFile> RamFs::get(const eul::filesystem::path& path)
+std::unique_ptr<IFile> RamFs::get(const eul::filesystem::path& path, int flags)
 {
+    UNUSED1(flags);
+
     if (path.native() == "/" || path.native().empty())
     {
         return std::make_unique<RamfsFile>("/");
@@ -90,8 +93,9 @@ std::unique_ptr<IFile> RamFs::get(const eul::filesystem::path& path)
     return nullptr;
 }
 
-std::unique_ptr<IFile> RamFs::create(const eul::filesystem::path& path)
+std::unique_ptr<IFile> RamFs::create(const eul::filesystem::path& path, int flags)
 {
+    UNUSED1(flags);
     files_.push_back(RamFsData{path});
     return std::make_unique<RamfsFile>(files_.back().filename(), files_.back().data());
 }

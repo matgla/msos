@@ -51,7 +51,7 @@ public:
 
     virtual std::string_view name() const = 0;
     virtual std::unique_ptr<IFile> clone() const = 0;
-
+    virtual int ioctl(uint32_t cmd, void* arg) = 0;
 };
 
 } // namespace fs

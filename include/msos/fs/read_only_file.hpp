@@ -16,14 +16,14 @@
 
 #pragma once
 
-#include "msos/fs/i_file.hpp"
+#include "msos/fs/file_base.hpp"
 
 namespace msos
 {
 namespace fs
 {
 
-class ReadOnlyFile : public IFile
+class ReadOnlyFile : public FileBase
 {
 public:
     ssize_t write(const ConstDataType data) override;

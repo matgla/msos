@@ -57,6 +57,7 @@ target_compile_options(msos_arch_armv7m
 target_link_libraries(msos_arch_armv7m
     PRIVATE
         hal
+        msos_posix
         msos_kernel_process
         msos_dynamic_linker
 )
