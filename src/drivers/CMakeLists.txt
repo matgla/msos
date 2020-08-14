@@ -50,7 +50,7 @@ target_link_libraries(msos_drivers
         msos_printer
         hal_flags
     PUBLIC
-        gsl
+        GSL
         msos_fs
         eul_filesystem
         msos_drivers_character

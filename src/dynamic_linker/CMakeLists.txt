@@ -70,7 +70,7 @@ target_compile_options(msos_dynamic_linker
 
 target_link_libraries(msos_dynamic_linker
     PUBLIC
-        gsl
+        GSL
         eul_error
     PRIVATE
         msos_arch

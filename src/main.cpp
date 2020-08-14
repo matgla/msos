@@ -66,8 +66,8 @@ void kernel_process(void*)
 
     msos::drivers::character::UsartDriver usart(0);
     devfs.register_driver("tty1", usart);
-    msos::drivers::displays::SSD1306_I2C lcd(*board::interfaces::LCD_I2C);
-    devfs.register_driver("fb0", lcd);
+    // msos::drivers::displays::SSD1306_I2C lcd(*board::interfaces::LCD_I2C);
+    // devfs.register_driver("fb0", lcd);
     for (auto& driver : devfs.get_drivers())
     {
         driver.driver()->load();

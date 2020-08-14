@@ -42,7 +42,7 @@ target_compile_options(msos_drivers_storage
 
 target_link_libraries(msos_drivers_storage
     PUBLIC
-        gsl
+        GSL
     PRIVATE
         eul
         hal_flags

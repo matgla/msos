@@ -40,15 +40,11 @@ set_target_properties(host_with_args
         SUFFIX ".elf"
 )
 
-find_program(qemu_img qemu-img)
-
-if (NOT qemu_img)
-    message(FATAL_ERROR "qemu-img executable not found!")
-endif ()
+find_program(truncate_exec truncate)
 
 add_custom_command(
     TARGET host_with_args
-    COMMAND ${qemu_img} resize ${CMAKE_CURRENT_BINARY_DIR}/host_with_args.bin 32K
+    COMMAND ${truncate_exec} --size 32K ${CMAKE_CURRENT_BINARY_DIR}/host_with_args.bin
     POST_BUILD
     VERBATIM
 )

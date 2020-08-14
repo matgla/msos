@@ -37,7 +37,7 @@ add_module(module_with_args module_with_args)
 
 include(TestUtils)
 add_custom_target(module-with-args-generate-image ALL
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/test_binary.bin
+    # DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/test_binary.bin
 )
 add_custom_command(
     TARGET module_with_args

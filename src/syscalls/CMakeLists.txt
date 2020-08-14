@@ -34,7 +34,7 @@ target_link_libraries(msos_syscalls
         board
         msos_kernel_process
         msos_kernel_synchronization
-        gsl
+        GSL
         eul_filesystem
         hal
 )

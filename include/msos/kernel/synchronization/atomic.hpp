@@ -44,7 +44,7 @@ namespace atomic
 
 
 template <typename T>
-static inline T increment(volatile T& source, const T value)
+static inline T increment(T& source, const T value)
 {
     // asm volatile inline(
     //     "post_loop:\n\t"
@@ -62,7 +62,7 @@ static inline T increment(volatile T& source, const T value)
 }
 
 template <typename T>
-static inline T decrement(volatile T& source, const T value)
+static inline T decrement(T& source, const T value)
 {
 //     asm volatile inline("wait_loop:\n\t"
 //         "ldrex r1, [%[from]]\n\t"

@@ -89,7 +89,7 @@ target_include_directories(msos_interface SYSTEM BEFORE
 )
 
 target_link_libraries(msos_interface INTERFACE
-    gsl
+    GSL
     eul_filesystem
 )
 

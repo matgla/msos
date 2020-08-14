@@ -1,0 +1,54 @@
+{
+    "dependencies": [
+        {
+            "link": "https://github.com/matgla/EmbeddedHAL.git",
+            "type": "git",
+            "version": "master",
+            "directory": "hal",
+            "target": "hal",
+            "options": {
+            }
+        },
+        {
+            "name": "gsl",
+            "link": "https://github.com/microsoft/GSL.git",
+            "type": "git",
+            "version": "v3.0.0",
+            "directory": "gsl",
+            "target": "GSL",
+            "options": {
+                "cmake_variables": {
+                    "GSL_TERMINATE_ON_CONTRACT_VIOLATION": "ON",
+                    "GSL_MSVC_USE_STL_NOEXCEPTION_WORKAROUND": "ON"
+                }
+            }
+        },
+        {
+            "link": "https://github.com/matgla/MsGUI.git",
+            "type": "git",
+            "version": "master",
+            "directory": "msgui",
+            "target": "msgui",
+            "options": {
+                "cmake_variables": {
+                    "msgui_cxx_compilation_flags": "${hal_cxx_compilation_flags}",
+                    "msgui_linking_flags": "${hal_linker_flags}"
+                }
+            }
+        },
+        {
+            "link": "https://github.com/matgla/ms_romfs.git",
+            "type": "git",
+            "version": "master",
+            "directory": "romfs",
+            "target": "romfs",
+            "options": {
+                "cmake_variables": {
+                    "DISABLE_ROMFS_TESTS": "ON",
+                    "romfs_cxx_compilation_flags": "${hal_cxx_compilation_flags}",
+                    "romfs_linking_flags": "${hal_linker_flags}"
+                }
+            }
+        }
+    ]
+}
