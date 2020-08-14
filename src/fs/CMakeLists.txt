@@ -78,7 +78,7 @@ target_compile_options(msos_fs
 target_link_libraries(msos_fs
     PUBLIC
         msos_drivers_storage
-        gsl
+        GSL
         romfs # should't be public, try to change
         eul_filesystem
     PRIVATE

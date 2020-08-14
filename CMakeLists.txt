@@ -18,6 +18,21 @@ cmake_minimum_required(VERSION 3.9)
 
 project(msos NONE)
 
+include(FetchContent)
+
+FetchContent_Declare(
+  mspkg
+  GIT_REPOSITORY https://github.com/matgla/mspkg.git
+  GIT_TAG        master
+)
+
+FetchContent_MakeAvailable(mspkg)
+
+set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake ${mspkg_SOURCE_DIR}/cmake)
+include (mspkg)
+
+setup_mspkg(${mspkg_SOURCE_DIR})
+
 set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(${PROJECT_SOURCE_DIR}/cmake/GitModules.cmake)
@@ -32,19 +47,14 @@ else ()
     set(BUILD_MSOS_UT OFF CACHE BOOL "Build UT" FORCE)
 endif()
 
-fetch_module_via_branch(lib/hal ${PROJECT_SOURCE_DIR}/lib/hal ${CMAKE_CURRENT_SOURCE_DIR} "master")
+find_package(hal REQUIRED)
+
 
 enable_language(ASM C CXX)
-set (msgui_cxx_compilation_flags ${hal_cxx_compilation_flags} CACHE STRING "msgui compilation flags" FORCE)
-set (msgui_linking_flags ${hal_linker_flags} CACHE STRING "msgui linking flags" FORCE)
-fetch_module_via_branch(lib/msgui ${PROJECT_SOURCE_DIR}/lib/msgui ${CMAKE_CURRENT_SOURCE_DIR} "master")
-set (DISABLE_ROMFS_TESTS "1")
-set (romfs_cxx_compilation_flags ${hal_cxx_compilation_flags} CACHE STRING "romfs compilation flags" FORCE)
-set (romfs_linking_flags ${hal_linker_flags} CACHE STRING "romfs linking flags" FORCE)
-fetch_module_via_branch(lib/romfs ${PROJECT_SOURCE_DIR}/lib/romfs ${CMAKE_CURRENT_SOURCE_DIR} "master")
-fetch_module_via_branch(lib/gsl/gsl ${PROJECT_SOURCE_DIR}/lib/gsl/gsl ${CMAKE_CURRENT_SOURCE_DIR} "v3.0.0")
+find_package(msgui REQUIRED)
+find_package(romfs REQUIRED)
+find_package(GSL REQUIRED)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 # set(CMAKE_EXECUTABLE_SUFFIX "${CMAKE_EXECUTABLE_SUFFIX}")
 
 include_directories(BEFORE SYSTEM ${PROJECT_SOURCE_DIR}/include/msos/posix)

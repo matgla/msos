@@ -52,4 +52,6 @@ function(add_device_hal_library hal_device_library)
 
     include(${PROJECT_SOURCE_DIR}/devices/arm/stm32/stm32f1/stm32f103c8t6/configure_stm32f103c8t6.cmake)
     configure_device()
+
+    set(board_path ${user_boards_path}/Stm32_Black_Pill CACHE STRING "Path to board configuration files" FORCE)
 endfunction()

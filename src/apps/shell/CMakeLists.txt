@@ -27,7 +27,7 @@ target_include_directories(msos_shell
 target_link_libraries(msos_shell
     PRIVATE
         eul_filesystem
-        gsl
+        GSL
         msos_apps
         hal_flags
 )

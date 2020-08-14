@@ -52,7 +52,7 @@ target_link_libraries(msos_drivers
         # device_tree
 
     PUBLIC
-        gsl
+        GSL
         msos_fs
         eul_filesystem
 )
