@@ -1,12 +1,3 @@
-[submodule "lib/hal"]
-	path = lib/hal
-	url = https://github.com/matgla/EmbeddedHAL.git
-[submodule "lib/msgui"]
-	path = lib/msgui
-	url = https://github.com/matgla/MsGui.git
-[submodule "lib/gsl/gsl"]
-	path = lib/gsl/gsl
-	url = https://github.com/microsoft/GSL.git
 [submodule "site/themes/kraiklyn"]
 	path = site/themes/kraiklyn
 	url = https://github.com/jsnjack/kraiklyn.git
@@ -19,6 +10,3 @@
 [submodule "scripts/kconfig"]
 	path = scripts/kconfig
 	url = https://github.com/ulfalizer/Kconfiglib.git
-[submodule "lib/romfs"]
-	path = lib/romfs
-	url = https://github.com/matgla/ms_romfs.git
