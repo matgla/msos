@@ -28,7 +28,7 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(mspkg)
 
-set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${mspkg_SOURCE_DIR}/cmake)
+set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake ${mspkg_SOURCE_DIR}/cmake)
 include (mspkg)
 
 setup_mspkg(${mspkg_SOURCE_DIR})
@@ -60,7 +60,6 @@ find_package(msgui REQUIRED)
 find_package(romfs REQUIRED)
 find_package(GSL REQUIRED)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 set(CMAKE_EXECUTABLE_SUFFIX "${CMAKE_EXECUTABLE_SUFFIX}")
 
 include_directories(BEFORE SYSTEM ${PROJECT_SOURCE_DIR}/include/msos/posix)
