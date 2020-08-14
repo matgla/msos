@@ -10,4 +10,4 @@ MEMORY
 _heap_size = 0x2500;
 _stack_size = 0x2000;
 
-INCLUDE ../../lib/hal/devices/arm/stm32/stm32f1/stm32f10x_common.ld
+INCLUDE devices/arm/stm32/stm32f1/stm32f10x_common.ld
