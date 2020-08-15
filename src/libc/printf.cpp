@@ -84,17 +84,28 @@ extern "C"
 
 int fileno(FILE *stream);
 
+int _printf(const char* format, ...)
+{
+    va_list arg;
+    va_start (arg, format);
+    int done = __vfprintf_(writer_b_, 1, format, arg, 0);
+    va_end (arg);
+    return done;
+}
+
 char* _fgets(char* buffer, int n, FILE* fp)
 {
     int readed = -1;
     int fd = fileno(fp);
     char c = 0;
+
     while (c != '\n')
     {
         if (!read(fd, &c, 1))
         {
             continue;
         }
+        
         if (c == '\b')
         {
             if (readed >= 0)
@@ -166,13 +177,6 @@ int _scanf(const char* format, ...)
     return done;
 }
 
-int _printf(const char* format, ...)
-{
-    va_list arg;
-    va_start (arg, format);
-    int done = __vfprintf_(writer_b_, 1, format, arg, 0);
-    va_end (arg);
-    return done;
-}
+
 
 } // extern "C"

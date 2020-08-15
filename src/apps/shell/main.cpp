@@ -26,6 +26,7 @@
 
 #include <eul/filesystem/path.hpp>
 #include "msos/apps/app_registry.hpp"
+#include "msos/libc/printf.hpp"
 
 #include "msos/kernel/process/spawn.hpp"
 
@@ -185,8 +186,8 @@ int app_start()
 
             if (is_absolute_path(buffer))
             {
-                printf("executing %s\n", path.c_str());
-                exec(buffer, NULL, NULL, 0);
+                // printf("executing %s\n", path.c_str());
+                // exec(buffer, NULL, NULL, 0);
             }
             else
             {
@@ -210,8 +211,8 @@ int app_start()
                     std::memcpy(absolute_path + pwd_length, path.c_str(), path.native().length());
                     absolute_path[path.native().length() + pwd_length] = 0;
                 }
-                printf("executing %s\n", absolute_path);
-                exec(absolute_path, NULL, NULL, 0);
+                // printf("executing %s\n", absolute_path);
+                // exec(absolute_path, NULL, NULL, 0);
             }
         }
     }
