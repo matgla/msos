@@ -52,7 +52,7 @@ static std::size_t get_lot_at(uint32_t address)
 int main()
 {
     board::board_init();
-    auto usart = board::interfaces::usarts[0];
+    auto usart = board::interfaces::usarts()[0];
     usart->init(9600);
     usart->write("HEJOTRA\n");
 

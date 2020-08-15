@@ -44,7 +44,6 @@
 #include "msgui/policies/data/DefaultMemoryPolicy.hpp"
 #include "msgui/fonts/Font5x7.hpp"
 
-
 extern "C"
 {
 extern uint32_t _fs_flash_start;
@@ -68,6 +67,7 @@ void kernel_process(void*)
         vfs.mount_fs("/rom", &romfs);
     }
 
+    // writer << "Start" << endl;
     msos::drivers::DeviceFs& devfs = msos::drivers::DeviceFs::get_instance();
 
     for (auto& driver : devfs.get_drivers())
@@ -92,7 +92,12 @@ void kernel_process(void*)
 int main()
 {
     board::board_init();
-    hal::core::Core::initializeClocks();
+    // hal::core::Core::initializeClocks();
+
+    auto usart = board::interfaces::usarts()[0];
+    usart->init(9600);
+    usart->write("HEJOTRA\n");
+
     msos::system_config();
 
     spawn_root_process(&kernel_process, NULL, 4048);

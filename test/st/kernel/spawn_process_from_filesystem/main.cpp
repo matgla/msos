@@ -76,7 +76,7 @@ void child_process(void* arg)
     writer << "Welcome in child process with arg " << reinterpret_cast<uint32_t>(arg) << endl;
     auto& romfs = *reinterpret_cast<msos::fs::RomFs*>(arg);
     /* get raw file and execute */
-    auto file = romfs.get("/interface_and_classes.bin");
+    auto file = romfs.get("/interface_and_classes.bin", O_RDONLY);
     writer << "Get file" << endl;
     if (!file)
     {
@@ -215,7 +215,7 @@ void kernel_process(void *)
 int main()
 {
     board::board_init();
-    const auto& usart = board::interfaces::usarts[0];
+    const auto& usart = board::interfaces::usarts()[0];
     usart->init(9600);
 
     writer << "[TEST START]" << endl;

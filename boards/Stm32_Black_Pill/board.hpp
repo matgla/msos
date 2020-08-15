@@ -48,7 +48,6 @@ namespace interfaces
 {
 
 std::array<hal::interfaces::Usart*, 1>& usarts();
-hal::interfaces::I2C& LCD_I2C();
 
 }
 

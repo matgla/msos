@@ -140,10 +140,10 @@ target_link_libraries(msos_test PRIVATE msos_main)
 include (GenerateBinary)
 generate_binary(msos_test ${vendor})
 
-set_target_properties(msos_test
-    PROPERTIES
-        SUFFIX ${HAL_EXECUTABLE_SUFFIX}
-)
+# set_target_properties(msos_test
+#     PROPERTIES
+#         SUFFIX ${HAL_EXECUTABLE_SUFFIX}
+# )
 
 if (${vendor} STREQUAL "STM32")
 
@@ -161,7 +161,7 @@ if (${vendor} STREQUAL "STM32")
         POST_BUILD
         COMMAND rm -f ${PROJECT_BINARY_DIR}/rootfs.img
         COMMAND genromfs -f ${PROJECT_BINARY_DIR}/rootfs.img -d ${PROJECT_BINARY_DIR}/rootfs -v -V msos_romfs
-        COMMAND ${truncate_exec} --size 40K ${executable_file}
+        COMMAND ${truncate_exec} --size 50K ${executable_file}
         COMMAND cp ${executable_file} ${executable_file}.tmp
         COMMAND cat ${executable_file}.tmp ${PROJECT_BINARY_DIR}/rootfs.img > ${executable_file}
         VERBATIM

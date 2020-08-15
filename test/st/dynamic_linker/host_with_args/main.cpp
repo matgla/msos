@@ -42,7 +42,7 @@ static uint32_t get_lot_at(uint32_t address)
 int main()
 {
     board::board_init();
-    const auto& usart = board::interfaces::usarts[0];
+    const auto& usart = board::interfaces::usarts()[0];
     usart->init(9600);
 
     uint32_t address_of_lot_getter = reinterpret_cast<uint32_t>(&get_lot_at);

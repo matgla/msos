@@ -53,5 +53,23 @@ function(add_device_hal_library hal_device_library)
     include(${PROJECT_SOURCE_DIR}/devices/arm/stm32/stm32f1/stm32f103c8t6/configure_stm32f103c8t6.cmake)
     configure_device()
 
+    add_library(sysconfig STATIC)
+    target_sources(sysconfig PUBLIC
+        PUBLIC
+            ${user_boards_path}/Stm32_Black_Pill/config.hpp
+        PRIVATE
+            ${user_boards_path}/Stm32_Black_Pill/config.cpp
+    )
+    target_include_directories(sysconfig PUBLIC
+        ${user_boards_path}/Stm32_Black_Pill
+        ${PROJECT_SOURCE_DIR}/src)
+
+    target_link_libraries(sysconfig
+        PRIVATE
+            msos_kernel_process
+            msos_arch
+            hal_interface
+    )
+
     set(board_path ${user_boards_path}/Stm32_Black_Pill CACHE STRING "Path to board configuration files" FORCE)
 endfunction()

@@ -1,6 +1,5 @@
-
-// This file is part of MSOS project. This is simple OS for embedded development devices.
-// Copyright (C) 2019 Mateusz Stadnik
+// This file is part of MS Keychain Gamer project. This is tiny game console.
+// Copyright (C) 2020 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,29 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "board.hpp"
+#pragma once
 
-#include <stm32f10x.h>
+/* This file describes hardware configuration, existing input and output peripherals */
 
-#include <devices/arm/stm32/stm32f1/stm32f103c8t6/usart.hpp>
-#include <devices/arm/stm32/stm32f1/stm32f103c8t6/gpio.hpp>
-
-namespace board
+namespace msos
 {
 
-namespace interfaces
-{
-    std::array<hal::interfaces::Usart*, 1>& usarts()
-    {
-        static hal::devices::interfaces::Usart1 usart1;
-        static std::array<hal::interfaces::Usart*, 1> usarts_{&usart1};
-        return usarts_;
-    }
-}
-
-void board_init()
-{
-    SystemInit();
-}
+void system_config();
 
 }

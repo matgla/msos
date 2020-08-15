@@ -1,6 +1,5 @@
-
-// This file is part of MSOS project. This is simple OS for embedded development devices.
-// Copyright (C) 2019 Mateusz Stadnik
+// This file is part of MS Keychain Gamer project. This is tiny game console.
+// Copyright (C) 2020 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,29 +14,32 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "board.hpp"
+#include <config.hpp>
 
-#include <stm32f10x.h>
+#include <arch/armv7-m/normal_scheduler.hpp>
+#include <msos/kernel/process/scheduler.hpp>
 
-#include <devices/arm/stm32/stm32f1/stm32f103c8t6/usart.hpp>
-#include <devices/arm/stm32/stm32f1/stm32f103c8t6/gpio.hpp>
+#include <msos/posix/fsync.hpp>
 
-namespace board
+extern "C"
 {
-
-namespace interfaces
-{
-    std::array<hal::interfaces::Usart*, 1>& usarts()
+    int fsync(int fd)
     {
-        static hal::devices::interfaces::Usart1 usart1;
-        static std::array<hal::interfaces::Usart*, 1> usarts_{&usart1};
-        return usarts_;
+        return _fsync(fd);
     }
 }
 
-void board_init()
+namespace msos
 {
-    SystemInit();
+
+namespace
+{
+    msos::arch::armv7m::NormalScheduler scheduler;
+}
+
+void system_config()
+{
+    kernel::process::Scheduler::set(&scheduler);
 }
 
 }

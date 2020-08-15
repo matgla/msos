@@ -32,7 +32,7 @@ int main()
 {
     board::board_init();
 
-    auto usart = board::interfaces::usarts[0];
+    auto usart = board::interfaces::usarts()[0];
     usart->init(9600);
 
     writer << "[TEST_START]" << endl;
