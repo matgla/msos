@@ -1,5 +1,5 @@
-// This file is part of MSOS project. This is simple OS for embedded development devices.
-// Copyright (C) 2019 Mateusz Stadnik
+// This file is part of MS Keychain Gamer project. This is tiny game console.
+// Copyright (C) 2020 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,34 +16,11 @@
 
 #pragma once
 
-#include <memory>
-
-#include "msos/dynamic_linker/module.hpp"
+/* This file describes hardware configuration, existing input and output peripherals */
 
 namespace msos
 {
-namespace dl
-{
 
-class LoadedModule
-{
-public:
-    LoadedModule();
-    LoadedModule(const ModuleHeader& header);
+void system_config();
 
-    const Module& get_module() const;
-    Module& get_module();
-
-    void set_start_address(const std::size_t start_address);
-    int execute(int argc, char *argv[]) const;
-    int execute(int argc, const char *argv[]) const;
-    int execute() const;
-
-private:
-    std::size_t start_address_;
-    Module module_;
-};
-
-} // namespace dl
-} // namespace msos
-
+}

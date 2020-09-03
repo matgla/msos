@@ -22,6 +22,7 @@
 
 #include "msos/fs/romfs_file.hpp"
 #include "msos/fs/utils.hpp"
+#include "msos/libc/printf.hpp"
 
 namespace msos
 {
@@ -75,7 +76,6 @@ std::unique_ptr<IFile> RomFs::get(const eul::filesystem::path& path, int flags)
         return std::make_unique<RomFsFile>(dir->get_file_header());
     }
 
-
     auto filename = path_in_fs.filename();
     dir = disk_.get_directory(path_in_fs.parent_path().native());
     if (dir)
@@ -120,6 +120,11 @@ std::vector<std::unique_ptr<IFile>> RomFs::list(const eul::filesystem::path& pat
 std::string_view RomFs::name() const
 {
     return "RomFS";
+}
+
+bool RomFs::is_valid() const
+{
+    return disk_.is_valid();
 }
 
 

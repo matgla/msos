@@ -18,6 +18,7 @@
 
 #include "symbol_codes.h"
 #include "msos/posix/dirent.h"
+#include "msos/posix/unistd_impl.hpp"
 #include "arch/armv7-m/arm_process.hpp"
 #include "msos/kernel/process/process.hpp"
 #include "msos/kernel/process/process_manager.hpp"
@@ -56,6 +57,8 @@ struct ExecInfo
     const char* path;
     const SymbolEntry* entries;
     int number_of_entries;
+    int argc;
+    char** argv;
 };
 
 extern "C"
@@ -66,10 +69,15 @@ extern "C"
     }
 }
 
-static msos::dl::Environment<3> env{
+static msos::dl::Environment<8> env{
     msos::dl::SymbolAddress{SymbolCode::libc_strlen, &strlen},
     msos::dl::SymbolAddress{SymbolCode::libc_scanf, reinterpret_cast<uint32_t*>(&_scanf)},
     msos::dl::SymbolAddress{SymbolCode::libc_printf, reinterpret_cast<uint32_t*>(&_printf)},
+    msos::dl::SymbolAddress{SymbolCode::libc_memset, &memset},
+    msos::dl::SymbolAddress{SymbolCode::posix__readdir, &readdir},
+    msos::dl::SymbolAddress{SymbolCode::posix__opendir, &opendir},
+    msos::dl::SymbolAddress{SymbolCode::posix__closedir, &closedir},
+    msos::dl::SymbolAddress{SymbolCode::posix_getcwd, &getcwd},
 };
 
 pid_t spawn(void (*start_routine) (void *), void *arg)
@@ -111,11 +119,6 @@ int exec_process(ExecInfo* info)
         writer << "File not found" << endl;
         return -1;
     }
-    if (file->name().rfind(".bin") == std::string_view::npos)
-    {
-        writer << "Bin not exists" << endl;
-        return -1;
-    }
 
     if (dest_fs->name() == "AppFs")
     {
@@ -133,21 +136,21 @@ int exec_process(ExecInfo* info)
 
     if (info->entries)
     {
-        writer << "Loading module " << endl;
         module = dynamic_linker.load_module(module_address, msos::dl::LoadingModeCopyData, info->entries, info->number_of_entries, ec);
         delete info;
     }
     else
     {
-        writer << "Loading module 2" << endl;
-
         module = dynamic_linker.load_module(module_address, msos::dl::LoadingModeCopyData, env, ec);
+        if (ec)
+        {
+            writer << ec.message() << endl;
+        }
         delete info;
     }
     if (module)
     {
-        writer << "Moduel execute" << endl;
-        return module->execute();
+        return module->execute(info->argc, info->argv);
     }
     else
     {
@@ -162,9 +165,8 @@ int exec_process(ExecInfo* info)
 
 static bool is_first = true;
 
-void exec(const char* path, void *arg, const SymbolEntry* entries, int number_of_entries)
+void exec(const char* path, int argc, char* argv[], const SymbolEntry* entries, int number_of_entries)
 {
-    UNUSED1(arg);
     if (is_first)
     {
         std::size_t address_of_lot_getter = reinterpret_cast<std::size_t>(&get_lot_at);
@@ -176,7 +178,9 @@ void exec(const char* path, void *arg, const SymbolEntry* entries, int number_of
     ExecInfo* info = new ExecInfo{
         .path = path,
         .entries = entries,
-        .number_of_entries = number_of_entries
+        .number_of_entries = number_of_entries,
+        .argc = argc,
+        .argv = argv
     };
 
     exec_process(info);

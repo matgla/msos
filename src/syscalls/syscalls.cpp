@@ -41,6 +41,8 @@
 
 #include "msos/usart_printer.hpp"
 
+#ifndef ENABLE_SEMIHOSTING
+
 extern "C"
 {
     int _gettimeofday(struct timeval* tv, void* tzvp);
@@ -134,6 +136,7 @@ int _write(int fd, const char* ptr, int len)
         return 0;
     }
     msos::fs::IFile* file = process->get_file(fd);
+
     if (file)
     {
         return static_cast<int>(file->write(std::string_view(ptr, static_cast<std::size_t>(len))));
@@ -280,6 +283,8 @@ clock_t _times (struct tms *buf)
     return clk;
 }
 
+#endif // ENABLE_SEMIHOSTING
+
 namespace msos
 {
 namespace syscalls
@@ -304,3 +309,4 @@ void process_exit(int code)
 
 } // namespace syscalls
 } // namespace msos
+

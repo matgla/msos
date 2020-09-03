@@ -14,36 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
+#include "board.hpp"
 
-#include <memory>
-
-#include "msos/dynamic_linker/module.hpp"
-
-namespace msos
+extern "C"
 {
-namespace dl
+    uint32_t _fs_flash_start = 0;
+}
+
+namespace board
 {
 
-class LoadedModule
+namespace interfaces
 {
-public:
-    LoadedModule();
-    LoadedModule(const ModuleHeader& header);
+std::array<hal::interfaces::Usart*, 1>& usarts()
+{
+    static hal::devices::interfaces::Usart1 usart1;
+    static std::array<hal::interfaces::Usart*, 1> usarts_{&usart1};
+    return usarts_;
+}
 
-    const Module& get_module() const;
-    Module& get_module();
+}
 
-    void set_start_address(const std::size_t start_address);
-    int execute(int argc, char *argv[]) const;
-    int execute(int argc, const char *argv[]) const;
-    int execute() const;
+void board_init()
+{
+}
 
-private:
-    std::size_t start_address_;
-    Module module_;
-};
-
-} // namespace dl
-} // namespace msos
+}
 

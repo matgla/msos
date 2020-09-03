@@ -8,12 +8,14 @@
         "scanf": 101,
         "sprintf": 102,
         "atoi": 200,
-        "strlen": 300
+        "strlen": 300,
+        "memset": 301
     },
     "posix": {
         "_readdir": 1000,
         "_opendir": 1001,
         "_closedir": 1002,
+        "getcwd": 1003,
         "write": 1100
     }
 }

@@ -35,8 +35,6 @@ setup_mspkg(${mspkg_SOURCE_DIR})
 
 set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-include(${PROJECT_SOURCE_DIR}/cmake/GitModules.cmake)
-
 set (user_boards_path ${PROJECT_SOURCE_DIR}/boards CACHE STRING "Path to boards provided from user")
 add_definitions("-DGSL_TERMINATE_ON_CONTRACT_VIOLATION=1 -DGSL_MSVC_USE_STL_NOEXCEPTION_WORKAROUND")
 
@@ -47,10 +45,19 @@ else ()
     set(BUILD_MSOS_UT OFF CACHE BOOL "Build UT" FORCE)
 endif()
 
+if (NOT DISABLE_TESTS OR DISABLE_ST_TESTS)
+    set (ENABLE_SEMIHOSTING ON)
+endif ()
+
 find_package(hal REQUIRED)
 
-
 enable_language(ASM C CXX)
+
+if (NOT DISABLE_TESTS)
+    add_definitions(-DENABLE_SEMIHOSTING)
+endif ()
+
+find_package(EmbeddedCMake REQUIRED)
 find_package(msgui REQUIRED)
 find_package(romfs REQUIRED)
 find_package(GSL REQUIRED)
@@ -79,5 +86,3 @@ if (NOT DISABLE_TESTS OR DISABLE_ST_TESTS)
     enable_testing()
     add_subdirectory(test)
 endif ()
-
-set (NO_DEPS_UPDATE ON CACHE BOOL "Dependencies downloaded, and shouln't be changed when cmake-regenerate")

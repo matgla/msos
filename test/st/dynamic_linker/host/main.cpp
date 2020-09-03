@@ -54,7 +54,6 @@ int main()
     board::board_init();
     auto usart = board::interfaces::usarts()[0];
     usart->init(9600);
-    usart->write("HEJOTRA\n");
 
     std::size_t address_of_lot_getter = reinterpret_cast<std::size_t>(&get_lot_at);
     std::size_t* lot_in_memory = reinterpret_cast<std::size_t*>(0x20000000);

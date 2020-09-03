@@ -16,12 +16,11 @@
 
 cmake_minimum_required(VERSION 3.10)
 
-include (${PROJECT_SOURCE_DIR}/cmake/GitModules.cmake)
-if (NOT TARGET gtest)
-    fetch_module_via_tag(test/ut/lib/googletest ${PROJECT_SOURCE_DIR}/test/ut/lib/googletest ${PROJECT_SOURCE_DIR} "release-1.10.0")
-endif()
+find_package(mstest REQUIRED)
 
-add_subdirectory(dynamic_linker)
-add_subdirectory(posix)
-add_subdirectory(fs)
+add_subdirectory(apps)
+
+# add_subdirectory(dynamic_linker)
+# add_subdirectory(posix)
+# add_subdirectory(fs)
 

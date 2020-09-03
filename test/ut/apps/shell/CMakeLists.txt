@@ -14,34 +14,28 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(msos_libc)
+add_executable(apps_shell_tests)
 
-set (library_includes ${PROJECT_SOURCE_DIR}/include/msos/libc)
+find_package(mstest REQUIRED)
 
-target_sources(msos_libc
-    PUBLIC
-        ${library_includes}/printf.hpp
+target_sources(apps_shell_tests
     PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/printf.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/command_parser_tests.cpp
 )
 
-target_include_directories(msos_libc
+target_link_libraries(apps_shell_tests
     PUBLIC
-        ${PROJECT_SOURCE_DIR}/include
+        msos_shell
+        hal
+        mstest
 )
 
-target_compile_options(msos_libc
-    PUBLIC
-        $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a>
-        $<$<CONFIG:DEBUG>:-Og -g>
-        $<$<CONFIG:RELEASE>:-Os>
-    PRIVATE
-        $<$<COMPILE_LANGUAGE:CXX>:-Werror -Wall -Wextra -Wpedantic -Wconversion -Wcast-align -Wunused -Wshadow -Wold-style-cast -Wpointer-arith -Wcast-qual -Wno-missing-braces>
+include (GenerateBinary)
+
+set_target_properties(apps_shell_tests
+    PROPERTIES
+        SUFFIX ".elf"
 )
 
-target_link_libraries(msos_libc
-    PRIVATE
-        msos_printer
-        hal_flags
-        eul_utils
-)
+generate_binary(apps_shell_tests ${vendor})

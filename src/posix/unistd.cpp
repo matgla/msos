@@ -14,35 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <cstdio>
+#include "unistd.h"
 
-#include <dirent.h>
-#include <unistd.h>
+#include <cstring>
+#include <string_view>
 
-int main(int argc, char *argv[])
+#include "msos/kernel/process/scheduler.hpp"
+
+extern "C"
 {
-    char buffer[255] = {0};
-    getcwd(buffer, sizeof(buffer));
 
-    DIR *d;
-    struct dirent *dir;
-
-    // I know it's buggy, to be fixed with msos getopt :)
-    if (argc > 1)
-    {
-        d = opendir(argv[1]);
-    }
-    else
-    {
-        d = opendir(buffer);
-    }
-    if (d) {
-        while ((dir = readdir(d)) != NULL) {
-            printf("%s ", dir->d_name);
-        }
-        printf("\n");
-        closedir(d);
-    }
-    return(0);
+char *getcwd(char *buf, size_t size)
+{
+    const auto* scheduler = msos::kernel::process::Scheduler::get();
+    const auto* process = scheduler->current_process();
+    std::string_view cwd = process->get_cwd();
+    std::size_t size_to_copy = (size - 1) > cwd.size() ? cwd.size() : size - 1;
+    std::memcpy(buf, cwd.data(), size_to_copy);
+    buf[size_to_copy] = 0;
+    return buf;
 }
 
+}

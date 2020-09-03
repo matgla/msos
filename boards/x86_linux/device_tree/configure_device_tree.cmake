@@ -1,5 +1,5 @@
 # This file is part of MSOS project. This is simple OS for embedded development devices.
-# Copyright (C) 2020 Mateusz Stadnik
+# Copyright (C) 2019 Mateusz Stadnik
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,5 +14,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_subdirectory(ut)
-add_subdirectory(st)
+
+function(configure_device_tree)
+    include (ConfigureDeviceTree)
+    message(STATUS "Configuring device tree for STM32 Black Pill")
+    add_device_tree(${board_path}/device_tree/device_tree.json)
+
+endfunction()

@@ -14,21 +14,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_executable(msos_ls)
+add_executable(ls)
 
-target_sources(msos_ls
+target_sources(ls
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 
 
-# TODO: smarter way to inherit flags
-target_link_libraries(msos_ls
+target_link_libraries(ls
     PRIVATE
         module_flags
 )
 
-add_module(msos_ls msos_ls)
+add_module(ls ls)
 
 if (${arch} STREQUAL "ARM")
     set (suffix ".bin")
@@ -39,8 +38,8 @@ else ()
 endif ()
 
 add_custom_command(
-    TARGET msos_ls
+    TARGET ls
     POST_BUILD
     COMMAND mkdir -p ${PROJECT_BINARY_DIR}/rootfs/bin
-    COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/${prefix}msos_ls${suffix} ${PROJECT_BINARY_DIR}/rootfs/bin/
+    COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/${prefix}ls${suffix} ${PROJECT_BINARY_DIR}/rootfs/bin/ls
 )

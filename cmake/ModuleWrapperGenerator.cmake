@@ -46,9 +46,11 @@ function (add_module module_name module_library)
         add_custom_command(
             TARGET ${module_name}
             POST_BUILD
+            COMMAND echo "${PROJECT_BINARY_DIR}/module_generator_env/bin/python3 ${GENERATE_BINARY} generate_wrapper_code --disable_logs --elf_filename=$<TARGET_FILE:${module_name}> --module_name=${module_name} --objcopy=${CMAKE_OBJCOPY} --as_executable --api=${PROJECT_SOURCE_DIR}/api/symbol_codes.json"
             COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/python3 ${GENERATE_BINARY}
-            generate_wrapper_code --disable_logs --elf_filename=$<TARGET_FILE:${module_name}> --module_name=${module_name}
+            generate_wrapper_code --elf_filename=$<TARGET_FILE:${module_name}> --module_name=${module_name}
             --objcopy=${CMAKE_OBJCOPY} --as_executable --api=${PROJECT_SOURCE_DIR}/api/symbol_codes.json
+            COMMAND echo "Module generated: ${module_name}"
             DEPENDS ${GENERATE_BINARY} ${module_name} venv.stamp
             VERBATIM
         )
@@ -79,7 +81,7 @@ function (add_module_flags_target)
         target_include_directories(module_flags INTERFACE ${PROJECT_SOURCE_DIR}/include)
     else ()
         target_link_options(module_flags INTERFACE
-            "${hal_linker_flags};-Wl,--unresolved-symbols=ignore-in-object-files;")
+            "${hal_linker_flags}")
 
 
         target_compile_options(module_flags

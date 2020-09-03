@@ -1,5 +1,5 @@
-// This file is part of MSOS project. This is simple OS for embedded development devices.
-// Copyright (C) 2019 Mateusz Stadnik
+// This file is part of MS Keychain Gamer project. This is tiny game console.
+// Copyright (C) 2020 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,34 +16,29 @@
 
 #pragma once
 
-#include <memory>
+/* This file describes hardware configuration, existing input and output peripherals */
 
-#include "msos/dynamic_linker/module.hpp"
+#include <array>
 
-namespace msos
+#include <devices/x86/linux/usart.hpp>
+#include <devices/x86/linux/i2c.hpp>
+#include <devices/x86/linux/gpio.hpp>
+
+namespace board
 {
-namespace dl
+
+void board_init();
+
+namespace gpio
 {
+    using RIGHT_KEY = hal::gpio::X86ButtonFactory<1>;
+    using MID_KEY = hal::gpio::X86ButtonFactory<2>;
+    using LEFT_KEY = hal::gpio::X86ButtonFactory<3>;
+}
 
-class LoadedModule
+namespace interfaces
 {
-public:
-    LoadedModule();
-    LoadedModule(const ModuleHeader& header);
+    std::array<hal::interfaces::Usart*, 1>& usarts();
+}
 
-    const Module& get_module() const;
-    Module& get_module();
-
-    void set_start_address(const std::size_t start_address);
-    int execute(int argc, char *argv[]) const;
-    int execute(int argc, const char *argv[]) const;
-    int execute() const;
-
-private:
-    std::size_t start_address_;
-    Module module_;
-};
-
-} // namespace dl
-} // namespace msos
-
+}

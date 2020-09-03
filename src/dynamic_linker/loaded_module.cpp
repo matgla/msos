@@ -24,7 +24,7 @@
 extern "C"
 {
 int call_external(std::size_t address, void* lot);
-int call_external_with_args(int argc, const char *argv[], std::size_t address, void* lot);
+int call_external_with_args(int argc, char *argv[], std::size_t address, void* lot);
 }
 
 namespace msos
@@ -56,10 +56,16 @@ void LoadedModule::set_start_address(const std::size_t start_address)
     start_address_ = start_address;
 }
 
-int LoadedModule::execute(int argc, const char *argv[]) const
+int LoadedModule::execute(int argc, char *argv[]) const
 {
     return call_external_with_args(argc, argv, start_address_, module_.get_lot().get());
 }
+
+int LoadedModule::execute(int argc, const char *argv[]) const
+{
+    return call_external_with_args(argc, const_cast<char**>(argv), start_address_, module_.get_lot().get());
+}
+
 
 int LoadedModule::execute() const
 {

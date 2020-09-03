@@ -14,35 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <cstdio>
 
-#include <dirent.h>
-#include <unistd.h>
+#include <board.hpp>
 
-int main(int argc, char *argv[])
+#include <stdio.h>
+
+#include <mstest/mstest.hpp>
+
+int main(void)
 {
-    char buffer[255] = {0};
-    getcwd(buffer, sizeof(buffer));
+    board::board_init();
 
-    DIR *d;
-    struct dirent *dir;
+    int rc = mstest::run_tests();
+    exit(rc);
+    while (true)
+    {
 
-    // I know it's buggy, to be fixed with msos getopt :)
-    if (argc > 1)
-    {
-        d = opendir(argv[1]);
     }
-    else
-    {
-        d = opendir(buffer);
-    }
-    if (d) {
-        while ((dir = readdir(d)) != NULL) {
-            printf("%s ", dir->d_name);
-        }
-        printf("\n");
-        closedir(d);
-    }
-    return(0);
 }
-

@@ -49,6 +49,19 @@
                     "romfs_linking_flags": "${hal_linker_flags}"
                 }
             }
+        },
+        {
+            "link": "https://github.com/matgla/MsTest",
+            "type": "git",
+            "version": "master",
+            "directory": "mstest",
+            "target": "mstest",
+            "options": {
+                "cmake_variables": {
+                    "MSTEST_CXX_COMPILER_FLAGS": "${hal_cxx_compilation_flags}",
+                    "MSTEST_LINKER_FLAGS": "${hal_exe_linker_flags}"
+                }
+            }
         }
     ]
 }

@@ -23,6 +23,8 @@
 
 #include "msos/fs/fwd.hpp"
 
+#include "msos/limits.hpp"
+
 namespace msos
 {
 namespace kernel
@@ -58,11 +60,14 @@ public:
     int remove_file(int fd);
     msos::fs::IFile* get_file(int fd) const;
 
+    std::string_view get_cwd() const;
+
 protected:
     int fd_map_;
     pid_t pid_;
     State state_;
     std::array<std::unique_ptr<msos::fs::IFile>, 8> fd_;
+    char cwd_[PATH_MAX] = "/";
 };
 
 } // namespace process

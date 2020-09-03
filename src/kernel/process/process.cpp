@@ -98,6 +98,12 @@ msos::fs::IFile* Process::get_file(int fd) const
     return nullptr;
 }
 
+std::string_view Process::get_cwd() const
+{
+    return cwd_;
+}
+
+
 } // namespace process
 } // namespace kernel
 } // namespace msos

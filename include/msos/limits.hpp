@@ -14,35 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <cstdio>
+#pragma once
 
-#include <dirent.h>
-#include <unistd.h>
+#include <cstdlib>
 
-int main(int argc, char *argv[])
-{
-    char buffer[255] = {0};
-    getcwd(buffer, sizeof(buffer));
-
-    DIR *d;
-    struct dirent *dir;
-
-    // I know it's buggy, to be fixed with msos getopt :)
-    if (argc > 1)
-    {
-        d = opendir(argv[1]);
-    }
-    else
-    {
-        d = opendir(buffer);
-    }
-    if (d) {
-        while ((dir = readdir(d)) != NULL) {
-            printf("%s ", dir->d_name);
-        }
-        printf("\n");
-        closedir(d);
-    }
-    return(0);
-}
-
+constexpr std::size_t PATH_MAX = 255;

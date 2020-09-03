@@ -22,10 +22,12 @@ target_sources(msos_posix
     PUBLIC
         ${library_includes}/dirent.h
         ${library_includes}/dirent_utils.hpp
+        ${library_includes}/unistd_impl.hpp
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/dirent.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/fsync.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/dirent_utils.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/unistd.cpp
 )
 
 target_include_directories(msos_posix

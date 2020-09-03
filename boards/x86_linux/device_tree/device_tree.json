@@ -1,0 +1,16 @@
+{
+    "drivers": [
+        {
+        }
+    ],
+    "character": [
+        {
+            "usart": [
+                {
+                    "name": "tty1",
+                    "driver_name": "usart1"
+                }
+            ]
+        }
+    ]
+}

@@ -137,23 +137,27 @@ endif ()
 
 add_executable(msos_test)
 target_link_libraries(msos_test PRIVATE msos_main)
+
 include (GenerateBinary)
 generate_binary(msos_test ${vendor})
 
-# set_target_properties(msos_test
-#     PROPERTIES
-#         SUFFIX ${HAL_EXECUTABLE_SUFFIX}
-# )
+
 
 if (${vendor} STREQUAL "STM32")
+    set_target_properties(msos_test
+        PROPERTIES
+            SUFFIX ".elf"
+    )
 
     find_program(truncate_exec truncate)
     set (executable_file "${CMAKE_CURRENT_BINARY_DIR}/msos_test.bin")
 
     add_custom_target(generate_romfs
         ALL
-        DEPENDS msos_test simple_game msos_ls
-
+        DEPENDS
+            msos_test
+            simple_game
+            ls
     )
 
     add_custom_command(
@@ -164,6 +168,7 @@ if (${vendor} STREQUAL "STM32")
         COMMAND ${truncate_exec} --size 50K ${executable_file}
         COMMAND cp ${executable_file} ${executable_file}.tmp
         COMMAND cat ${executable_file}.tmp ${PROJECT_BINARY_DIR}/rootfs.img > ${executable_file}
+        COMMAND echo "ROMFS generated!"
         VERBATIM
     )
 endif()

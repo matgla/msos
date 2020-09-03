@@ -105,7 +105,7 @@ char* _fgets(char* buffer, int n, FILE* fp)
         {
             continue;
         }
-        
+
         if (c == '\b')
         {
             if (readed >= 0)

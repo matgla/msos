@@ -95,7 +95,7 @@ void child_process(void* arg)
         msos::dl::SymbolAddress{SymbolCode::libc_printf, &printf},
     };
 
-    exec("/rom/interface_and_classes.bin", NULL, reinterpret_cast<const SymbolEntry*>(env.data().data()), env.data().size());
+    exec("/rom/interface_and_classes.bin", 0, NULL, reinterpret_cast<const SymbolEntry*>(env.data().data()), env.data().size());
 
     writer << "[TEST DONE]" << endl;
 }

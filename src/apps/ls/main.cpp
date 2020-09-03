@@ -17,25 +17,14 @@
 #include <cstdio>
 
 #include <dirent.h>
-#include <unistd.h>
 
-int main(int argc, char *argv[])
+#include "msos/apps/app_registry.hpp"
+
+void ls_command(const char* path)
 {
-    char buffer[255] = {0};
-    getcwd(buffer, sizeof(buffer));
-
     DIR *d;
     struct dirent *dir;
-
-    // I know it's buggy, to be fixed with msos getopt :)
-    if (argc > 1)
-    {
-        d = opendir(argv[1]);
-    }
-    else
-    {
-        d = opendir(buffer);
-    }
+    d = opendir(path);
     if (d) {
         while ((dir = readdir(d)) != NULL) {
             printf("%s ", dir->d_name);
@@ -43,6 +32,11 @@ int main(int argc, char *argv[])
         printf("\n");
         closedir(d);
     }
-    return(0);
 }
 
+int app_start()
+{
+    return 0;
+}
+
+REGISTER_APP(ls, &app_start);

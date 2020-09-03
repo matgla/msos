@@ -1,5 +1,5 @@
-// This file is part of MSOS project. This is simple OS for embedded development devices.
-// Copyright (C) 2019 Mateusz Stadnik
+// This file is part of MSOS project.
+// Copyright (C) 2020 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,36 +14,32 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
-
-#include <memory>
-
-#include "msos/dynamic_linker/module.hpp"
+#include <string_view>
 
 namespace msos
 {
-namespace dl
+namespace shell
 {
 
-class LoadedModule
+class CommandParser
 {
 public:
-    LoadedModule();
-    LoadedModule(const ModuleHeader& header);
+    CommandParser(char* input, std::size_t size);
 
-    const Module& get_module() const;
-    Module& get_module();
+    std::string_view get_command();
+    std::string_view get_next_argument();
 
-    void set_start_address(const std::size_t start_address);
-    int execute(int argc, char *argv[]) const;
-    int execute(int argc, const char *argv[]) const;
-    int execute() const;
-
+    bool empty();
 private:
-    std::size_t start_address_;
-    Module module_;
+    std::string_view get_next_part();
+
+    char* input_ = nullptr;
+    std::size_t size_ = 0;
+
+    std::string_view command_ = "";
+    std::string_view tmp_ = "";
 };
 
-} // namespace dl
-} // namespace msos
 
+} // namespace shell
+} // namespace msos

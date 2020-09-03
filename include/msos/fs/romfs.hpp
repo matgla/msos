@@ -42,6 +42,7 @@ public:
 
     std::vector<std::unique_ptr<IFile>> list(const eul::filesystem::path& path) override;
     std::string_view name() const override;
+    bool is_valid() const;
 
 protected:
     static bool mounted_;

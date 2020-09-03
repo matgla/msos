@@ -19,17 +19,24 @@ add_library(msos_shell STATIC)
 target_sources(msos_shell
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/command_parser.hpp
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/command_parser.cpp
 )
 target_include_directories(msos_shell
     PUBLIC
-        ${PROJECT_SOURCE_DIR}/include)
+        ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/src/apps)
 
 target_link_libraries(msos_shell
-    PRIVATE
+    PUBLIC
         eul_filesystem
+    PRIVATE
         GSL
         msos_apps
         hal_flags
+        msos_libc
+        msos_arch
 )
 
 target_compile_options(msos_shell

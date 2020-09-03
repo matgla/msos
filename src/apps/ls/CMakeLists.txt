@@ -14,34 +14,29 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(msos_libc)
+add_library(msos_ls STATIC)
 
-set (library_includes ${PROJECT_SOURCE_DIR}/include/msos/libc)
-
-target_sources(msos_libc
+target_sources(msos_ls
     PUBLIC
-        ${library_includes}/printf.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+)
+target_include_directories(msos_ls
+    PUBLIC
+        ${PROJECT_SOURCE_DIR}/include)
+
+target_link_libraries(msos_ls
     PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/printf.cpp
+        eul_filesystem
+        GSL
+        msos_apps
+        hal_flags
 )
 
-target_include_directories(msos_libc
-    PUBLIC
-        ${PROJECT_SOURCE_DIR}/include
-)
-
-target_compile_options(msos_libc
+target_compile_options(msos_ls
     PUBLIC
         $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a>
         $<$<CONFIG:DEBUG>:-Og -g>
         $<$<CONFIG:RELEASE>:-Os>
     PRIVATE
         $<$<COMPILE_LANGUAGE:CXX>:-Werror -Wall -Wextra -Wpedantic -Wconversion -Wcast-align -Wunused -Wshadow -Wold-style-cast -Wpointer-arith -Wcast-qual -Wno-missing-braces>
-)
-
-target_link_libraries(msos_libc
-    PRIVATE
-        msos_printer
-        hal_flags
-        eul_utils
 )

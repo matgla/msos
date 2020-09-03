@@ -56,18 +56,22 @@ void kernel_process(void*)
 {
     msos::fs::Vfs& vfs = msos::fs::Vfs::instance();
     vfs.mount_fs("/", &ramfs);
-    ramfs.mkdir("rom", 1);
     ramfs.mkdir("bin", 1);
     ramfs.mkdir("dev", 1);
 
-    if (_fs_flash_start != 0)
+    writer << hex << (uint32_t)&_fs_flash_start << endl;
+    if (&_fs_flash_start != 0)
     {
+        ramfs.mkdir("rom", 1);
+
         uint8_t* romfs_disk = reinterpret_cast<uint8_t*>(&_fs_flash_start);
-        msos::fs::RomFs romfs(romfs_disk);
-        vfs.mount_fs("/rom", &romfs);
+        static msos::fs::RomFs romfs(romfs_disk);
+        if (romfs.is_valid())
+        {
+            vfs.mount_fs("/rom", &romfs);
+        }
     }
 
-    // writer << "Start" << endl;
     msos::drivers::DeviceFs& devfs = msos::drivers::DeviceFs::get_instance();
 
     for (auto& driver : devfs.get_drivers())
@@ -81,7 +85,7 @@ void kernel_process(void*)
     msos::apps::AppRegistry& apps = msos::apps::AppRegistry::get_instance();
     vfs.mount_fs("/bin", &apps);
 
-    exec("/bin/msos_shell.bin", NULL, NULL, 0);
+    exec("/bin/msos_shell.bin", 0, NULL, NULL, 0);
 
     while (true)
     {
@@ -92,11 +96,10 @@ void kernel_process(void*)
 int main()
 {
     board::board_init();
-    // hal::core::Core::initializeClocks();
+    hal::core::Core::initializeClocks();
 
     auto usart = board::interfaces::usarts()[0];
     usart->init(9600);
-    usart->write("HEJOTRA\n");
 
     msos::system_config();
 
