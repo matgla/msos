@@ -92,5 +92,47 @@ const char* RomFsFile::data() const
     return reinterpret_cast<const char*>(file_.data());
 }
 
+void RomFsFile::stat(struct stat& s) const
+{
+    s.st_mode = 0;
+    switch (file_.get_file_type())
+    {
+        case romfs::FileType::HARD_LINK:
+        {
+        } break;
+        case romfs::FileType::DIRECTORY:
+        {
+            s.st_mode |= S_IFDIR;
+        } break;
+        case romfs::FileType::REGULAR_FILE:
+        {
+            s.st_mode |= S_IFREG;
+        } break;
+        case romfs::FileType::SYMBOLIC_LINK:
+        {
+            s.st_mode |= S_IFLNK;
+        } break;
+        case romfs::FileType::BLOCK_DEVICE:
+        {
+            s.st_mode |= S_IFBLK;
+        } break;
+        case romfs::FileType::CHAR_DEVICE:
+        {
+            s.st_mode |= S_IFCHR;
+        } break;
+        case romfs::FileType::SOCKET:
+        {
+            s.st_mode |= S_IFSOCK;
+        } break;
+        case romfs::FileType::FIFO:
+        {
+            s.st_mode |= S_IFIFO;
+        } break;
+        case romfs::FileType::NOT_EXIST:
+        {
+        } break;
+    }
+}
+
 } // namespace fs
 } // namespace msos

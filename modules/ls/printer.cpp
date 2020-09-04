@@ -14,35 +14,41 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
+#include "ls/printer.hpp"
 
-#include <cstdint>
+#include <cstdio>
 
-extern "C"
+namespace msos
+{
+namespace ls
 {
 
-typedef struct dirent {
-    uint32_t d_ino;
-    uint32_t d_off;
-    uint16_t d_reclen;
-    std::size_t d_namlen;
-    int d_type;
-    char d_name[128];
-} dirent;
-
-struct DIRImpl;
-
-typedef struct DIR {
-    struct dirent ent;
-    struct DIRImpl *impl;
-} DIR;
-
-DIR* _opendir(const char* dirname);
-dirent* _readdir(DIR *dirp);
-int _closedir(DIR *dirp);
-
+void print_directory_as_list(std::string_view path)
+{
+    print_directory(path, [](struct dirent* dir) {
+        printf("%s\n", dir->d_name);
+    });
 }
 
-#define opendir _opendir
-#define readdir _readdir
-#define closedir _closedir
+void print_directory_in_line(std::string_view path)
+{
+    print_directory(path, [](struct dirent* dir) {
+        printf("%s ", dir->d_name);
+    });
+    printf("\n");
+}
+
+void print_directory(std::string_view path, const Config& config)
+{
+    if (config.as_list())
+    {
+        print_directory_as_list(path);
+        return;
+    }
+
+    print_directory_in_line(path);
+}
+
+
+} // namespace ls
+} // namespace msos

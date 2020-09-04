@@ -47,6 +47,8 @@ public:
 
     const char* data() const override;
 
+    void stat(struct stat& s) const override;
+
 private:
     romfs::FileHeader file_;
     std::size_t position_;

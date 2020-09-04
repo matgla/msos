@@ -20,6 +20,7 @@
 #include <string_view>
 
 #include "msos/kernel/process/scheduler.hpp"
+#include "msos/fs/vfs.hpp"
 
 extern "C"
 {
@@ -33,6 +34,33 @@ char *getcwd(char *buf, size_t size)
     std::memcpy(buf, cwd.data(), size_to_copy);
     buf[size_to_copy] = 0;
     return buf;
+}
+
+int chdir(const char* path)
+{
+    auto& vfs = msos::fs::Vfs::instance();
+
+    eul::filesystem::path path_parser(path);
+    std::unique_ptr<msos::fs::IFile> file = vfs.get(path_parser.lexically_normal().c_str(), O_RDONLY);
+    if (!file)
+    {
+        // TODO: move to client code
+        printf("File not exists: %s\n", path_parser.lexically_normal().c_str());
+        return -1;
+    }
+
+    struct stat s;
+    file->stat(s);
+    if (s.st_mode & S_IFDIR)
+    {
+        auto* scheduler = msos::kernel::process::Scheduler::get();
+        auto* process = scheduler->current_process();
+        return process->set_cwd(path_parser.lexically_normal().c_str()) ? 0 : -1;
+    }
+
+    // TODO: move to client code
+    printf("File is not directory: %s\n", path_parser.lexically_normal().c_str());
+    return -1;
 }
 
 }

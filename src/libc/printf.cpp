@@ -58,6 +58,10 @@ int __vfprintf_(T& writer, int fd, const char* format, va_list argptr,
         char specifier = data[position];
         switch (specifier)
         {
+            case 'c': {
+                char arg = static_cast<char>(va_arg(argptr, int));
+                writer << arg;
+            } break;
             case 's': {
                 const char* arg = va_arg(argptr, const char*);
                 writer << arg;

@@ -81,6 +81,11 @@ public:
     {
         return nullptr;
     }
+
+    void stat(struct stat& s) const override
+    {
+        s.st_mode = 0;
+    }
 };
 
 static int instances = 0;

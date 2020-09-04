@@ -19,30 +19,60 @@
 #include <dirent.h>
 #include <unistd.h>
 
+#include "ls/config.hpp"
+#include "ls/printer.hpp"
+
+
+
 int main(int argc, char *argv[])
 {
-    char buffer[255] = {0};
-    getcwd(buffer, sizeof(buffer));
-
     DIR *d;
     struct dirent *dir;
 
-    // I know it's buggy, to be fixed with msos getopt :)
-    if (argc > 1)
+    int c;
+
+    msos::ls::Config config;
+
+    while ((c = getopt(argc, argv, "l")) != -1)
     {
-        d = opendir(argv[1]);
-    }
-    else
-    {
-        d = opendir(buffer);
-    }
-    if (d) {
-        while ((dir = readdir(d)) != NULL) {
-            printf("%s ", dir->d_name);
+        switch (c)
+        {
+            case 'l':
+            {
+                config.set_as_list();
+            } break;
+            case '?':
+            {
+                printf("Write `ls -h` to get more informations.\n");
+            return -1;
+            } break;
         }
-        printf("\n");
-        closedir(d);
     }
+
+    /* directory not specified */
+    if (optind >= argc)
+    {
+        char cwd[255] = {0};
+        getcwd(cwd, sizeof(cwd));
+
+        msos::ls::print_directory(cwd, config);
+        return 0;
+    }
+
+    bool more_than_one_directory_to_list = argc - optind > 1 ? true : false;
+    for (int index = optind; index < argc; index++)
+    {
+        if (more_than_one_directory_to_list)
+        {
+            printf("%s:\n", argv[index]);
+        }
+        msos::ls::print_directory(argv[index], config);
+        if (more_than_one_directory_to_list)
+        {
+            printf("\n");
+        }
+    }
+
     return(0);
 }
 

@@ -136,6 +136,8 @@ def extract_relocations(relocations, symbols, processed_symbols):
             continue
         elif relocation["info_type"] == "R_ARM_THM_JUMP24":
             continue
+        elif relocation["info_type"] == "R_ARM_THM_JUMP11":
+            continue
         else:
             print (Fore.RED + "Unknown relocation type. Please fix generate_binary.py: " + relocation["info_type"])
             raise RuntimeError("Script not working for this binary")
@@ -160,6 +162,8 @@ def extract_data_relocations(relocations, symbols, code_length, lot_offset):
                 symbol_value = relocation["symbol_value"]
                 data_relocations.append((symbol_value, offset + lot_offset, relocation["symbol_name"]))
         elif relocation["info_type"] == "R_ARM_THM_JUMP24":
+            continue
+        elif relocation["info_type"] == "R_ARM_THM_JUMP11":
             continue
         else:
             print (Fore.RED + "Unknown relocation type. Please fix generate_binary.py: " + relocation["info_type"])

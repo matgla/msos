@@ -31,7 +31,7 @@ namespace fs
 class RamFs : public IFileSystem
 {
 public:
-
+    RamFs();
     int mount(drivers::storage::BlockDevice& device) override;
 
     int umount() override;

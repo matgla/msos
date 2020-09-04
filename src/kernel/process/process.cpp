@@ -16,6 +16,8 @@
 
 #include "msos/kernel/process/process.hpp"
 
+#include <cstring>
+
 #include <fcntl.h>
 
 #include "msos/drivers/device_fs.hpp"
@@ -103,6 +105,16 @@ std::string_view Process::get_cwd() const
     return cwd_;
 }
 
+bool Process::set_cwd(std::string_view path)
+{
+    if (path.length() > PATH_MAX)
+    {
+        return false;
+    }
+    std::memcpy(cwd_, path.data(), path.length());
+    cwd_[path.length()] = 0;
+    return true;
+}
 
 } // namespace process
 } // namespace kernel

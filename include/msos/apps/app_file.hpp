@@ -47,6 +47,8 @@ public:
 
     const char* data() const override;
 
+    void stat(struct stat& s) const override;
+
 private:
     AppEntry entry_;
 };

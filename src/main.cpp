@@ -59,7 +59,6 @@ void kernel_process(void*)
     ramfs.mkdir("bin", 1);
     ramfs.mkdir("dev", 1);
 
-    writer << hex << (uint32_t)&_fs_flash_start << endl;
     if (&_fs_flash_start != 0)
     {
         ramfs.mkdir("rom", 1);

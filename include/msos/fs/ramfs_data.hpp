@@ -31,16 +31,21 @@ namespace fs
 class RamFsData
 {
 public:
-    RamFsData(const eul::filesystem::path& name);
-    RamFsData(const eul::filesystem::path& name, const std::vector<uint8_t>& data);
-
+    static RamFsData create_file(const eul::filesystem::path& name, const std::vector<uint8_t>& data);
+    static RamFsData create_directory(const eul::filesystem::path& name);
     const std::string& filename() const;
 
     std::vector<uint8_t>& data();
 
+    bool is_directory() const;
+
 private:
+    RamFsData(const eul::filesystem::path& name);
+    RamFsData(const eul::filesystem::path& name, const std::vector<uint8_t>& data);
+
     eul::filesystem::path filename_;
     std::vector<uint8_t> data_;
+    bool is_directory_;
 };
 
 } // namespace fs

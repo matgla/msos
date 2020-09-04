@@ -18,31 +18,33 @@
 
 #include <cstdint>
 
-extern "C"
+namespace msos
+{
+namespace ls
 {
 
-typedef struct dirent {
-    uint32_t d_ino;
-    uint32_t d_off;
-    uint16_t d_reclen;
-    std::size_t d_namlen;
-    int d_type;
-    char d_name[128];
-} dirent;
+class Config
+{
+public:
 
-struct DIRImpl;
+    bool as_list() const
+    {
+        return flags_ & flags::list;
+    }
 
-typedef struct DIR {
-    struct dirent ent;
-    struct DIRImpl *impl;
-} DIR;
+    void set_as_list()
+    {
+        flags_ |= flags::list;
+    }
 
-DIR* _opendir(const char* dirname);
-dirent* _readdir(DIR *dirp);
-int _closedir(DIR *dirp);
+private:
+    enum flags : uint8_t
+    {
+        list = 1
+    };
 
-}
+    int flags_ = 0;
+};
 
-#define opendir _opendir
-#define readdir _readdir
-#define closedir _closedir
+} // namespace ls
+} // namespace msos

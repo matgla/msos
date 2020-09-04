@@ -21,17 +21,18 @@
 
 #include "msos/fs/i_filesystem.hpp"
 #include "msos/fs/file_base.hpp"
+#include "msos/fs/ramfs_data.hpp"
 
 namespace msos
 {
 namespace fs
 {
 
+
 struct RamfsFile : public FileBase
 {
 public:
-    RamfsFile(const std::string_view name, std::vector<uint8_t>& data);
-    RamfsFile(const std::string_view name);
+    RamfsFile(RamFsData& data);
 
     ssize_t read(DataType data) override;
     ssize_t write(const ConstDataType data) override;
@@ -48,9 +49,10 @@ public:
 
     const char* data() const override;
 
+    void stat(struct stat& s) const override;
+
 private:
-    std::string_view filename_;
-    std::vector<uint8_t>* data_;
+    RamFsData& data_;
     std::size_t position_;
 };
 

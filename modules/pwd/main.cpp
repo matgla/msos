@@ -14,35 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
+#include <cstdio>
 
-#include <cstdint>
+#include <cstring>
 
-extern "C"
+#include <dirent.h>
+#include <unistd.h>
+
+int main(int argc, char *argv[])
 {
+    char cwd[255];
+    if (getcwd(cwd, sizeof(cwd)) != nullptr)
+    {
+        printf("%s\n", cwd);
+    }
 
-typedef struct dirent {
-    uint32_t d_ino;
-    uint32_t d_off;
-    uint16_t d_reclen;
-    std::size_t d_namlen;
-    int d_type;
-    char d_name[128];
-} dirent;
-
-struct DIRImpl;
-
-typedef struct DIR {
-    struct dirent ent;
-    struct DIRImpl *impl;
-} DIR;
-
-DIR* _opendir(const char* dirname);
-dirent* _readdir(DIR *dirp);
-int _closedir(DIR *dirp);
-
+    return 0;
 }
 
-#define opendir _opendir
-#define readdir _readdir
-#define closedir _closedir

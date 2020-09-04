@@ -21,15 +21,27 @@ namespace msos
 namespace fs
 {
 
+RamFsData RamFsData::create_file(const eul::filesystem::path& name, const std::vector<uint8_t>& data)
+{
+    return RamFsData(name, data);
+}
+
+RamFsData RamFsData::create_directory(const eul::filesystem::path& name)
+{
+    return RamFsData(name);
+}
+
 RamFsData::RamFsData(const eul::filesystem::path& name)
     : filename_(name.native())
     , data_{}
+    , is_directory_(true)
 {
 }
 
 RamFsData::RamFsData(const eul::filesystem::path& name, const std::vector<uint8_t>& data)
     : filename_{name}
     , data_{data}
+    , is_directory_(false)
 {
 }
 
@@ -41,6 +53,11 @@ const std::string& RamFsData::filename() const
 std::vector<uint8_t>& RamFsData::data()
 {
     return data_;
+}
+
+bool RamFsData::is_directory() const
+{
+    return is_directory_;
 }
 
 } // namespace fs

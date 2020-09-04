@@ -89,5 +89,11 @@ const char* AppFile::data() const
     return reinterpret_cast<const char*>(entry_.address);
 }
 
+void AppFile::stat(struct stat& s) const
+{
+    s.st_mode = 0;
+    s.st_mode |= S_IFREG;
+}
+
 } // namespace apps
 } // namespace msos

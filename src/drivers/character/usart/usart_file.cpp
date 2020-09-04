@@ -67,6 +67,11 @@ std::unique_ptr<IFile> UsartFile::clone() const
     return std::make_unique<UsartFile>(*this);
 }
 
+void UsartFile::stat(struct stat& s) const
+{
+    s.st_mode = 0;
+    s.st_mode |= S_IFCHR;
+}
 
 } // namespace fs
 } // namespace msos

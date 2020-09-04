@@ -69,15 +69,21 @@ extern "C"
     }
 }
 
-static msos::dl::Environment<8> env{
+static msos::dl::Environment<14> env{
     msos::dl::SymbolAddress{SymbolCode::libc_strlen, &strlen},
     msos::dl::SymbolAddress{SymbolCode::libc_scanf, reinterpret_cast<uint32_t*>(&_scanf)},
     msos::dl::SymbolAddress{SymbolCode::libc_printf, reinterpret_cast<uint32_t*>(&_printf)},
     msos::dl::SymbolAddress{SymbolCode::libc_memset, &memset},
+    msos::dl::SymbolAddress{SymbolCode::libc_memcpy, &memcpy},
     msos::dl::SymbolAddress{SymbolCode::posix__readdir, &readdir},
     msos::dl::SymbolAddress{SymbolCode::posix__opendir, &opendir},
     msos::dl::SymbolAddress{SymbolCode::posix__closedir, &closedir},
     msos::dl::SymbolAddress{SymbolCode::posix_getcwd, &getcwd},
+    msos::dl::SymbolAddress{SymbolCode::posix_chdir, &chdir},
+    msos::dl::SymbolAddress{SymbolCode::posix_getopt, &getopt},
+    msos::dl::SymbolAddress{SymbolCode::posix_optind, &optind},
+    msos::dl::SymbolAddress{SymbolCode::posix_optarg, &optarg},
+    msos::dl::SymbolAddress{SymbolCode::posix_optopt, &optopt},
 };
 
 pid_t spawn(void (*start_routine) (void *), void *arg)
@@ -116,8 +122,7 @@ int exec_process(ExecInfo* info)
 
     if (!file)
     {
-        writer << "File not found" << endl;
-        return -1;
+        return -2;
     }
 
     if (dest_fs->name() == "AppFs")
@@ -160,12 +165,13 @@ int exec_process(ExecInfo* info)
             return fun();
         }
     }
-    return -1;
+    // TODO: change to error code as argument (application returns also)
+    return -2;
 }
 
 static bool is_first = true;
 
-void exec(const char* path, int argc, char* argv[], const SymbolEntry* entries, int number_of_entries)
+int exec(const char* path, int argc, char* argv[], const SymbolEntry* entries, int number_of_entries)
 {
     if (is_first)
     {
@@ -183,7 +189,10 @@ void exec(const char* path, int argc, char* argv[], const SymbolEntry* entries, 
         .argv = argv
     };
 
-    exec_process(info);
+    optind = 0;
+    optopt = '?';
+    opterr = 1;
+    return exec_process(info);
 }
 
 pid_t spawn_exec(const char* path, void *arg, const SymbolEntry* entries, int number_of_entries, std::size_t stack_size)

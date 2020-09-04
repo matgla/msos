@@ -37,6 +37,8 @@ public:
     std::string_view name() const override;
 
     std::unique_ptr<IFile> clone() const override;
+
+    void stat(struct stat& s) const override;
 private:
     drivers::character::UsartDriver& driver_;
     std::string_view path_;

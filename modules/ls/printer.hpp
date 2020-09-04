@@ -16,33 +16,36 @@
 
 #pragma once
 
-#include <cstdint>
+#include <string_view>
 
-extern "C"
+#include <dirent.h>
+#include <unistd.h>
+
+#include "ls/config.hpp"
+
+namespace msos
+{
+namespace ls
 {
 
-typedef struct dirent {
-    uint32_t d_ino;
-    uint32_t d_off;
-    uint16_t d_reclen;
-    std::size_t d_namlen;
-    int d_type;
-    char d_name[128];
-} dirent;
+template <typename Printer>
+void print_directory(std::string_view path, const Printer& printer)
+{
+    DIR *d;
+    struct dirent *dir;
 
-struct DIRImpl;
-
-typedef struct DIR {
-    struct dirent ent;
-    struct DIRImpl *impl;
-} DIR;
-
-DIR* _opendir(const char* dirname);
-dirent* _readdir(DIR *dirp);
-int _closedir(DIR *dirp);
-
+    d = opendir(path.data());
+    if (d)
+    {
+        while ((dir = readdir(d)) != nullptr)
+        {
+            printer(dir);
+        }
+        closedir(d);
+    }
 }
 
-#define opendir _opendir
-#define readdir _readdir
-#define closedir _closedir
+void print_directory(std::string_view path, const Config& config);
+
+} // namespace ls
+} // namespace msos

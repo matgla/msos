@@ -31,6 +31,11 @@ namespace msos
 namespace fs
 {
 
+RamFs::RamFs()
+{
+    files_.push_back(RamFsData::create_directory("/"));
+}
+
 int RamFs::mount(drivers::storage::BlockDevice& device)
 {
     UNUSED1(device);
@@ -58,7 +63,7 @@ int RamFs::mkdir(const eul::filesystem::path& path, int mode)
     {
         return -1;
     }
-    files_.push_back(RamFsData{path});
+    files_.push_back(RamFsData::create_directory(path));
     return 0;
 }
 
@@ -78,15 +83,16 @@ std::unique_ptr<IFile> RamFs::get(const eul::filesystem::path& path, int flags)
 {
     UNUSED1(flags);
 
-    if (path.native() == "/" || path.native().empty())
+    if (path.native().empty())
     {
-        return std::make_unique<RamfsFile>("/");
+        return std::make_unique<RamfsFile>(files_.front());
     }
+
     for (auto& file : files_)
     {
         if (file.filename() == path.native())
         {
-            return std::make_unique<RamfsFile>(path.native(), file.data());
+            return std::make_unique<RamfsFile>(file);
         }
     }
 
@@ -96,8 +102,8 @@ std::unique_ptr<IFile> RamFs::get(const eul::filesystem::path& path, int flags)
 std::unique_ptr<IFile> RamFs::create(const eul::filesystem::path& path, int flags)
 {
     UNUSED1(flags);
-    files_.push_back(RamFsData{path});
-    return std::make_unique<RamfsFile>(files_.back().filename(), files_.back().data());
+    files_.push_back(RamFsData::create_file(path, {}));
+    return std::make_unique<RamfsFile>(files_.back());
 }
 
 std::string_view get_parent_path(std::string_view path)
@@ -123,7 +129,7 @@ std::vector<std::unique_ptr<IFile>> RamFs::list(const eul::filesystem::path& pat
         {
             if (file.filename().find("/") == std::string_view::npos)
             {
-                insert_with_order(files, std::make_unique<RamfsFile>(file.filename(), file.data()));
+                insert_with_order(files, std::make_unique<RamfsFile>(file));
             }
         }
     }
@@ -134,7 +140,7 @@ std::vector<std::unique_ptr<IFile>> RamFs::list(const eul::filesystem::path& pat
             std::string_view file_parent_path = get_parent_path(file.filename());
             if (file_parent_path == path.parent_path().native())
             {
-                insert_with_order(files, std::make_unique<RamfsFile>(file.filename(), file.data()));
+                insert_with_order(files, std::make_unique<RamfsFile>(file));
             }
         }
 

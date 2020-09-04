@@ -23,17 +23,8 @@ namespace msos
 namespace fs
 {
 
-RamfsFile::RamfsFile(const std::string_view name, std::vector<uint8_t>& data)
-    : filename_(name)
-    , data_{&data}
-    , position_(0)
-{
-
-}
-
-RamfsFile::RamfsFile(const std::string_view name)
-    : filename_(name)
-    , data_{nullptr}
+RamfsFile::RamfsFile(RamFsData& data)
+    : data_{data}
     , position_(0)
 {
 
@@ -41,20 +32,20 @@ RamfsFile::RamfsFile(const std::string_view name)
 
 ssize_t RamfsFile::read(DataType data)
 {
-    if (position_ >= data_->size())
+    if (position_ >= data_.data().size())
     {
         return 0;
     }
-    size_t len = (data_->size() - position_) > static_cast<size_t>(data.size()) ? data.size() : data_->size() - position_;
+    size_t len = (data_.data().size() - position_) > static_cast<size_t>(data.size()) ? data.size() : data_.data().size() - position_;
 
-    std::copy(data_->begin() + position_, data_->end(), data.begin());
+    std::copy(data_.data().begin() + position_, data_.data().end(), data.begin());
     position_ += len;
     return len;
 }
 
 ssize_t RamfsFile::write(const ConstDataType data)
 {
-    std::copy(data.begin(), data.end(), std::back_inserter(*data_));
+    std::copy(data.begin(), data.end(), std::back_inserter(data_.data()));
     return data.size();
 }
 
@@ -86,17 +77,33 @@ ssize_t RamfsFile::size() const
 
 std::string_view RamfsFile::name() const
 {
-    return filename_;
+    return data_.filename();
 }
 
 std::unique_ptr<IFile> RamfsFile::clone() const
 {
-    return std::make_unique<RamfsFile>(filename_, *data_);
+    return std::make_unique<RamfsFile>(data_);
 }
 
 const char* RamfsFile::data() const
 {
-    return reinterpret_cast<const char*>(data_->data());
+    return reinterpret_cast<const char*>(data_.data().data());
+}
+
+void RamfsFile::stat(struct stat& s) const
+{
+    printf("RamFs stat\n");
+    s.st_mode = 0;
+    if (data_.is_directory())
+    {
+        printf ("DIRECT\n");
+        s.st_mode |= S_IFDIR;
+    }
+    else
+    {
+        printf ("FILE\n");
+        s.st_mode |= S_IFREG;
+    }
 }
 
 } // namespace fs

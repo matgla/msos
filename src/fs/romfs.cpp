@@ -73,10 +73,16 @@ std::unique_ptr<IFile> RomFs::get(const eul::filesystem::path& path, int flags)
     auto dir = disk_.get_directory(path_in_fs.c_str());
     if (dir)
     {
-        return std::make_unique<RomFsFile>(dir->get_file_header());
+        auto fh = dir->get_file_header();
+        if (!fh)
+        {
+            return nullptr;
+        }
+        return std::make_unique<RomFsFile>(*fh);
     }
 
     auto filename = path_in_fs.filename();
+
     dir = disk_.get_directory(path_in_fs.parent_path().native());
     if (dir)
     {

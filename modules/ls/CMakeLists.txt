@@ -18,13 +18,22 @@ add_executable(ls)
 
 target_sources(ls
     PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/config.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/printer.hpp
+
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/printer.cpp
 )
 
 
 target_link_libraries(ls
     PRIVATE
         module_flags
+)
+
+target_include_directories(ls
+    PRIVATE
+        ${PROJECT_SOURCE_DIR}/modules
 )
 
 add_module(ls ls)

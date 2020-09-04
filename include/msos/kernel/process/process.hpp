@@ -61,6 +61,7 @@ public:
     msos::fs::IFile* get_file(int fd) const;
 
     std::string_view get_cwd() const;
+    bool set_cwd(std::string_view path);
 
 protected:
     int fd_map_;

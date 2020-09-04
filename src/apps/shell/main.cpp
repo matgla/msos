@@ -175,6 +175,9 @@ int app_start()
 
         /* find binary in path environment variable */
         eul::filesystem::path path_to_binary("/rom/bin");
+        char cwd[255];
+        getcwd(cwd, sizeof(cwd));
+        eul::filesystem::path path_to_cwd(cwd);
 
         int argc = 1;
 
@@ -190,16 +193,24 @@ int app_start()
 
         CommandParser parser(buffer, strlen(buffer));
         path_to_binary += parser.get_command();
+        path_to_cwd += parser.get_command();
 
         while (!parser.empty())
         {
             argv[argc] = const_cast<char*>(parser.get_next_argument().data());
             ++argc;
         }
-        printf("Executing: %s\n", path_to_binary.c_str());
 
         argv[0] = const_cast<char*>(path_to_binary.c_str());
-        exec(path_to_binary.c_str(), argc, argv, NULL, 0);
+
+        if (exec(path_to_cwd.c_str(), argc, argv, NULL, 0) == -2)
+        {
+            if (exec(path_to_binary.c_str(), argc, argv, NULL, 0) == -2)
+            {
+                printf("File not found\n");
+            }
+
+        }
     }
     //     if (std::string_view(buffer).find("pwd") == 0)
     //     {
