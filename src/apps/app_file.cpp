@@ -92,6 +92,11 @@ const char* AppFile::data() const
 void AppFile::stat(struct stat& s) const
 {
     s.st_mode = 0;
+    if (entry_.name == "/")
+    {
+        s.st_mode |= S_IFDIR;
+        return;
+    }
     s.st_mode |= S_IFREG;
 }
 
