@@ -69,12 +69,14 @@ extern "C"
     }
 }
 
-static msos::dl::Environment<14> env{
+static msos::dl::Environment<16> env{
     msos::dl::SymbolAddress{SymbolCode::libc_strlen, &strlen},
     msos::dl::SymbolAddress{SymbolCode::libc_scanf, reinterpret_cast<uint32_t*>(&_scanf)},
     msos::dl::SymbolAddress{SymbolCode::libc_printf, reinterpret_cast<uint32_t*>(&_printf)},
+    msos::dl::SymbolAddress{SymbolCode::libc_getc, &getc},
     msos::dl::SymbolAddress{SymbolCode::libc_memset, &memset},
     msos::dl::SymbolAddress{SymbolCode::libc_memcpy, &memcpy},
+    msos::dl::SymbolAddress{SymbolCode::libc_fopen, &fopen},
     msos::dl::SymbolAddress{SymbolCode::posix__readdir, &readdir},
     msos::dl::SymbolAddress{SymbolCode::posix__opendir, &opendir},
     msos::dl::SymbolAddress{SymbolCode::posix__closedir, &closedir},

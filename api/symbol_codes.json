@@ -7,10 +7,12 @@
         "printf": 100,
         "scanf": 101,
         "sprintf": 102,
+        "getc": 103,
         "atoi": 200,
         "strlen": 300,
         "memset": 301,
-        "memcpy": 302
+        "memcpy": 302,
+        "fopen": 400
     },
     "posix": {
         "_readdir": 1000,

@@ -58,6 +58,22 @@ void kernel_process(void*)
     vfs.mount_fs("/", &ramfs);
     ramfs.mkdir("bin", 1);
     ramfs.mkdir("dev", 1);
+    ramfs.mkdir("config", 1);
+
+    /* temporary */
+    FILE *f = fopen("/config/shell.cfg", "w");
+
+    if (f == nullptr)
+    {
+        printf("cannot open cfg\n");
+    }
+    else
+    {
+        fputs("autostart=eno\n", f);
+        fputs("user=matusz\n", f);
+    }
+
+    /* end of temporary */
 
     if (&_fs_flash_start != 0)
     {

@@ -23,9 +23,10 @@ namespace msos
 namespace fs
 {
 
-RamfsFile::RamfsFile(RamFsData& data)
+RamfsFile::RamfsFile(RamFsData& data, std::string_view name)
     : data_{data}
     , position_(0)
+    , name_(name)
 {
 
 }
@@ -77,12 +78,12 @@ ssize_t RamfsFile::size() const
 
 std::string_view RamfsFile::name() const
 {
-    return data_.filename();
+    return name_;
 }
 
 std::unique_ptr<IFile> RamfsFile::clone() const
 {
-    return std::make_unique<RamfsFile>(data_);
+    return std::make_unique<RamfsFile>(data_, name_);
 }
 
 const char* RamfsFile::data() const
@@ -92,16 +93,13 @@ const char* RamfsFile::data() const
 
 void RamfsFile::stat(struct stat& s) const
 {
-    printf("RamFs stat\n");
     s.st_mode = 0;
     if (data_.is_directory())
     {
-        printf ("DIRECT\n");
         s.st_mode |= S_IFDIR;
     }
     else
     {
-        printf ("FILE\n");
         s.st_mode |= S_IFREG;
     }
 }

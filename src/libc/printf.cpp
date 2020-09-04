@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include <cstring>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -132,6 +133,12 @@ char* _fgets(char* buffer, int n, FILE* fp)
 
 }
 
+int _fputs(const char* data, FILE* fp)
+{
+    int fd = fileno(fp);
+    return write(fd, data, strlen(data));
+}
+
 int __vfscanf_(int fd, const char* format, va_list argptr,
                     unsigned int mode_flags)
 {
@@ -180,6 +187,7 @@ int _scanf(const char* format, ...)
     va_end (arg);
     return done;
 }
+
 
 
 

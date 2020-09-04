@@ -216,8 +216,6 @@ int _fstat(int file, struct stat* st)
 
 int _open(const char* filename, int flags)
 {
-    writer << "opening file: " <<  filename << endl;
-
     auto* scheduler = msos::kernel::process::Scheduler::get();
     if (scheduler == nullptr)
     {
@@ -239,6 +237,13 @@ int _open(const char* filename, int flags)
         if (!file)
         {
             return -1;
+        }
+
+        struct stat s;
+        file->stat(s);
+        if (s.st_mode & S_IFDIR)
+        {
+            return -2;
         }
 
         int fd = process->add_file(std::move(file));

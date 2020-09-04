@@ -32,7 +32,7 @@ namespace fs
 struct RamfsFile : public FileBase
 {
 public:
-    RamfsFile(RamFsData& data);
+    RamfsFile(RamFsData& data, std::string_view name);
 
     ssize_t read(DataType data) override;
     ssize_t write(const ConstDataType data) override;
@@ -54,6 +54,7 @@ public:
 private:
     RamFsData& data_;
     std::size_t position_;
+    std::string_view name_;
 };
 
 } // namespace fs

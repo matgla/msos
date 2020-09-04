@@ -71,7 +71,6 @@ int Process::add_file(std::unique_ptr<msos::fs::IFile>&& file)
         if ((fd_map_ & (1 << i)) == 0)
         {
             fd_map_ |= (1 << i);
-            printf("FD to add: %d\n", i);
             fd_[i] = std::move(file);
             return i;
         }

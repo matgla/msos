@@ -1,5 +1,5 @@
 # This file is part of MSOS project. This is simple OS for embedded development devices.
-# Copyright (C) 2019 Mateusz Stadnik
+# Copyright (C) 2020 Mateusz Stadnik
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,11 +14,32 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-include(ModuleWrapperGenerator)
-add_module_flags_target()
+add_executable(cat)
 
-add_subdirectory(cd)
-add_subdirectory(ls)
-add_subdirectory(pwd)
-add_subdirectory(cat)
-add_subdirectory(simple_game)
+target_sources(cat
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+)
+
+
+target_link_libraries(cat
+    PRIVATE
+        module_flags
+)
+
+add_module(cat cat)
+
+if (${arch} STREQUAL "ARM")
+    set (suffix ".bin")
+    set (prefix "")
+else ()
+    set (suffix "")
+    set (prefix "")
+endif ()
+
+add_custom_command(
+    TARGET cat
+    POST_BUILD
+    COMMAND mkdir -p ${PROJECT_BINARY_DIR}/rootfs/bin
+    COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/${prefix}cat${suffix} ${PROJECT_BINARY_DIR}/rootfs/bin/cat
+)

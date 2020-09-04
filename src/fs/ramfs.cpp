@@ -85,14 +85,20 @@ std::unique_ptr<IFile> RamFs::get(const eul::filesystem::path& path, int flags)
 
     if (path.native().empty())
     {
-        return std::make_unique<RamfsFile>(files_.front());
+        return std::make_unique<RamfsFile>(files_.front(), files_.front().filename());
     }
 
     for (auto& file : files_)
     {
         if (file.filename() == path.native())
         {
-            return std::make_unique<RamfsFile>(file);
+            std::string_view filename = file.filename();
+            std::size_t last_slash = filename.find_last_of('/');
+            if (last_slash != std::string_view::npos)
+            {
+                filename.remove_prefix(last_slash);
+            }
+            return std::make_unique<RamfsFile>(file, filename);
         }
     }
 
@@ -103,13 +109,19 @@ std::unique_ptr<IFile> RamFs::create(const eul::filesystem::path& path, int flag
 {
     UNUSED1(flags);
     files_.push_back(RamFsData::create_file(path, {}));
-    return std::make_unique<RamfsFile>(files_.back());
+    std::string_view filename = files_.back().filename();
+    std::size_t last_slash = filename.find_last_of('/');
+    if (last_slash != std::string_view::npos)
+    {
+        filename.remove_prefix(last_slash);
+    }
+    return std::make_unique<RamfsFile>(files_.back(), filename);
 }
 
 std::string_view get_parent_path(std::string_view path)
 {
     std::size_t last_slash = path.find_last_of("/");
-    std::string_view parent_path;
+    std::string_view parent_path = "";
 
     if (last_slash != std::string_view::npos)
     {
@@ -129,7 +141,7 @@ std::vector<std::unique_ptr<IFile>> RamFs::list(const eul::filesystem::path& pat
         {
             if (file.filename().find("/") == std::string_view::npos)
             {
-                insert_with_order(files, std::make_unique<RamfsFile>(file));
+                insert_with_order(files, std::make_unique<RamfsFile>(file, file.filename()));
             }
         }
     }
@@ -138,9 +150,11 @@ std::vector<std::unique_ptr<IFile>> RamFs::list(const eul::filesystem::path& pat
         for (auto& file : files_)
         {
             std::string_view file_parent_path = get_parent_path(file.filename());
-            if (file_parent_path == path.parent_path().native())
+            if (file_parent_path == path.native())
             {
-                insert_with_order(files, std::make_unique<RamfsFile>(file));
+                std::string_view filename = file.filename();
+                filename.remove_prefix(file_parent_path.size() + 1);
+                insert_with_order(files, std::make_unique<RamfsFile>(file, filename));
             }
         }
 

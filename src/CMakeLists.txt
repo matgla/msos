@@ -158,6 +158,9 @@ if (${vendor} STREQUAL "STM32")
             msos_test
             simple_game
             ls
+            cat
+            cd
+            pwd
     )
 
     add_custom_command(
@@ -167,9 +170,9 @@ if (${vendor} STREQUAL "STM32")
         COMMAND genromfs -f ${PROJECT_BINARY_DIR}/rootfs.img -d ${PROJECT_BINARY_DIR}/rootfs -v -V msos_romfs
         COMMAND ${truncate_exec} --size 50K ${executable_file}
         COMMAND cp ${executable_file} ${executable_file}.tmp
-        COMMAND cat ${executable_file}.tmp ${PROJECT_BINARY_DIR}/rootfs.img > ${executable_file}
+        COMMAND ${CMAKE_COMMAND} -E "cat" ${executable_file}.tmp ${PROJECT_BINARY_DIR}/rootfs.img > ${executable_file}
         COMMAND echo "ROMFS generated!"
-        VERBATIM
+        # VERBATIM
     )
 endif()
 
