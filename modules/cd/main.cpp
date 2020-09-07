@@ -19,8 +19,11 @@
 #include <dirent.h>
 #include <unistd.h>
 
+#include <eul/filesystem/path.hpp>
+
 int main(int argc, char *argv[])
 {
+    eul::filesystem::path path("/");
     if (argc > 1)
     {
         // Absolute path

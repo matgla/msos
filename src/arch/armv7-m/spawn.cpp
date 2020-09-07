@@ -69,7 +69,19 @@ extern "C"
     }
 }
 
-static msos::dl::Environment<16> env{
+void delete_port(void* ptr)
+{
+    ::operator delete(ptr);
+}
+
+void init_path(eul::filesystem::path* self, const char* path)
+{
+    new (self) eul::filesystem::path(path);
+}
+
+eul::filesystem::path& (eul::filesystem::path::*mpf)(const std::string_view& path) = &eul::filesystem::path::operator+=;
+
+static msos::dl::Environment env{
     msos::dl::SymbolAddress{SymbolCode::libc_strlen, &strlen},
     msos::dl::SymbolAddress{SymbolCode::libc_scanf, reinterpret_cast<uint32_t*>(&_scanf)},
     msos::dl::SymbolAddress{SymbolCode::libc_printf, reinterpret_cast<uint32_t*>(&_printf)},
@@ -77,6 +89,7 @@ static msos::dl::Environment<16> env{
     msos::dl::SymbolAddress{SymbolCode::libc_memset, &memset},
     msos::dl::SymbolAddress{SymbolCode::libc_memcpy, &memcpy},
     msos::dl::SymbolAddress{SymbolCode::libc_fopen, &fopen},
+    msos::dl::SymbolAddress{SymbolCode::libc_fclose, &fclose},
     msos::dl::SymbolAddress{SymbolCode::posix__readdir, &readdir},
     msos::dl::SymbolAddress{SymbolCode::posix__opendir, &opendir},
     msos::dl::SymbolAddress{SymbolCode::posix__closedir, &closedir},
@@ -86,6 +99,11 @@ static msos::dl::Environment<16> env{
     msos::dl::SymbolAddress{SymbolCode::posix_optind, &optind},
     msos::dl::SymbolAddress{SymbolCode::posix_optarg, &optarg},
     msos::dl::SymbolAddress{SymbolCode::posix_optopt, &optopt},
+    msos::dl::SymbolAddress{SymbolCode::libstdcpp__ZdlPvj, &delete_port},
+    msos::dl::SymbolAddress{SymbolCode::eul__ZN3eul10filesystem4pathC1EPKc, &init_path},
+    msos::dl::SymbolAddress{SymbolCode::eul__ZNK3eul10filesystem4path5c_strEv, reinterpret_cast<void*>(&eul::filesystem::path::c_str)},
+    msos::dl::SymbolAddress{SymbolCode::eul__ZN3eul10filesystem4pathpLERKSt17basic_string_viewIcSt11char_traitsIcEE, reinterpret_cast<void*>(mpf)},
+
 };
 
 pid_t spawn(void (*start_routine) (void *), void *arg)

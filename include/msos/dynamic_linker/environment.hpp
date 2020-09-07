@@ -115,5 +115,8 @@ private:
     std::array<SymbolAddress, N> data_;
 };
 
+template <typename... Args>
+Environment(Args&&...) -> Environment<sizeof...(Args)>;
+
 } // namespace dl
 } // namespace msos

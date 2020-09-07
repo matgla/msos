@@ -27,6 +27,8 @@ target_link_libraries(cd
         module_flags
 )
 
+target_include_directories(cd PUBLIC $<TARGET_PROPERTY:eul,INCLUDE_DIRECTORIES>)
+
 add_module(cd cd)
 
 if (${arch} STREQUAL "ARM")

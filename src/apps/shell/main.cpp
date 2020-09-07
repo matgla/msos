@@ -48,7 +48,21 @@ namespace shell
 
 void read_configuration_file()
 {
+    FILE* fp = fopen("/config/shell.cfg", "r");
+    if (fp == nullptr)
+    {
+        fp = fopen("/rom/config/shell.cfg", "r");
+    }
 
+    if (fp == nullptr)
+    {
+        return;
+    }
+
+    char buffer[255];
+    printf("Reading\n");
+    fgets(buffer, sizeof(buffer), fp);
+    printf("%s\n", buffer);
 }
 
 int app_start()

@@ -12,7 +12,8 @@
         "strlen": 300,
         "memset": 301,
         "memcpy": 302,
-        "fopen": 400
+        "fopen": 400,
+        "fclose": 401
     },
     "posix": {
         "_readdir": 1000,
@@ -25,5 +26,13 @@
         "optind": 1201,
         "optarg": 1202,
         "optopt": 1203
+    },
+    "libstdcpp": {
+        "_ZdlPvj": 2000
+    },
+    "eul": {
+        "_ZN3eul10filesystem4pathC1EPKc": 3000,
+        "_ZNK3eul10filesystem4path5c_strEv": 3001,
+        "_ZN3eul10filesystem4pathpLERKSt17basic_string_viewIcSt11char_traitsIcEE": 3002
     }
 }

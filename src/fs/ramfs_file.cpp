@@ -16,6 +16,8 @@
 
 #include "msos/fs/ramfs_file.hpp"
 
+#include <cstring>
+
 #include <eul/utils/unused.hpp>
 
 namespace msos
@@ -39,7 +41,7 @@ ssize_t RamfsFile::read(DataType data)
     }
     size_t len = (data_.data().size() - position_) > static_cast<size_t>(data.size()) ? data.size() : data_.data().size() - position_;
 
-    std::copy(data_.data().begin() + position_, data_.data().end(), data.begin());
+    memcpy(data.data(), data_.data().data() + position_, len);
     position_ += len;
     return len;
 }
