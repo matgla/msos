@@ -67,12 +67,20 @@ void read_configuration_file()
 
 int app_start()
 {
-    /* TODO: read configuration file */
     read_configuration_file();
 
     char buffer[100] = {};
     char* argv[10];
 
+    char* path_env = std::getenv("path");
+    if (path_env)
+    {
+        printf("Path found: %s\n", path_env);
+    }
+    else
+    {
+        printf("Path not found!\n");
+    }
     while (std::string_view(buffer).find("exit") == std::string_view::npos)
     {
         write(1, "> \0", 2);
@@ -85,7 +93,6 @@ int app_start()
         }
 
         /* find binary in path environment variable */
-        eul::filesystem::path path_to_binary("/rom/bin");
         char cwd[255];
         getcwd(cwd, sizeof(cwd));
         eul::filesystem::path path_to_cwd(cwd);
@@ -103,7 +110,6 @@ int app_start()
         }
 
         CommandParser parser(buffer, strlen(buffer));
-        path_to_binary += parser.get_command();
         path_to_cwd += parser.get_command();
 
         while (!parser.empty())
@@ -112,18 +118,55 @@ int app_start()
             ++argc;
         }
 
-        argv[0] = const_cast<char*>(path_to_binary.c_str());
+        argv[0] = const_cast<char*>(path_to_cwd.c_str());
 
-        // TODO: exec must return error code in other way
-        if (exec(path_to_cwd.c_str(), argc, argv, NULL, 0) == -2)
+        // check if file exists in current directory
+
+        FILE* file = fopen(path_to_cwd.c_str(), "r");
+
+        bool command_found = false;
+        if (file)
         {
-            if (exec(path_to_binary.c_str(), argc, argv, NULL, 0) == -2)
-            {
-                printf("Command not found: \n");
-            }
+            fclose(file);
+            command_found = true;
+            exec(path_to_cwd.c_str(), argc, argv, NULL, 0);
+            continue;
         }
-    }
 
+        std::string_view path(path_env);
+
+        msos::shell::Splitter splitter(path_env, strlen(path_env), ';', false);
+
+        while (!splitter.empty())
+        {
+            DIR *d;
+            struct dirent *dir;
+
+            std::string_view next_dir = splitter.get_next_part();
+            d = opendir(next_dir.data());
+            while ((dir = readdir(d)) != nullptr)
+            {
+                if (std::string_view(dir->d_name) == parser.get_command())
+                {
+                    eul::filesystem::path path_to_binary(next_dir);
+                    path_to_binary += parser.get_command();
+                    argv[0] = const_cast<char*>(path_to_binary.c_str());
+                    command_found = true;
+                    if (exec(path_to_binary.c_str(), argc, argv, NULL, 0) == -1 && errno == ENOENT)
+                    {
+                        command_found = false;
+                    }
+                    splitter.clear();
+                }
+            }
+            closedir(d);
+        }
+        if (!command_found)
+        {
+            printf("Command not found: %s\n", parser.get_command().data());
+        }
+
+    }
     return 0;
 }
 

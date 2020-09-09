@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <cstdint>
+#include <cstdlib>
 #include <filesystem>
 
 #include <board.hpp>
@@ -63,6 +64,7 @@ void kernel_process(void*)
     /* temporary */
     FILE *f = fopen("/config/shell.cfg", "w");
 
+    setenv("path", "/rom/bin", 0);
     if (f == nullptr)
     {
         printf("cannot open cfg\n");

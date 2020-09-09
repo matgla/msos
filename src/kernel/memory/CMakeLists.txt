@@ -19,7 +19,7 @@ add_library(msos_kernel_memory)
 set (library_includes ${PROJECT_SOURCE_DIR}/include/msos/kernel/memory)
 
 target_sources(msos_kernel_memory
-   PRIVATE
+   PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/malloc.cpp
 )
 

@@ -51,7 +51,7 @@ target_link_libraries(msos_printer
 
 target_compile_options(msos_printer
     PUBLIC
-        $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a>
+        $<$<COMPILE_LANGUAGE:CXX>:-std=gnu++2a>
     PRIVATE
         $<$<COMPILE_LANGUAGE:CXX>:-Werror -Wall -Wextra -Wpedantic -Wcast-align -Wshadow -Wpointer-arith -Wcast-qual -Wno-missing-braces>
         $<$<CONFIG:DEBUG>:-Og -g>
@@ -120,6 +120,13 @@ target_link_libraries(msos_main
         sysconfig
         msos_shell
         hal
+)
+
+target_link_options(msos_main
+    PUBLIC
+        -Wl,--wrap=malloc;
+        -Wl,--wrap=realloc;
+        -Wl,--wrap=free;
 )
 
 if (${vendor} STREQUAL "STM32")

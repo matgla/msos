@@ -16,6 +16,8 @@
 
 #include <cstring>
 
+#include <cstdio>
+
 #include <dirent.h>
 #include <unistd.h>
 
@@ -23,11 +25,11 @@
 
 int main(int argc, char *argv[])
 {
-    eul::filesystem::path path("/");
     if (argc > 1)
     {
+        eul::filesystem::path target_path(argv[1]);
         // Absolute path
-        if (argv[1][0] == '/')
+        if (target_path.is_absolute())
         {
             return chdir(argv[1]);
         }
@@ -40,19 +42,11 @@ int main(int argc, char *argv[])
             {
                 return -1;
             }
-            if (cwd[cwd_length - 1] != '/')
-            {
-                cwd[cwd_length] = '/';
-                cwd[++cwd_length] = 0;
+            eul::filesystem::path path(cwd);
+            path += target_path;
+            path = path.lexically_normal();
 
-            }
-            std::size_t rest_space = sizeof(cwd) - cwd_length;
-            std::size_t suffix_space = strlen(argv[1]);
-            std::size_t to_copy = rest_space < suffix_space ? rest_space : suffix_space;
-            std::memcpy(cwd + cwd_length, argv[1], to_copy);
-            cwd_length += to_copy;
-            cwd[cwd_length] = 0;
-            return chdir(cwd);
+            return chdir(path.c_str());
         }
     }
 

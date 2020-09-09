@@ -26,29 +26,48 @@ UsartWriter writer;
 extern "C"
 {
 
-void* __real__malloc_r (struct _reent *r, size_t sz);
+static int current_usage = 0;
+extern uint32_t _ram_start;
+extern uint32_t _ram_end;
+static int max_usage = (&_ram_end - &_ram_start)*4;
 
-void* __wrap__malloc_r (struct _reent *r, size_t sz)
+void* __real_malloc (size_t sz);
+
+void* __wrap_malloc (size_t sz)
 {
-    void* mem = __real__malloc_r(r, sz);
-    writer << "Allocated " << dec << sz << " bytes at: 0x" << hex << reinterpret_cast<std::size_t>(mem) << endl;
-    return mem;
+    size_t* mem = static_cast<size_t*>(__real_malloc(sz + sizeof(size_t)));
+    mem[0] = sz + sizeof(size_t);
+    current_usage += sz + sizeof(size_t);
+    // writer << "malloc:  Usage: [" << current_usage << "/" << max_usage << "] bytes"
+        // << ", added: " << (sz + sizeof(size_t))
+        // << endl;
+    return &mem[1];
 }
 
-void* __real__free_r (struct _reent *r, void* data);
 
-void* __wrap__free_r (struct _reent *r, void* data)
+void* __real_free (void* data);
+
+void* __wrap_free (void* data)
 {
-    writer << "Free called at: 0x" << hex << reinterpret_cast<std::size_t>(data) << endl;
-    return __real__free_r(r, data);
+    size_t* memory = &static_cast<size_t*>(data)[-1];
+    current_usage -= memory[0];
+    // writer << "free:    Usage: [" << current_usage << "/" << max_usage << "] bytes"
+        // << ", released: " << memory[0]
+        // << endl;
+    return __real_free(static_cast<void*>(memory));
 }
 
-void* __real__realloc_r (struct _reent *r, void* addr, size_t sz);
+void* __real_realloc (void* addr, size_t sz);
 
-void* __wrap__realloc_r (struct _reent *r, void* addr, size_t sz)
+void* __wrap_realloc (void* addr, size_t sz)
 {
-    writer << "Realloc called with size: " << sz << endl;
-    return __real__realloc_r(r, addr, sz);
+    size_t* memory = &static_cast<size_t*>(addr)[-1];
+    current_usage -= memory[0];
+    size_t* mem = static_cast<size_t*>(__real_realloc(addr, sz + sizeof(size_t)));
+    current_usage += sz;
+    // writer << "realloc: Usage: [" << current_usage << "/" << max_usage << "] bytes" << endl;
+
+    return &mem[1];
 }
 
 }

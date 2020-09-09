@@ -18,24 +18,29 @@
 
 #include <string_view>
 
-#include "shell/splitter.hpp"
-
 namespace msos
 {
 namespace shell
 {
 
-class CommandParser : public Splitter
+class Splitter
 {
 public:
-    CommandParser(char* input, std::size_t size);
+    virtual ~Splitter() = default;
+    Splitter(char* input, std::size_t size, char delimiter, bool insert_null_character);
 
-    std::string_view get_command();
-    std::string_view get_next_argument();
+    bool empty();
 
-private:
+    std::string_view get_next_part();
+    void clear();
 
-    std::string_view command_ = "";
+protected:
+    char* input_ = nullptr;
+    std::size_t size_ = 0;
+
+    std::string_view tmp_ = "";
+    char delimiter_;
+    bool insert_null_character_;
 };
 
 

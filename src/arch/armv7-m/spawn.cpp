@@ -79,7 +79,32 @@ void init_path(eul::filesystem::path* self, const char* path)
     new (self) eul::filesystem::path(path);
 }
 
-eul::filesystem::path& (eul::filesystem::path::*mpf)(const std::string_view& path) = &eul::filesystem::path::operator+=;
+template <typename, class>
+class address_resolver;
+
+template<typename T, class ReturnType, class... Args>
+class address_resolver<T, ReturnType(Args...)>
+{
+public:
+    constexpr static void* get(ReturnType(T::*member)(Args...))
+    {
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wpmf-conversions"
+        return reinterpret_cast<void*>(member);
+        #pragma GCC diagnostic pop
+    }
+
+    constexpr static void* get(ReturnType(T::*member)(Args...) const)
+    {
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wpmf-conversions"
+        return reinterpret_cast<void*>(member);
+        #pragma GCC diagnostic pop
+    }
+};
+
+
+using namespace eul::filesystem;
 
 static msos::dl::Environment env{
     msos::dl::SymbolAddress{SymbolCode::libc_strlen, &strlen},
@@ -101,8 +126,11 @@ static msos::dl::Environment env{
     msos::dl::SymbolAddress{SymbolCode::posix_optopt, &optopt},
     msos::dl::SymbolAddress{SymbolCode::libstdcpp__ZdlPvj, &delete_port},
     msos::dl::SymbolAddress{SymbolCode::eul__ZN3eul10filesystem4pathC1EPKc, &init_path},
-    msos::dl::SymbolAddress{SymbolCode::eul__ZNK3eul10filesystem4path5c_strEv, reinterpret_cast<void*>(&eul::filesystem::path::c_str)},
-    msos::dl::SymbolAddress{SymbolCode::eul__ZN3eul10filesystem4pathpLERKSt17basic_string_viewIcSt11char_traitsIcEE, reinterpret_cast<void*>(mpf)},
+    msos::dl::SymbolAddress{SymbolCode::eul__ZNK3eul10filesystem4path5c_strEv, address_resolver<path, const char*()>::get(&path::c_str)},
+    msos::dl::SymbolAddress{SymbolCode::eul__ZN3eul10filesystem4pathpLERKSt17basic_string_viewIcSt11char_traitsIcEE, address_resolver<path, path&(const std::string_view&)>::get(&path::operator+=)},
+    msos::dl::SymbolAddress{SymbolCode::eul__ZN3eul10filesystem4pathpLERKS1_, address_resolver<path, path&(const path&)>::get(&path::operator+=)},
+    msos::dl::SymbolAddress{SymbolCode::eul__ZNK3eul10filesystem4path16lexically_normalEv, address_resolver<path, path()>::get(&path::lexically_normal)},
+    msos::dl::SymbolAddress{SymbolCode::eul__ZNK3eul10filesystem4path11is_absoluteEv, address_resolver<path, bool()>::get(&path::is_absolute)},
 
 };
 
@@ -142,7 +170,8 @@ int exec_process(ExecInfo* info)
 
     if (!file)
     {
-        return -2;
+        errno = ENOENT;
+        return -1;
     }
 
     if (dest_fs->name() == "AppFs")
@@ -162,7 +191,6 @@ int exec_process(ExecInfo* info)
     if (info->entries)
     {
         module = dynamic_linker.load_module(module_address, msos::dl::LoadingModeCopyData, info->entries, info->number_of_entries, ec);
-        delete info;
     }
     else
     {
@@ -171,11 +199,12 @@ int exec_process(ExecInfo* info)
         {
             writer << ec.message() << endl;
         }
-        delete info;
     }
     if (module)
     {
-        return module->execute(info->argc, info->argv);
+        int rc = module->execute(info->argc, info->argv);
+        dynamic_linker.unload_module(module);
+        return rc;
     }
     else
     {
@@ -186,7 +215,7 @@ int exec_process(ExecInfo* info)
         }
     }
     // TODO: change to error code as argument (application returns also)
-    return -2;
+    return -1;
 }
 
 static bool is_first = true;
@@ -212,7 +241,9 @@ int exec(const char* path, int argc, char* argv[], const SymbolEntry* entries, i
     optind = 0;
     optopt = '?';
     opterr = 1;
-    return exec_process(info);
+    int rc = exec_process(info);
+    delete info;
+    return rc;
 }
 
 pid_t spawn_exec(const char* path, void *arg, const SymbolEntry* entries, int number_of_entries, std::size_t stack_size)
@@ -234,5 +265,6 @@ pid_t spawn_exec(const char* path, void *arg, const SymbolEntry* entries, int nu
 
     auto& child = msos::kernel::process::ProcessManager<msos::arch::armv7m::ArmProcess>::get().create_process(
         reinterpret_cast<std::size_t>(exec_process), stack_size, reinterpret_cast<std::size_t>(info));
+
     return child.pid();
 }

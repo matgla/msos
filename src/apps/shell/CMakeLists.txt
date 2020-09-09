@@ -20,8 +20,10 @@ target_sources(msos_shell
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/command_parser.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/splitter.hpp
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/command_parser.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/splitter.cpp
 )
 target_include_directories(msos_shell
     PUBLIC

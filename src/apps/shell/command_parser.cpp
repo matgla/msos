@@ -24,10 +24,8 @@ namespace shell
 {
 
 CommandParser::CommandParser(char* input, std::size_t size)
-    : input_(input)
-    , size_(size)
+    : Splitter(input, size, ' ', true)
 {
-    tmp_ = std::string_view(input);
     command_ = get_next_part();
 }
 
@@ -39,44 +37,6 @@ std::string_view CommandParser::get_command()
 std::string_view CommandParser::get_next_argument()
 {
     return get_next_part();
-}
-
-bool CommandParser::empty()
-{
-    return tmp_ == "";
-}
-
-std::string_view CommandParser::get_next_part()
-{
-    if (tmp_.empty())
-    {
-        return "";
-    }
-
-    tmp_ = tmp_.substr(tmp_.find_first_not_of(' '));
-    auto suffix = tmp_.find_last_not_of(' ');
-    tmp_.remove_suffix(tmp_.length() - suffix - 1);
-    std::size_t space_position = tmp_.find(' ');
-
-    if (space_position == std::string_view::npos)
-    {
-        if (tmp_.size())
-        {
-            std::string_view part = tmp_;
-            tmp_ = "";
-            return part;
-        }
-        return "";
-    }
-
-    std::string_view part = tmp_.substr(0, space_position);
-    tmp_.remove_prefix(space_position + 1);
-
-    // always created from char* so in fact can be modified,
-    // std::string_view must be reinitialized after referenced string change
-    const_cast<char*>(part.data())[part.size()] = 0;
-
-    return part;
 }
 
 } // namespace shell

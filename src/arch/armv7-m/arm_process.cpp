@@ -124,6 +124,7 @@ const std::size_t* ArmProcess::current_stack_pointer()
     if (!validate_stack())
     {
         // TODO panic
+        printf("Stack overflow!\n");
         return nullptr;
     }
     return current_stack_pointer_;
@@ -134,6 +135,8 @@ const std::size_t* ArmProcess::current_stack_pointer() const
     if (!validate_stack())
     {
         // TODO panic
+        printf("Stack overflow!\n");
+
         return nullptr;
     }
     return current_stack_pointer_;
