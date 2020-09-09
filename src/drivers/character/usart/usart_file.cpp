@@ -20,6 +20,7 @@
 
 #include "msos/drivers/character/usart/usart_file.hpp"
 #include "msos/usart_printer.hpp"
+#include "msos/os/sys/ioctl.h"
 
 namespace msos
 {
@@ -61,7 +62,6 @@ std::string_view UsartFile::name() const
     return path_;
 }
 
-
 std::unique_ptr<IFile> UsartFile::clone() const
 {
     return std::make_unique<UsartFile>(*this);
@@ -71,6 +71,19 @@ void UsartFile::stat(struct stat& s) const
 {
     s.st_mode = 0;
     s.st_mode |= S_IFCHR;
+}
+
+int UsartFile::ioctl(uint32_t cmd, void* arg)
+{
+    if (_IOC_NUMBER(cmd) == 104)
+    {
+        auto win = static_cast<winsize*>(arg);
+        win->ws_row = 24;
+        win->ws_col = 80;
+        win->ws_xpixel = 0;
+        win->ws_ypixel = 0;
+    }
+    return 0;
 }
 
 } // namespace fs

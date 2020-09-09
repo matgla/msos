@@ -60,5 +60,6 @@ target_link_libraries(msos_arch_armv7m
         msos_posix
         msos_kernel_process
         msos_dynamic_linker
+        msos_curses
 )
 

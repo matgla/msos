@@ -24,7 +24,7 @@
 #include "msos/kernel/process/process.hpp"
 #include "msos/fs/i_file.hpp"
 
-int _ioctl(int fd, uint32_t cmd, void* arg)
+int ioctl(int fd, uint32_t cmd, void* arg)
 {
     const auto* scheduler = msos::kernel::process::Scheduler::get();
     if (!scheduler)

@@ -14,35 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
-
-#include <cstdint>
+#pragma once 
 
 extern "C"
 {
+    struct WINDOW
+    {
+        int max_x;
+        int max_y;
+    };
 
-typedef struct dirent {
-    uint32_t d_ino;
-    uint32_t d_off;
-    uint16_t d_reclen;
-    std::size_t d_namlen;
-    int d_type;
-    char d_name[128];
-} dirent;
+    WINDOW* initscr(void);
+    void endwin(void);
+    int getmaxy(WINDOW* window);
+    int getmaxx(WINDOW* window);
 
-struct DIRImpl;
+    #define getmaxyx(win,y,x) (y = getmaxy(win), x = getmaxx(win))
 
-typedef struct DIR {
-    struct dirent ent;
-    struct DIRImpl *impl;
-} DIR;
+    int printw(char *, ...);
+    int refresh(void);
 
-DIR* opendir(const char* dirname);
-dirent* readdir(DIR *dirp);
-int closedir(DIR *dirp);
-
+    extern WINDOW* stdscr;
 }
-
-#define opendir opendir
-#define readdir readdir
-#define closedir closedir

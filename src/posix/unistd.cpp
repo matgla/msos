@@ -19,6 +19,8 @@
 #include <cstring>
 #include <string_view>
 
+#include <hal/time/sleep.hpp>
+
 #include "msos/kernel/process/scheduler.hpp"
 #include "msos/fs/vfs.hpp"
 
@@ -62,5 +64,11 @@ int chdir(const char* path)
     printf("File is not directory: %s\n", path_parser.lexically_normal().c_str());
     return -1;
 }
+
+    unsigned int sleep(unsigned int seconds)
+    {
+        hal::time::sleep(std::chrono::seconds(seconds));
+        return 0;
+    }
 
 }

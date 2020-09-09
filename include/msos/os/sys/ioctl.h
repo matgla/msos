@@ -87,7 +87,15 @@
 
 extern "C"
 {
-    int _ioctl(int fd, uint32_t cmd, void* arg);
-    #define ioctl _ioctl
+    typedef struct winsize
+    {
+        uint16_t ws_row;
+        uint16_t ws_col;
+        uint16_t ws_xpixel;
+        uint16_t ws_ypixel;
+    } winsize;
+
+    int ioctl(int fd, uint32_t cmd, void* arg);
 }
 
+#define	TIOCGWINSZ	_IOR('t', 104, struct winsize)	/* get window size */

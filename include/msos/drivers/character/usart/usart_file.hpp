@@ -39,6 +39,8 @@ public:
     std::unique_ptr<IFile> clone() const override;
 
     void stat(struct stat& s) const override;
+    int ioctl(uint32_t cmd, void* arg) override;
+
 private:
     drivers::character::UsartDriver& driver_;
     std::string_view path_;

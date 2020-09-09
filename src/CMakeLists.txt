@@ -17,6 +17,7 @@
 add_library(msos INTERFACE)
 
 add_subdirectory(apps)
+add_subdirectory(curses) #TODO: move to external lib?
 add_subdirectory(arch)
 add_subdirectory(dynamic_linker)
 add_subdirectory(kernel)
@@ -78,6 +79,7 @@ target_link_libraries(msos
         hal_flags
         msgui
         sysconfig
+        msos_curses
 )
 
 
@@ -168,6 +170,7 @@ if (${vendor} STREQUAL "STM32")
             cat
             cd
             pwd
+            curses_test
     )
 
     add_custom_command(

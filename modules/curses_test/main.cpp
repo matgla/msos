@@ -15,28 +15,25 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <cstdio>
+#include <unistd.h>
+#include <curses.h>
 
-#include <dirent.h>
-
-#include "msos/apps/app_registry.hpp"
-
-void ls_command(const char* path)
+int main()
 {
-    DIR *d;
-    struct dirent *dir;
-    d = opendir(path);
-    if (d) {
-        while ((dir = readdir(d)) != NULL) {
-            printf("%s ", dir->d_name);
-        }
-        printf("\n");
-        closedir(d);
+    printf("Curses test\n");
+    int xmax, ymax;
+
+    if (initscr() == NULL)
+    {
+        printf("Error: initscr()\n");
     }
+
+    getmaxyx(stdscr,ymax,xmax);
+    printw("Hello!\n");
+    printw("Liczba wierszy okna = %d\n",ymax);
+    printw("Liczba kolumn okna = %d\n",xmax);
+    refresh();
+    sleep(2);
+    endwin();
 }
 
-int app_start()
-{
-    return 0;
-}
-
-REGISTER_APP(ls, &app_start);

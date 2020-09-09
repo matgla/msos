@@ -14,29 +14,30 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(msos_ls STATIC)
+add_library(msos_curses)
 
-target_sources(msos_ls
-    PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-)
-target_include_directories(msos_ls
-    PUBLIC
-        ${PROJECT_SOURCE_DIR}/include)
-
-target_link_libraries(msos_ls
-    PRIVATE
-        eul_filesystem
-        GSL
-        msos_apps
-        hal_flags
+target_sources(msos_curses 
+    PUBLIC 
+        ${CMAKE_CURRENT_SOURCE_DIR}/curses.h 
+    PRIVATE 
+        ${CMAKE_CURRENT_SOURCE_DIR}/curses.cpp
 )
 
-target_compile_options(msos_ls
+target_include_directories(msos_curses PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+
+target_compile_options(msos_curses
     PUBLIC
         $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a>
         $<$<CONFIG:DEBUG>:-Og -g>
         $<$<CONFIG:RELEASE>:-Os>
     PRIVATE
-        $<$<COMPILE_LANGUAGE:CXX>:-Werror -Wall -Wextra -Wpedantic -Wconversion -Wcast-align -Wunused -Wshadow -Wold-style-cast -Wpointer-arith -Wcast-qual -Wno-missing-braces>
+        $<$<COMPILE_LANGUAGE:CXX>:-Werror -Wall -Wextra -Wpedantic -Wcast-align -Wunused -Wshadow -Wpointer-arith -Wcast-qual -Wno-missing-braces>
+)
+
+target_link_libraries(msos_curses
+    PRIVATE
+        hal_flags
+        msos_os_sys
+        msos_libc
 )

@@ -32,6 +32,7 @@
 #include <eul/filesystem/path.hpp>
 #include <eul/utils/unused.hpp>
 #include <memory>
+#include <curses.h>
 
 #include "msos/libc/printf.hpp"
 
@@ -131,15 +132,16 @@ static msos::dl::Environment env{
     msos::dl::SymbolAddress{SymbolCode::libc_system, &system},
     msos::dl::SymbolAddress{SymbolCode::libc_putchar, &putchar},
     msos::dl::SymbolAddress{SymbolCode::libc_strcmp, &strcmp},
-    msos::dl::SymbolAddress{SymbolCode::posix__readdir, &readdir},
-    msos::dl::SymbolAddress{SymbolCode::posix__opendir, &opendir},
-    msos::dl::SymbolAddress{SymbolCode::posix__closedir, &closedir},
+    msos::dl::SymbolAddress{SymbolCode::posix_readdir, &readdir},
+    msos::dl::SymbolAddress{SymbolCode::posix_opendir, &opendir},
+    msos::dl::SymbolAddress{SymbolCode::posix_closedir, &closedir},
     msos::dl::SymbolAddress{SymbolCode::posix_getcwd, &getcwd},
     msos::dl::SymbolAddress{SymbolCode::posix_chdir, &chdir},
     msos::dl::SymbolAddress{SymbolCode::posix_getopt, &getopt},
     msos::dl::SymbolAddress{SymbolCode::posix_optind, &optind},
     msos::dl::SymbolAddress{SymbolCode::posix_optarg, &optarg},
     msos::dl::SymbolAddress{SymbolCode::posix_optopt, &optopt},
+    msos::dl::SymbolAddress{SymbolCode::posix_sleep, &sleep},
     msos::dl::SymbolAddress{SymbolCode::libstdcpp__ZdlPvj, &delete_port},
     msos::dl::SymbolAddress{SymbolCode::eul__ZN3eul10filesystem4pathC1EPKc, &init_path},
     msos::dl::SymbolAddress{SymbolCode::eul__ZNK3eul10filesystem4path5c_strEv, address_resolver<path, const char*()>::get(&path::c_str)},
@@ -147,6 +149,13 @@ static msos::dl::Environment env{
     msos::dl::SymbolAddress{SymbolCode::eul__ZN3eul10filesystem4pathpLERKS1_, address_resolver<path, path&(const path&)>::get(&path::operator+=)},
     msos::dl::SymbolAddress{SymbolCode::eul__ZNK3eul10filesystem4path16lexically_normalEv, address_resolver<path, path()>::get(&path::lexically_normal)},
     msos::dl::SymbolAddress{SymbolCode::eul__ZNK3eul10filesystem4path11is_absoluteEv, address_resolver<path, bool()>::get(&path::is_absolute)},
+    msos::dl::SymbolAddress{SymbolCode::curses_initscr, &initscr},
+    msos::dl::SymbolAddress{SymbolCode::curses_endwin, &endwin},
+    msos::dl::SymbolAddress{SymbolCode::curses_getmaxx, &getmaxx},
+    msos::dl::SymbolAddress{SymbolCode::curses_getmaxy, &getmaxy},
+    msos::dl::SymbolAddress{SymbolCode::curses_stdscr, &stdscr},
+    msos::dl::SymbolAddress{SymbolCode::curses_printw, &printw},
+    msos::dl::SymbolAddress{SymbolCode::curses_refresh, &refresh},
 
 };
 

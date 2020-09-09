@@ -14,35 +14,34 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(msos_libc)
+add_executable(curses_test)
 
-set (library_includes ${PROJECT_SOURCE_DIR}/include/msos/libc)
-
-target_sources(msos_libc
-    PUBLIC
-        ${library_includes}/printf.hpp
+target_sources(curses_test
     PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/printf.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 
-target_include_directories(msos_libc
-    PUBLIC
-        ${PROJECT_SOURCE_DIR}/include
+
+# TODO: smarter way to inherit flags
+target_link_libraries(curses_test
+    PRIVATE
+        module_flags
 )
 
-target_compile_options(msos_libc
-    PUBLIC
-        $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a>
-        $<$<CONFIG:DEBUG>:-Og -g>
-        $<$<CONFIG:RELEASE>:-Os>
-    PRIVATE
-        $<$<COMPILE_LANGUAGE:CXX>:-Werror -Wall -Wextra -Wpedantic -Wconversion -Wcast-align -Wunused -Wshadow -Wold-style-cast -Wpointer-arith -Wcast-qual -Wno-missing-braces>
-)
+add_module(curses_test curses_test)
+target_include_directories(curses_test PUBLIC $<TARGET_PROPERTY:msos_curses,INCLUDE_DIRECTORIES>)
 
-target_link_libraries(msos_libc
-    PRIVATE
-        msos_printer
-        hal_flags
-    PUBLIC
-        eul_utils
+if (${arch} STREQUAL "ARM")
+    set (suffix ".bin")
+    set (prefix "")
+else ()
+    set (suffix "")
+    set (prefix "")
+endif ()
+
+add_custom_command(
+    TARGET curses_test
+    POST_BUILD
+    COMMAND mkdir -p ${PROJECT_BINARY_DIR}/rootfs/bin
+    COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/${prefix}curses_test${suffix} ${PROJECT_BINARY_DIR}/rootfs/bin/curses
 )
