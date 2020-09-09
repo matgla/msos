@@ -60,7 +60,7 @@ add_custom_command(
     DEPENDS  ${CMAKE_CURRENT_BINARY_DIR}/spawn_process_from_filesystem_generate_bin.stamp
     COMMAND ${truncate_exec} --size 40K ${executable_file}
     COMMAND cp ${executable_file} ${executable_file}.tmp
-    COMMAND cat ${executable_file}.tmp ${CMAKE_CURRENT_SOURCE_DIR}/test.img > ${executable_file}
+    COMMAND ${CMAKE_COMMAND} -E "cat" ${executable_file}.tmp ${CMAKE_CURRENT_SOURCE_DIR}/test.img > ${executable_file}
     VERBATIM
 )
 

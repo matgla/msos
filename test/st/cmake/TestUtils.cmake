@@ -19,7 +19,7 @@ function (register_system_test_binary name)
         TARGET ${name}
         POST_BUILD
         COMMAND cmake -E remove ${CMAKE_CURRENT_BINARY_DIR}/test_binary.bin
-        COMMAND cat ${HOST_BINARY_FILE} ${CMAKE_CURRENT_BINARY_DIR}/${name}.bin >
+        COMMAND ${CMAKE_COMMAND} -E "cat" ${HOST_BINARY_FILE} ${CMAKE_CURRENT_BINARY_DIR}/${name}.bin >
         ${CMAKE_CURRENT_BINARY_DIR}/test_binary.bin
         DEPENDS host ${HOST_BINARY_FILE} ${name}-generate-binary ${name}
         VERBATIM

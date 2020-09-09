@@ -198,7 +198,7 @@ int main()
 
     writer << "[TEST START]" << endl;
 
-    spawn_root_process(&kernel_process, NULL, 1024);
+    spawn_root_process(&kernel_process, NULL, 2048);
 
     while (true)
     {

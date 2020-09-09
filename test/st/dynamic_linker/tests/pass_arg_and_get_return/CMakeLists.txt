@@ -43,7 +43,7 @@ add_custom_command(
     TARGET module_with_args
     POST_BUILD
     COMMAND cmake -E remove ${CMAKE_CURRENT_BINARY_DIR}/test_binary.bin
-    COMMAND cat ${HOST_WITH_ARGS_BINARY_FILE} ${CMAKE_CURRENT_BINARY_DIR}/module_with_args.bin >
+    COMMAND ${CMAKE_COMMAND} -E "cat" ${HOST_WITH_ARGS_BINARY_FILE} ${CMAKE_CURRENT_BINARY_DIR}/module_with_args.bin >
     ${CMAKE_CURRENT_BINARY_DIR}/test_binary.bin
     DEPENDS host_with_args module_with_args-generate-binary module_with_args
     VERBATIM

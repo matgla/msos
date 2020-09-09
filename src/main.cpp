@@ -45,6 +45,8 @@
 #include "msgui/policies/data/DefaultMemoryPolicy.hpp"
 #include "msgui/fonts/Font5x7.hpp"
 
+#include "msos/kernel/fault/panic.hpp"
+
 extern "C"
 {
 extern uint32_t _fs_flash_start;
