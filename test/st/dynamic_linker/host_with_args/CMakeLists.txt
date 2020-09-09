@@ -44,7 +44,7 @@ find_program(truncate_exec truncate)
 
 add_custom_command(
     TARGET host_with_args
-    COMMAND ${truncate_exec} --size 32K ${CMAKE_CURRENT_BINARY_DIR}/host_with_args.bin
+    COMMAND ${truncate_exec} --size 50K ${CMAKE_CURRENT_BINARY_DIR}/host_with_args.bin
     POST_BUILD
     VERBATIM
 )

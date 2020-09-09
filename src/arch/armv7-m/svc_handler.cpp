@@ -32,7 +32,9 @@ namespace process
 
 void initialize_svc()
 {
+    printf("Initialization of svc\n");
     hal::interrupt::set_svc_handler([](uint32_t number, void* args, void* out){
+        printf("Handling svc call: %d\n", number);
         switch(number)
         {
             case SyscallNumber::SYSCALL_EXIT:

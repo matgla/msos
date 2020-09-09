@@ -20,6 +20,7 @@
 
 #include <board.hpp>
 #include <config.hpp>
+
 #include <hal/core/core.hpp>
 #include <hal/time/sleep.hpp>
 #include <hal/time/time.hpp>

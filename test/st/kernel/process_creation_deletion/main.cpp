@@ -14,6 +14,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <board.hpp>
+#include <config.hpp>
 
 #include <hal/time/sleep.hpp>
 #include <hal/core/core.hpp>
@@ -195,7 +196,7 @@ int main()
     {
         driver.driver()->load();
     }
-
+    msos::system_config();
     writer << "[TEST START]" << endl;
 
     spawn_root_process(&kernel_process, NULL, 2048);

@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 function (register_system_test_binary name)
+    message("alalala;: ${HOST_BINARY_FILE}")
     add_custom_command(
         TARGET ${name}
         POST_BUILD

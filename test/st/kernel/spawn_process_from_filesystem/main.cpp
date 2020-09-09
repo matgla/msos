@@ -18,6 +18,7 @@
 #include <cstring>
 
 #include <board.hpp>
+#include <config.hpp>
 #include <hal/time/sleep.hpp>
 #include <hal/core/core.hpp>
 
@@ -175,6 +176,7 @@ void kernel_process(void *)
 
     writer << "Started testing ROMFS disk" << endl;
     msos::fs::RomFs romfs(romfs_disk);
+    ramfs.mkdir("rom", 1);
     vfs.mount_fs("/rom", &romfs);
 
     writer << "Opening file /rom/test.txt" << endl;
@@ -219,6 +221,7 @@ int main()
     usart->init(9600);
 
     writer << "[TEST START]" << endl;
+    msos::system_config();
     spawn_root_process(&kernel_process, NULL, 1024);
 
     while (true)

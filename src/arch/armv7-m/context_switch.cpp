@@ -28,7 +28,6 @@
 #include "arch/armv7-m/systick_handler.hpp"
 #include "arch/armv7-m/svc_handler.hpp"
 
-
 namespace msos
 {
 namespace process

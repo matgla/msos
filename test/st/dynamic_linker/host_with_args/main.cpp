@@ -16,6 +16,7 @@
 
 #include <unistd.h>
 #include <board.hpp>
+#include <config.hpp>
 
 #include <eul/error/error_code.hpp>
 #include <eul/utils/math.hpp>
@@ -42,15 +43,15 @@ static uint32_t get_lot_at(uint32_t address)
 int main()
 {
     board::board_init();
+    msos::system_config();
     const auto& usart = board::interfaces::usarts()[0];
     usart->init(9600);
-
     uint32_t address_of_lot_getter = reinterpret_cast<uint32_t>(&get_lot_at);
     uint32_t* lot_in_memory = reinterpret_cast<uint32_t*>(0x20000000);
     *lot_in_memory = address_of_lot_getter;
 
     std::size_t module_address = 0x08000000;
-    module_address += 32 * 1024;
+    module_address += 50 * 1024;
     msos::dl::Environment<2> env{
         msos::dl::SymbolAddress{SymbolCode::libc_atoi, &atoi},
         msos::dl::SymbolAddress{SymbolCode::libc_printf, &_printf}

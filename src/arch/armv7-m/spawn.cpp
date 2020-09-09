@@ -151,7 +151,7 @@ pid_t spawn_root_process(void (*start_routine) (void *), void *arg, std::size_t 
     {
         scheduler->schedule_next();
     }
-
+    printf("Initialize context switching\n");
     msos::process::initialize_context_switching();
     trigger_syscall(SyscallNumber::SYSCALL_START_ROOT_PROCESS, NULL, NULL);
     while(1) {}

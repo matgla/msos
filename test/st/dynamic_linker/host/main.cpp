@@ -16,6 +16,7 @@
 
 #include <unistd.h>
 #include <board.hpp>
+#include <config.hpp>
 #include <cstring>
 
 #include <eul/error/error_code.hpp>
@@ -52,9 +53,9 @@ static std::size_t get_lot_at(uint32_t address)
 int main()
 {
     board::board_init();
-    auto usart = board::interfaces::usarts()[0];
+    msos::system_config();
+    const auto& usart = board::interfaces::usarts()[0];
     usart->init(9600);
-
     std::size_t address_of_lot_getter = reinterpret_cast<std::size_t>(&get_lot_at);
     std::size_t* lot_in_memory = reinterpret_cast<std::size_t*>(0x20000000);
     *lot_in_memory = address_of_lot_getter;
@@ -62,7 +63,7 @@ int main()
     writer << "Address of lot in memory: 0x" << hex << reinterpret_cast<std::size_t>(lot_in_memory) << endl;
 
     std::size_t module_address = 0x08000000;
-    module_address += 32 * 1024;
+    module_address += 50 * 1024;
     int extern_data = 123;
     msos::dl::Environment<4> env{
         msos::dl::SymbolAddress{SymbolCode::libc_strlen, &strlen},

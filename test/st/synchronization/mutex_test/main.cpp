@@ -15,6 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <board.hpp>
+#include <config.hpp>
 
 #include <hal/core/core.hpp>
 #include <hal/time/sleep.hpp>
@@ -97,6 +98,7 @@ void kernel_process(void* arg)
 int main()
 {
     board::board_init();
+    msos::system_config();
     const auto& usart = board::interfaces::usarts()[0];
     usart->init(9600);
 

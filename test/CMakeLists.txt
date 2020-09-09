@@ -14,5 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_subdirectory(ut)
-add_subdirectory(st)
+if (BUILD_MSOS_UT)
+    add_subdirectory(ut)
+else ()
+    add_subdirectory(st)
+endif ()

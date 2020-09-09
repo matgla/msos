@@ -77,6 +77,7 @@ target_link_libraries(msos
         msos_os_sys
         hal_flags
         msgui
+        sysconfig
 )
 
 
@@ -117,7 +118,6 @@ target_sources(msos_main
 target_link_libraries(msos_main
     PUBLIC
         msos
-        sysconfig
         msos_shell
         hal
 )

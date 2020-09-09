@@ -45,15 +45,17 @@ else ()
     set(BUILD_MSOS_UT OFF CACHE BOOL "Build UT" FORCE)
 endif()
 
-if (NOT DISABLE_TESTS OR DISABLE_ST_TESTS)
+if (MSOS_UT)
     set (ENABLE_SEMIHOSTING ON)
+else () 
+    set (ENABLE_SEMIHOSTING OFF)
 endif ()
 
 find_package(hal REQUIRED)
 
 enable_language(ASM C CXX)
 
-if (NOT DISABLE_TESTS)
+if (ENABLE_SEMIHOSTING)
     add_definitions(-DENABLE_SEMIHOSTING)
 endif ()
 
@@ -81,7 +83,7 @@ add_subdirectory(modules)
 
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/scripts/generate_device_tree.py)
 
-if (NOT DISABLE_TESTS OR DISABLE_ST_TESTS)
+if (BUILD_MSOS_UT OR NOT DISABLE_ST_TESTS)
     include (CTest)
     enable_testing()
     add_subdirectory(test)
