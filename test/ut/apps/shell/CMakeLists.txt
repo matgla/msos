@@ -22,6 +22,7 @@ target_sources(apps_shell_tests
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/command_parser_tests.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/splitter_tests.cpp
 )
 
 target_link_libraries(apps_shell_tests

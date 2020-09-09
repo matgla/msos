@@ -60,7 +60,6 @@ void read_configuration_file()
     }
 
     char buffer[255];
-    printf("Reading\n");
     fgets(buffer, sizeof(buffer), fp);
     printf("%s\n", buffer);
 }

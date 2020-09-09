@@ -115,6 +115,22 @@ static msos::dl::Environment env{
     msos::dl::SymbolAddress{SymbolCode::libc_memcpy, &memcpy},
     msos::dl::SymbolAddress{SymbolCode::libc_fopen, &fopen},
     msos::dl::SymbolAddress{SymbolCode::libc_fclose, &fclose},
+    msos::dl::SymbolAddress{SymbolCode::libc_fgets, &fgets},
+    msos::dl::SymbolAddress{SymbolCode::libc_fflush, &fflush},
+    msos::dl::SymbolAddress{SymbolCode::libc_fprintf, &fprintf},
+    msos::dl::SymbolAddress{SymbolCode::libc_fread, &fread},
+    msos::dl::SymbolAddress{SymbolCode::libc_fseek, &fseek},
+    msos::dl::SymbolAddress{SymbolCode::libc_ftell, &ftell},
+    msos::dl::SymbolAddress{SymbolCode::libc_fwrite, &fwrite},
+    msos::dl::SymbolAddress{SymbolCode::libc_rand, &rand},
+    msos::dl::SymbolAddress{SymbolCode::libc_localtime, &localtime},
+    msos::dl::SymbolAddress{SymbolCode::libc_time, &time},
+    msos::dl::SymbolAddress{SymbolCode::libc__ctype_, &_ctype_},
+    msos::dl::SymbolAddress{SymbolCode::libc_exit, &exit},
+    msos::dl::SymbolAddress{SymbolCode::libc__impure_ptr, &_impure_ptr},
+    msos::dl::SymbolAddress{SymbolCode::libc_system, &system},
+    msos::dl::SymbolAddress{SymbolCode::libc_putchar, &putchar},
+    msos::dl::SymbolAddress{SymbolCode::libc_strcmp, &strcmp},
     msos::dl::SymbolAddress{SymbolCode::posix__readdir, &readdir},
     msos::dl::SymbolAddress{SymbolCode::posix__opendir, &opendir},
     msos::dl::SymbolAddress{SymbolCode::posix__closedir, &closedir},
@@ -151,7 +167,6 @@ pid_t spawn_root_process(void (*start_routine) (void *), void *arg, std::size_t 
     {
         scheduler->schedule_next();
     }
-    printf("Initialize context switching\n");
     msos::process::initialize_context_switching();
     trigger_syscall(SyscallNumber::SYSCALL_START_ROOT_PROCESS, NULL, NULL);
     while(1) {}

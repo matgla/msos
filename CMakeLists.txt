@@ -40,12 +40,9 @@ add_definitions("-DGSL_TERMINATE_ON_CONTRACT_VIOLATION=1 -DGSL_MSVC_USE_STL_NOEX
 
 if (NOT BOARD OR BOARD STREQUAL "Unknown" OR BOARD STREQUAL "unittest")
     set(BOARD "unittest" CACHE STRING "Target board" FORCE)
-    set(BUILD_MSOS_UT ON CACHE BOOL "Build UT" FORCE)
-else ()
-    set(BUILD_MSOS_UT OFF CACHE BOOL "Build UT" FORCE)
 endif()
 
-if (MSOS_UT)
+if (BUILD_MSOS_UT)
     set (ENABLE_SEMIHOSTING ON)
 else () 
     set (ENABLE_SEMIHOSTING OFF)

@@ -62,6 +62,21 @@
                     "MSTEST_LINKER_FLAGS": "${hal_exe_linker_flags}"
                 }
             }
+        },
+        {
+            "link": "https://github.com/devshane/zork.git",
+            "type": "git",
+            "version": "master",
+            "directory": "zork",
+            "target": "zorklib",
+            "options": {
+                "create_library": {
+                    "type": "STATIC",
+                    "sources_filter": ["*.h", "*.c"],
+                    "sources_directory": "",
+                    "include_directories": []
+                }
+            }
         }
     ]
 }
