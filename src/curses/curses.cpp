@@ -34,29 +34,60 @@ static UsartWriter writer;
 
 constexpr const char* bold = "\033[1m";
 constexpr const char* underline = "\033[4m";
+constexpr const char* reverse = "\033[7m";
+constexpr const char* noreverse = "\033[27m";
 constexpr const char* nobold = "\033[22m";
 constexpr const char* nounderline = "\033[24m";
+constexpr const char* color_black = "\033[1;30m";
+constexpr const char* color_red = "\033[1;31m";
+constexpr const char* color_reset = "\033[0m";
+constexpr const char* bgcolor_red = "\033[1;41m";
+constexpr const char* bgcolor_black = "\033[1;40m";
+constexpr const char* bgcolor_reset = "\033[0m";
 
+    // Background Black: \u001b[40m
+    // Background Red: \u001b[41m
+    // Background Green: \u001b[42m
+    // Background Yellow: \u001b[43m
+    // Background Blue: \u001b[44m
+    // Background Magenta: \u001b[45m
+    // Background Cyan: \u001b[46m
+    // Background White: \u001b[47m
+
+
+struct Color 
+{
+    short fg;
+    short bg;
+    short id;
+};
+
+constexpr int color_pairs = 16;
+Color colors[color_pairs]; 
+int index = 0;
 
 }
 
 WINDOW* stdscr = nullptr;
 
-void clear_screen()
+int move(int y, int x)
 {
-    printf("\033[H\033[J");
+    printf("\033[%d;%dH", x, y);
+    return 0;
 }
 
-void move_cursor(int x, int y)
+int clear()
 {
-    printf("\033[%d;%dH", y, x);
+    printf("\033[H\033[J");
+    return 0;
 }
 
 WINDOW* initscr()
 {
     stdscr = &window;
-    clear_screen();
-    move_cursor(0, 0);
+    clear();
+    move(0, 0);
+    std::memset(&colors, -1, sizeof(colors));
     fflush(stdout);
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
@@ -70,6 +101,7 @@ void endwin()
 {
     echo();
     printf(nobold);
+    attroff(A_COLOR);
     fflush(stdout);
 }
 
@@ -90,7 +122,16 @@ int printw(const char *str, ...)
     int done = __vfprintf_(writer, 1, str, arg, 0);
     va_end (arg);
     return done;
-    return 0;
+}
+
+int mvprintw(int row, int column, const char *str, ...)
+{
+    move(column, row);
+    va_list arg;
+    va_start (arg, str);
+    int done = __vfprintf_(writer, 1, str, arg, 0);
+    va_end (arg);
+    return done;
 }
 
 int refresh(void)
@@ -130,6 +171,25 @@ int echo(void)
 
 int attron(int attr)
 {
+    if (attr & A_COLOR)
+    {
+        int id = attr & 0xF;
+        auto color = colors[id];
+        printf("color index: %d, fg: %d, bg: %d\n", id, color.fg, color.bg);
+        switch (color.fg)
+        {
+            case COLOR_BLACK: printf(color_black); break;
+            case COLOR_RED: printf(color_red); break;
+        }
+
+        switch (color.bg)
+        {
+            case COLOR_BLACK: printf(bgcolor_black); break;
+            case COLOR_RED: printf(bgcolor_red); break;
+        }
+
+        return 0;
+    }
     if (attr & A_BOLD)
     {
         printf(bold);
@@ -138,11 +198,22 @@ int attron(int attr)
     {
         printf(underline);
     }
+    if (attr & A_REVERSE)
+    {
+        printf(reverse);
+    }
     return 0;
 }
 
 int attroff(int attr)
 {
+    if (attr & A_COLOR)
+    {
+        printf(color_reset);
+        printf(bgcolor_reset);
+        return 0;
+    }
+
     if (attr & A_BOLD)
     {
         printf(nobold);
@@ -150,6 +221,10 @@ int attroff(int attr)
     if (attr & A_UNDERLINE)
     {
         printf(nounderline);
+    }
+    if (attr & A_REVERSE)
+    {
+        printf(noreverse);
     }
     return 0;
 }
@@ -173,4 +248,41 @@ int keypad(WINDOW* window, bool bf)
 int getstr_(char* str, size_t size)
 {
     return fgets(str, size, stdin) == nullptr ? ERR : OK;
+}
+
+int start_color(void)
+{
+    return 0;
+}
+
+bool has_colors()
+{
+    return TRUE;
+}
+
+
+int init_pair(short id, short fg, short bg)
+{
+    if (index + 1 < color_pairs)
+    {
+        colors[index] = {
+            .fg = fg,
+            .bg = bg,
+            .id = id
+        };
+        ++index;
+    }
+    return -1;
+}
+
+int COLOR_PAIR(int id)
+{
+    for (int i = 0; i < color_pairs; ++i)
+    {
+        if (colors[i].id == id)
+        {
+            return A_COLOR | i;
+        }
+    }
+    return -1;
 }

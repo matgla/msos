@@ -16,12 +16,18 @@
 
 find_file (GENERATE_API generate_api.py ${PROJECT_SOURCE_DIR}/scripts)
 
-add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/symbol_codes.h
+add_custom_target(api_generator
     COMMAND python3 ${GENERATE_API} --api=${PROJECT_SOURCE_DIR}/api/symbol_codes.json --output ${CMAKE_CURRENT_BINARY_DIR}/ --input ${PROJECT_SOURCE_DIR}
     DEPENDS ${GENERATE_API} ${PROJECT_SOURCE_DIR}/api/symbol_codes.json
     VERBATIM
 )
+
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/symbol_codes.h
+    DEPENDS api_generator
+    VERBATIM
+)
+
 
 set (generated_api_file ${CMAKE_CURRENT_BINARY_DIR}/generated_symbols.json CACHE INTERNAL "" FORCE)
 
@@ -79,4 +85,3 @@ target_link_libraries(msos_dynamic_linker
         msos_printer
         hal_flags
 )
-

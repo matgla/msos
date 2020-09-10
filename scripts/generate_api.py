@@ -74,13 +74,15 @@ def generate_file(output, input, config, name, generated_symbols):
             filepath = input + "/" + include
             tu = idx.parse(filepath, args='-xc++ --std=c++2a'.split())
             for c in tu.cursor.walk_preorder():
-                if c.kind == CursorKind.FUNCTION_DECL:
-                    if os.path.abspath(filepath) == os.path.abspath(c.location.file.name):
-                        if index >= index_max - 1:
-                            raise "Range is too small, please increase index range"
-                        symbol_name = c.referenced.spelling
-                        file.write("    " + name + "_" + symbol_name + " = " + str(index) + ",\n")
-                        index = index + 1
+                if c.kind == CursorKind.FUNCTION_DECL or c.kind == CursorKind.VAR_DECL:
+                    if os.path.abspath(filepath) != os.path.abspath(c.location.file.name):
+                        continue
+                    if index >= index_max - 1:
+                        raise "Range is too small, please increase index range"
+                    symbol_name = c.referenced.spelling
+                    file.write("    " + name + "_" + symbol_name + " = " + str(index) + ",\n")
+                    generated_symbols[symbol_name] = index
+                    index = index + 1
 
         file.write("};\n\n")
         file.write("#define add_" + name + "_symbol_codes() \\" + "\n")
@@ -93,13 +95,11 @@ def generate_file(output, input, config, name, generated_symbols):
                     args_num = 0
 
                     for arg in c.referenced.get_arguments():
-                        print(arg.kind)
                         if arg.kind == CursorKind.PARM_DECL:
                             args_num = args_num + 1
                     i = 0
                     for arg in c.referenced.get_arguments():
                         if arg.kind == CursorKind.PARM_DECL:
-                            print("t: " + arg.type.get_typedef_name())
                             file.write(arg.type.spelling)
                             if i < args_num - 1:
                                 file.write(", ")
@@ -111,6 +111,10 @@ def generate_file(output, input, config, name, generated_symbols):
 
 
                     file.write(")>::get(&" + symbol_name + ")}, \\" + "\n")
+            if c.kind == CursorKind.VAR_DECL:
+                if os.path.abspath(filepath) == os.path.abspath(c.location.file.name):
+                    symbol_name = c.referenced.spelling
+                    file.write("    msos::dl::SymbolAddress{" + name + "_SymbolCode::" + name + "_" + symbol_name + ", &" + symbol_name + "}, \\" + "\n");
         file.write("\n\n")
 
 

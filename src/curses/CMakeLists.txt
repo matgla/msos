@@ -25,7 +25,6 @@ target_sources(msos_curses
 
 target_include_directories(msos_curses PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-
 target_compile_options(msos_curses
     PUBLIC
         $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a>

@@ -16,12 +16,14 @@
 
 #pragma once
 
-#include <stdlib.h>
-
 #if defined(__cplusplus)
 extern "C"
 {
+#else 
+    typedef int bool;
 #endif // __cplusplus
+
+    typedef unsigned int size_t;
 
     struct WINDOW
     {
@@ -38,6 +40,7 @@ extern "C"
     #define getmaxyx(win,y,x) (y = getmaxy(win), x = getmaxx(win))
 
     int printw(const char *, ...);
+    int mvprintw(int row, int colums, const char *, ...);
     int refresh(void);
     int getch(void);
     int noecho(void);
@@ -46,9 +49,11 @@ extern "C"
     int attroff(int);
     int raw(void);
     int noraw(void);
+    int clear(void);
+    int move(int, int);
 
     int keypad(WINDOW *, bool);
-    int getstr_(char *, size_t);
+    int getstr_(char *, unsigned int);
 
     int start_color(void);
     bool has_colors();
@@ -61,6 +66,8 @@ extern "C"
 
     #define A_BOLD 0x01
     #define A_UNDERLINE 0x02
+    #define A_REVERSE 0x04
+    #define A_COLOR 0x10
 
     #define COLOR_RED 1
     #define COLOR_BLACK 2

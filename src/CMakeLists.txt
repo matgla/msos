@@ -16,10 +16,10 @@
 
 add_library(msos INTERFACE)
 
+add_subdirectory(dynamic_linker)
 add_subdirectory(apps)
 add_subdirectory(curses) #TODO: move to external lib?
 add_subdirectory(arch)
-add_subdirectory(dynamic_linker)
 add_subdirectory(kernel)
 add_subdirectory(syscalls)
 add_subdirectory(posix)
@@ -28,6 +28,8 @@ add_subdirectory(drivers)
 add_subdirectory(utils)
 add_subdirectory(libc)
 add_subdirectory(os)
+
+add_dependencies(api_generator msos_curses)
 
 add_library(msos_printer)
 
