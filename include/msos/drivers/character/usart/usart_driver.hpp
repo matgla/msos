@@ -46,10 +46,16 @@ public:
     hal::interfaces::Usart& get();
     BufferType& buffer();
 
+    void lock();
+    void unlock();
+
+    void echo(bool enable);
+
 private:
     int usart_number_;
     int readed_before_newline_;
     BufferType buffer_;
+    bool echo_;
 };
 
 } // namespace character

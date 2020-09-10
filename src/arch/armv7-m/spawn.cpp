@@ -17,6 +17,7 @@
 #include "msos/kernel/process/spawn.hpp"
 
 #include "symbol_codes.h"
+#include "curses_symbol_codes.h"
 #include "msos/posix/dirent.h"
 #include "msos/posix/unistd_impl.hpp"
 #include "arch/armv7-m/arm_process.hpp"
@@ -80,8 +81,9 @@ void init_path(eul::filesystem::path* self, const char* path)
     new (self) eul::filesystem::path(path);
 }
 
-template <typename, class>
+template <typename, class...>
 class address_resolver;
+
 
 template<typename T, class ReturnType, class... Args>
 class address_resolver<T, ReturnType(Args...)>
@@ -96,6 +98,27 @@ public:
     }
 
     constexpr static void* get(ReturnType(T::*member)(Args...) const)
+    {
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wpmf-conversions"
+        return reinterpret_cast<void*>(member);
+        #pragma GCC diagnostic pop
+    }
+};
+
+template <class ReturnType, class... Args>
+class address_resolver<ReturnType(Args...)>
+{
+public:
+    constexpr static void* get(ReturnType(*member)(Args...))
+    {
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wpmf-conversions"
+        return reinterpret_cast<void*>(member);
+        #pragma GCC diagnostic pop
+    }
+
+    constexpr static void* get(ReturnType(*member)(Args..., ...))
     {
         #pragma GCC diagnostic push
         #pragma GCC diagnostic ignored "-Wpmf-conversions"
@@ -149,14 +172,7 @@ static msos::dl::Environment env{
     msos::dl::SymbolAddress{SymbolCode::eul__ZN3eul10filesystem4pathpLERKS1_, address_resolver<path, path&(const path&)>::get(&path::operator+=)},
     msos::dl::SymbolAddress{SymbolCode::eul__ZNK3eul10filesystem4path16lexically_normalEv, address_resolver<path, path()>::get(&path::lexically_normal)},
     msos::dl::SymbolAddress{SymbolCode::eul__ZNK3eul10filesystem4path11is_absoluteEv, address_resolver<path, bool()>::get(&path::is_absolute)},
-    msos::dl::SymbolAddress{SymbolCode::curses_initscr, &initscr},
-    msos::dl::SymbolAddress{SymbolCode::curses_endwin, &endwin},
-    msos::dl::SymbolAddress{SymbolCode::curses_getmaxx, &getmaxx},
-    msos::dl::SymbolAddress{SymbolCode::curses_getmaxy, &getmaxy},
-    msos::dl::SymbolAddress{SymbolCode::curses_stdscr, &stdscr},
-    msos::dl::SymbolAddress{SymbolCode::curses_printw, &printw},
-    msos::dl::SymbolAddress{SymbolCode::curses_refresh, &refresh},
-
+    add_curses_symbol_codes()
 };
 
 pid_t spawn(void (*start_routine) (void *), void *arg)

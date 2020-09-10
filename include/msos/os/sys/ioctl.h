@@ -16,6 +16,8 @@
 
 #include <stdint.h>
 
+#pragma once
+
 /* IO call serializer */
 
 //  one cell is one bit
@@ -32,6 +34,9 @@
 // |   +---+---+---|
 // |   | direction |
 // +---+---+---+---+
+
+extern "C"
+{
 
 #define _IOC_DIRECTION_NONE 0U
 #define _IOC_DIRECTION_READ 2U
@@ -95,7 +100,9 @@ extern "C"
         uint16_t ws_ypixel;
     } winsize;
 
-    int ioctl(int fd, uint32_t cmd, void* arg);
+    int ioctl(int fd, uint32_t cmd, ...);
 }
 
-#define	TIOCGWINSZ	_IOR('t', 104, struct winsize)	/* get window size */
+#define TIOCGWINSZ  _IOR('t', 104, struct winsize)  /* get window size */
+
+} // extern "C"

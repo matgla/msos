@@ -55,13 +55,11 @@
         "_ZNK3eul10filesystem4path16lexically_normalEv": 3004,
         "_ZNK3eul10filesystem4path11is_absoluteEv": 3005
     },
-    "curses": {
-        "initscr": 4000,
-        "endwin": 4001,
-        "getmaxx": 4002,
-        "getmaxy": 4003,
-        "stdscr": 4004,
-        "printw": 4005,
-        "refresh": 4006
+    "generate": {
+        "curses": {
+            "includes": ["src/curses/curses.h"],
+            "range_start": 4000,
+            "range_stop": 4500
+        }
     }
 }

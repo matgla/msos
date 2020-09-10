@@ -49,9 +49,9 @@ function (add_module module_name module_library)
             COMMAND echo "${PROJECT_BINARY_DIR}/module_generator_env/bin/python3 ${GENERATE_BINARY} generate_wrapper_code --disable_logs --elf_filename=$<TARGET_FILE:${module_name}> --module_name=${module_name} --objcopy=${CMAKE_OBJCOPY} --as_executable --api=${PROJECT_SOURCE_DIR}/api/symbol_codes.json"
             COMMAND ${PROJECT_BINARY_DIR}/module_generator_env/bin/python3 ${GENERATE_BINARY}
             generate_wrapper_code --elf_filename=$<TARGET_FILE:${module_name}> --module_name=${module_name}
-            --objcopy=${CMAKE_OBJCOPY} --as_executable --api=${PROJECT_SOURCE_DIR}/api/symbol_codes.json
+            --objcopy=${CMAKE_OBJCOPY} --as_executable --api=${generated_api_file}
             COMMAND echo "Module generated: ${module_name}"
-            DEPENDS ${GENERATE_BINARY} ${module_name} venv.stamp
+            DEPENDS ${GENERATE_BINARY} ${module_name} venv.stamp ${generated_api_file}
             VERBATIM
         )
 

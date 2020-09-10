@@ -86,6 +86,10 @@ int app_start()
         fgets(buffer, sizeof(buffer), stdin);
         std::string_view request(buffer);
 
+        if(std::all_of(request.begin(), request.end(), isspace))
+        {
+            continue;
+        }
         if (request.find("exit") != std::string_view::npos)
         {
             return 0;

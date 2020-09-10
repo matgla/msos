@@ -19,6 +19,7 @@
 #include <memory>
 
 #include <eul/utils/unused.hpp>
+#include <hal/core/criticalSection.hpp>
 
 #include <board.hpp>
 
@@ -38,6 +39,7 @@ UsartWriter writer;
 UsartDriver::UsartDriver(int usart_number)
     : usart_number_(usart_number)
     , readed_before_newline_(0)
+    , echo_(true)
 {
 }
 
@@ -50,7 +52,10 @@ void UsartDriver::load()
         {
             if (readed_before_newline_ > 0)
             {
-                board::interfaces::usarts()[usart_number_]->write("\b \b");
+                if (echo_)
+                {
+                    board::interfaces::usarts()[usart_number_]->write("\b \b");
+                }
                 --readed_before_newline_;
             }
             buffer_.push('\b');
@@ -63,7 +68,10 @@ void UsartDriver::load()
             readed_before_newline_ = -1;
         }
         char data[] = {c, '\0'};
-        board::interfaces::usarts()[usart_number_]->write(data);
+        if (echo_)
+        {
+            board::interfaces::usarts()[usart_number_]->write(data);
+        }
         buffer_.push(c);
         ++readed_before_newline_;
     });
@@ -88,6 +96,21 @@ std::unique_ptr<fs::IFile> UsartDriver::file(std::string_view path, int flags)
 {
     UNUSED1(flags);
     return std::make_unique<fs::UsartFile>(*this, path);
+}
+
+void UsartDriver::lock()
+{
+    hal::core::startCriticalSection();
+}
+
+void UsartDriver::unlock()
+{
+    hal::core::stopCriticalSection();
+}
+
+void UsartDriver::echo(bool enable)
+{
+    echo_ = enable;
 }
 
 } // namespace character

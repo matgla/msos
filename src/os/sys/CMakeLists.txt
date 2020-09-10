@@ -21,8 +21,10 @@ set (library_includes ${PROJECT_SOURCE_DIR}/include/msos/os/sys)
 target_sources(msos_os_sys
     PUBLIC
         ${library_includes}/ioctl.h
+        ${library_includes}/termios.h
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/ioctl.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/termios.cpp
 )
 
 target_include_directories(msos_os_sys
@@ -38,7 +40,7 @@ target_compile_options(msos_os_sys
         $<$<CONFIG:DEBUG>:-Og -g>
         $<$<CONFIG:RELEASE>:-Os>
     PRIVATE
-        $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a -Werror -Wall -Wextra -Wpedantic -Wconversion -Wcast-align -Wunused -Wshadow -Wold-style-cast -Wpointer-arith -Wcast-qual -Wno-missing-braces>
+        $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a -Werror -Wall -Wextra -Wpedantic -Wconversion -Wcast-align -Wunused -Wshadow -Wpointer-arith -Wcast-qual -Wno-missing-braces>
 
 )
 

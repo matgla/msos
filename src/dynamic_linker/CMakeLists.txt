@@ -18,11 +18,12 @@ find_file (GENERATE_API generate_api.py ${PROJECT_SOURCE_DIR}/scripts)
 
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/symbol_codes.h
-    COMMAND python3 ${GENERATE_API} --api=${PROJECT_SOURCE_DIR}/api/symbol_codes.json --output ${CMAKE_CURRENT_BINARY_DIR}/symbol_codes.h
+    COMMAND python3 ${GENERATE_API} --api=${PROJECT_SOURCE_DIR}/api/symbol_codes.json --output ${CMAKE_CURRENT_BINARY_DIR}/ --input ${PROJECT_SOURCE_DIR}
     DEPENDS ${GENERATE_API} ${PROJECT_SOURCE_DIR}/api/symbol_codes.json
     VERBATIM
 )
 
+set (generated_api_file ${CMAKE_CURRENT_BINARY_DIR}/generated_symbols.json CACHE INTERNAL "" FORCE)
 
 set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/symbol_codes.h PROPERTIES GENERATED 1 )
 

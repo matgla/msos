@@ -219,10 +219,9 @@ def add_indexes_to_symbols(processed_symbols):
     return processed_symbols
 
 def find_symbol_code(api, symbol):
-    for lib in api:
-        for sym in api[lib]:
-            if sym == symbol:
-                return api[lib][sym]
+    for sym in api:
+        if sym == symbol:
+            return api[sym]
     return None
 
 def generate_module(module_name, elf_filename, objcopy_executable, api_file):

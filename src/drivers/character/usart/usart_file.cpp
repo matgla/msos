@@ -15,12 +15,14 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <string_view>
+#include <cstring>
 
 #include <board.hpp>
 
 #include "msos/drivers/character/usart/usart_file.hpp"
 #include "msos/usart_printer.hpp"
 #include "msos/os/sys/ioctl.h"
+#include "msos/os/sys/termios.h"
 
 namespace msos
 {
@@ -36,6 +38,7 @@ UsartFile::UsartFile(drivers::character::UsartDriver& driver, std::string_view p
 ssize_t UsartFile::read(DataType data)
 {
     ssize_t length = 0;
+    driver_.lock();
     auto& buffer = driver_.buffer();
     const ssize_t length_to_read = static_cast<std::size_t>(data.size()) < buffer.size() ? data.size() : buffer.size();
     while (length < length_to_read)
@@ -43,6 +46,7 @@ ssize_t UsartFile::read(DataType data)
         data[length] = buffer.pop();
         ++length;
     }
+    driver_.unlock();
     return length;
 }
 ssize_t UsartFile::write(const ConstDataType data)
@@ -82,6 +86,23 @@ int UsartFile::ioctl(uint32_t cmd, void* arg)
         win->ws_col = 80;
         win->ws_xpixel = 0;
         win->ws_ypixel = 0;
+    }
+    if (_IOC_NUMBER(cmd) == 19)
+    {
+        auto term = static_cast<termios*>(arg);
+        memset(term, 0, sizeof(termios));
+    }
+    if (_IOC_NUMBER(cmd) == 20)
+    {
+        auto term = static_cast<termios*>(arg);
+        if (term->c_lflag & ECHO)
+        {
+            driver_.echo(true);
+        }
+        else
+        {
+            driver_.echo(false);
+        }
     }
     return 0;
 }

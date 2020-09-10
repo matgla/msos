@@ -14,39 +14,28 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "msos/os/sys/ioctl.h"
+#include "msos/os/sys/termios.h"
 
-#include <cstdio>
-#include <stdarg.h>
+#include <cerrno>
 
-#include <eul/utils/unused.hpp>
-
-#include "msos/kernel/process/scheduler.hpp"
-#include "msos/kernel/process/process.hpp"
-#include "msos/fs/i_file.hpp"
-
-int ioctl(int fd, uint32_t cmd, ...)
+int tcgetattr(int fildes, struct termios *termios_p)
 {
-    const auto* scheduler = msos::kernel::process::Scheduler::get();
-    if (!scheduler)
-    {
-        return -1;
-    }
+    return ioctl(fildes, TIOCGETA, termios_p);
+}
 
-    const auto* current_process = scheduler->current_process();
-    if (!current_process)
+int tcsetattr(int fd, int optional_actions,
+       const struct termios *t)
+{
+    switch (optional_actions)
     {
-        return -1;
+        case TCSANOW:
+            return (ioctl(fd, TIOCSETA, t));
+        case TCSADRAIN:
+            return (ioctl(fd, TIOCSETAW, t));
+        case TCSAFLUSH:
+            return (ioctl(fd, TIOCSETAF, t));
+        default:
+            errno = EINVAL;
+            return (-1);
     }
-    msos::fs::IFile* file = current_process->get_file(fd);
-    if (file == nullptr)
-    {
-        return -1;
-    }
-
-    va_list args;
-    va_start(args, cmd);
-    void* arg = va_arg(args, void*);
-    va_end(args);
-    return file->ioctl(cmd, arg);
 }

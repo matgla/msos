@@ -14,14 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once 
+#pragma once
 
+#include <stdlib.h>
+
+#if defined(__cplusplus)
 extern "C"
 {
+#endif // __cplusplus
+
     struct WINDOW
     {
         int max_x;
         int max_y;
+        bool key_translation;
     };
 
     WINDOW* initscr(void);
@@ -31,8 +37,39 @@ extern "C"
 
     #define getmaxyx(win,y,x) (y = getmaxy(win), x = getmaxx(win))
 
-    int printw(char *, ...);
+    int printw(const char *, ...);
     int refresh(void);
+    int getch(void);
+    int noecho(void);
+    int echo(void);
+    int attron(int);
+    int attroff(int);
+    int raw(void);
+    int noraw(void);
+
+    int keypad(WINDOW *, bool);
+    int getstr_(char *, size_t);
+
+    int start_color(void);
+    bool has_colors();
+    int init_pair(short, short, short);
+    int COLOR_PAIR(int n);
 
     extern WINDOW* stdscr;
+
+    #define getstr(str) getstr_(str, sizeof(str));
+
+    #define A_BOLD 0x01
+    #define A_UNDERLINE 0x02
+
+    #define COLOR_RED 1
+    #define COLOR_BLACK 2
+
+    #define FALSE 0
+    #define TRUE 1
+
+    #define OK 0
+    #define ERR -1
+#if defined(__cplusplus)
 }
+#endif // __cplusplus
