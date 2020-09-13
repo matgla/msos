@@ -18,7 +18,11 @@ docs:
 	)
 
 menuconfig:
-	 scripts/kconfig/kconfiglib.py $@
+	( \
+		mkdir -p bin; \
+		cd bin; \
+		srctree=.. python3 ../scripts/kconfig/menuconfig.py Kconfig \
+	)
 
 generate_tests:
 	./run_test.sh --generate

@@ -9,3 +9,6 @@ __pycache__/
 DAC_OUT_PUT*
 .config*
 application/
+config.h
+defconfig
+.gdb_history
