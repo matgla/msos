@@ -23,6 +23,8 @@ import os
 import clang
 from clang.cindex import CursorKind
 
+from pathlib import Path
+
 def generate_header(output):
     with open(output, "w") as file:
         file.write("/*************************************/\n")
@@ -71,7 +73,12 @@ def generate_file(output, input, config, name, generated_symbols):
 
         for include in config["includes"]:
             idx = clang.cindex.Index.create()
-            filepath = input + "/" + include
+            filepath = None
+            for path in Path(input).rglob(include):
+                filepath = path
+                break
+            if filepath is None:
+                raise Exception("File not found: " + include + " in: " + input)
             tu = idx.parse(filepath, args='-xc++ --std=c++2a'.split())
             for c in tu.cursor.walk_preorder():
                 if c.kind == CursorKind.FUNCTION_DECL or c.kind == CursorKind.VAR_DECL:

@@ -62,6 +62,21 @@
                     "MSTEST_LINKER_FLAGS": "${hal_exe_linker_flags}"
                 }
             }
+        },
+        {
+            "link": "https://github.com/matgla/msos_curses.git",
+            "type": "git",
+            "version": "master",
+            "directory": "msos_curses",
+            "target": "msos_curses",
+            "options": {
+                "cmake_variables": {
+                    "MSOS_CURSES_CXX_COMPILER_FLAGS": "${hal_cxx_compilation_flags}",
+                    "MSOS_CURSES_C_COMPILER_FLAGS": "${hal_c_compilation_flags}",
+                    "MSOS_CURSES_LINKER_FLAGS": "${hal_exe_linker_flags}"
+                }
+            }
+
         }
     ]
 }

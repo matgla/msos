@@ -1,5 +1,5 @@
-// This file is part of MSOS project. This is simple OS for embedded development devices.
-// Copyright (C) 2019 Mateusz Stadnik
+// This file is part of MS Keychain Gamer project. This is tiny game console.
+// Copyright (C) 2020 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,27 +14,32 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
+#include <config.hpp>
 
-#include "msos/libc/printf.hpp"
+#include <arch/armv7-m/normal_scheduler.hpp>
+#include <msos/kernel/process/scheduler.hpp>
+
+#include <msos/posix/fsync.hpp>
+
+extern "C"
+{
+    int fsync(int fd)
+    {
+        return _fsync(fd);
+    }
+}
 
 namespace msos
 {
-namespace kernel
-{
 
-void dump_registers()
+namespace
 {
-    // TODO: implement
+    msos::arch::armv7m::NormalScheduler scheduler;
 }
 
-
-void panic(const char* message)
+void system_config()
 {
-    printf("Panic: %s\n", message);
-    // NVIC_SystemReset();
-    dump_registers();
+    kernel::process::Scheduler::set(&scheduler);
 }
 
-} // namespace kernel
-} // namespace msos
+}

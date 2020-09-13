@@ -57,7 +57,7 @@
     },
     "generate": {
         "curses": {
-            "includes": ["src/curses/curses.h"],
+            "includes": ["**/msos_curses/include/curses.h"],
             "range_start": 4000,
             "range_stop": 4500
         }

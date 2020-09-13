@@ -51,7 +51,7 @@
 extern "C"
 {
 extern uint32_t _fs_flash_start;
-}
+} // extern "C"
 
 msos::fs::RamFs ramfs;
 UsartWriter writer;

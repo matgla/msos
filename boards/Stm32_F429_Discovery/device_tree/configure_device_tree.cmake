@@ -1,5 +1,5 @@
 # This file is part of MSOS project. This is simple OS for embedded development devices.
-# Copyright (C) 2020 Mateusz Stadnik
+# Copyright (C) 2019 Mateusz Stadnik
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,29 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-add_library(msos_curses)
 
-target_sources(msos_curses 
-    PUBLIC 
-        ${CMAKE_CURRENT_SOURCE_DIR}/curses.h 
-    PRIVATE 
-        ${CMAKE_CURRENT_SOURCE_DIR}/curses.cpp
-)
-
-target_include_directories(msos_curses PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-
-target_compile_options(msos_curses
-    PUBLIC
-        $<$<COMPILE_LANGUAGE:CXX>:-std=c++2a>
-        $<$<CONFIG:DEBUG>:-Og -g>
-        $<$<CONFIG:RELEASE>:-Os>
-    PRIVATE
-        $<$<COMPILE_LANGUAGE:CXX>:-Werror -Wall -Wextra -Wpedantic -Wcast-align -Wunused -Wshadow -Wpointer-arith -Wcast-qual -Wno-missing-braces>
-)
-
-target_link_libraries(msos_curses
-    PRIVATE
-        hal_flags
-        msos_os_sys
-        msos_libc
-)
+function(configure_device_tree)
+    include (ConfigureDeviceTree)
+    add_device_tree(${board_path}/device_tree/device_tree.json)
+endfunction()

@@ -136,7 +136,4 @@ int _scanf(const char* format, ...)
     return done;
 }
 
-
-
-
 } // extern "C"

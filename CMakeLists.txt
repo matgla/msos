@@ -44,7 +44,7 @@ endif()
 
 if (BUILD_MSOS_UT)
     set (ENABLE_SEMIHOSTING ON)
-else () 
+else ()
     set (ENABLE_SEMIHOSTING OFF)
 endif ()
 

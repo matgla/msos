@@ -172,7 +172,7 @@ static msos::dl::Environment env{
     msos::dl::SymbolAddress{SymbolCode::eul__ZN3eul10filesystem4pathpLERKS1_, address_resolver<path, path&(const path&)>::get(&path::operator+=)},
     msos::dl::SymbolAddress{SymbolCode::eul__ZNK3eul10filesystem4path16lexically_normalEv, address_resolver<path, path()>::get(&path::lexically_normal)},
     msos::dl::SymbolAddress{SymbolCode::eul__ZNK3eul10filesystem4path11is_absoluteEv, address_resolver<path, bool()>::get(&path::is_absolute)},
-    add_curses_symbol_codes()
+    // add_curses_symbol_codes()
 };
 
 pid_t spawn(void (*start_routine) (void *), void *arg)

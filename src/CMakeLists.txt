@@ -18,7 +18,6 @@ add_library(msos INTERFACE)
 
 add_subdirectory(dynamic_linker)
 add_subdirectory(apps)
-add_subdirectory(curses) #TODO: move to external lib?
 add_subdirectory(arch)
 add_subdirectory(kernel)
 add_subdirectory(syscalls)

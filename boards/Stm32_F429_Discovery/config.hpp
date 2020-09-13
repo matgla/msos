@@ -1,5 +1,5 @@
-// This file is part of MSOS project. This is simple OS for embedded development devices.
-// Copyright (C) 2019 Mateusz Stadnik
+// This file is part of MS Keychain Gamer project. This is tiny game console.
+// Copyright (C) 2020 Mateusz Stadnik
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,25 +16,11 @@
 
 #pragma once
 
-#include "msos/libc/printf.hpp"
+/* This file describes hardware configuration, existing input and output peripherals */
 
 namespace msos
 {
-namespace kernel
-{
 
-void dump_registers()
-{
-    // TODO: implement
+void system_config();
+
 }
-
-
-void panic(const char* message)
-{
-    printf("Panic: %s\n", message);
-    // NVIC_SystemReset();
-    dump_registers();
-}
-
-} // namespace kernel
-} // namespace msos

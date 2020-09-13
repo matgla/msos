@@ -1,3 +1,4 @@
+
 // This file is part of MSOS project. This is simple OS for embedded development devices.
 // Copyright (C) 2019 Mateusz Stadnik
 //
@@ -14,27 +15,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#pragma once
+#include "board.hpp"
 
-#include "msos/libc/printf.hpp"
-
-namespace msos
-{
-namespace kernel
+namespace board
 {
 
-void dump_registers()
+namespace interfaces
 {
-    // TODO: implement
+    std::array<hal::interfaces::Usart*, 1>& usarts()
+    {
+        static std::array<hal::interfaces::Usart*, 1> usarts_{nullptr};
+        return usarts_;
+    }
 }
 
-
-void panic(const char* message)
+void board_init()
 {
-    printf("Panic: %s\n", message);
-    // NVIC_SystemReset();
-    dump_registers();
+    // SystemInit();
 }
 
-} // namespace kernel
-} // namespace msos
+}

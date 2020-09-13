@@ -42,6 +42,21 @@ namespace gpio
 // using MID_KEY = hal::devices::gpio::PB14::InputType;
 // using RIGHT_KEY = hal::devices::gpio::PA15::InputType;
 
+using VGA_RED_PIN_1 = hal::devices::gpio::PA0;
+using VGA_RED_PIN_2 = hal::devices::gpio::PA1;
+
+using VGA_GREEN_PIN_1 = hal::devices::gpio::PA4;
+using VGA_GREEN_PIN_2 = hal::devices::gpio::PA5;
+
+using VGA_BLUE_PIN_1 = hal::devices::gpio::PB8;
+using VGA_BLUE_PIN_2 = hal::devices::gpio::PB9;
+
+using VGA_HSYNC = hal::devices::gpio::PB10;
+using VGA_VSYNC = hal::devices::gpio::PB11;
+
+using LED = hal::devices::gpio::PB12;
+
+
 }
 
 namespace interfaces

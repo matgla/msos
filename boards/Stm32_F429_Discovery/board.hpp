@@ -16,25 +16,26 @@
 
 #pragma once
 
-#include "msos/libc/printf.hpp"
+#include <array>
 
-namespace msos
-{
-namespace kernel
+// #include <hal/interfaces/usart.hpp>
+#include <devices/arm/stm32/stm32f4/stm32f429/usart.hpp>
+#include <devices/arm/stm32/stm32f4/stm32f429/i2c.hpp>
+
+namespace board
 {
 
-void dump_registers()
+void board_init();
+
+namespace gpio
 {
-    // TODO: implement
 }
 
-
-void panic(const char* message)
+namespace interfaces
 {
-    printf("Panic: %s\n", message);
-    // NVIC_SystemReset();
-    dump_registers();
+
+std::array<hal::interfaces::Usart*, 1>& usarts();
+
 }
 
-} // namespace kernel
-} // namespace msos
+}

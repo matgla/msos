@@ -18,7 +18,7 @@ docs:
 	)
 
 menuconfig:
-	 scripts/kconfiglib.py $@
+	 scripts/kconfig/kconfiglib.py $@
 
 generate_tests:
 	./run_test.sh --generate
