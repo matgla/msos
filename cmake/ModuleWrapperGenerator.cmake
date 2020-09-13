@@ -51,7 +51,7 @@ function (add_module module_name module_library)
             generate_wrapper_code --elf_filename=$<TARGET_FILE:${module_name}> --module_name=${module_name}
             --objcopy=${CMAKE_OBJCOPY} --as_executable --api=${generated_api_file}
             COMMAND echo "Module generated: ${module_name}"
-            DEPENDS ${GENERATE_BINARY} ${module_name} venv.stamp ${generated_api_file}
+            DEPENDS ${GENERATE_BINARY} ${module_name} venv.stamp "${generated_api_file}"
             VERBATIM
         )
 

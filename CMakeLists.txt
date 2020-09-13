@@ -18,6 +18,11 @@ cmake_minimum_required(VERSION 3.9)
 
 project(msos NONE)
 
+set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
+
+include (GenerateConfig)
+generate_config()
+
 include(FetchContent)
 
 FetchContent_Declare(
@@ -28,19 +33,22 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(mspkg)
 
-set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake ${mspkg_SOURCE_DIR}/cmake)
+set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${mspkg_SOURCE_DIR}/cmake)
 include (mspkg)
 
 setup_mspkg(${mspkg_SOURCE_DIR})
+
 
 set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set (user_boards_path ${PROJECT_SOURCE_DIR}/boards CACHE STRING "Path to boards provided from user")
 add_definitions("-DGSL_TERMINATE_ON_CONTRACT_VIOLATION=1 -DGSL_MSVC_USE_STL_NOEXCEPTION_WORKAROUND")
 
-if (NOT BOARD OR BOARD STREQUAL "Unknown" OR BOARD STREQUAL "unittest")
-    set(BOARD "unittest" CACHE STRING "Target board" FORCE)
-endif()
+message ("BOARD: ${BOARD}")
+
+# if (NOT BOARD OR BOARD STREQUAL "Unknown" OR BOARD STREQUAL "unittest")
+#     set(BOARD "unittest" CACHE STRING "Target board" FORCE)
+# endif()
 
 if (BUILD_MSOS_UT)
     set (ENABLE_SEMIHOSTING ON)
