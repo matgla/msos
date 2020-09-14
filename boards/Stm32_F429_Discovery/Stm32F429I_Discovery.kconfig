@@ -14,45 +14,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-menu "Hardware Platform configuration"
-
-choice
-    prompt "MCU Family: "
-    default FAMILY_STM32F1
-
-    config X86_64_STUB
-    bool "X86_64 (emulated)"
-    help
-        Enable support for X86_64 compilation, but to be executed in simulated environment.
-        This is not implemented yet.
-
-    config FAMILY_STM32F1
-    bool "STM32F1xx"
-    help
-        Enable support for ST STM32F1xx MCUs family.
-
-    config FAMILY_STM32F4
-    bool "STM32F4xx"
-    help
-        Enable support for ST STM32F4xx MCUs family.
-
-endchoice
+config STM32F429I_Discovery
+    bool "STM32F429I Discovery board"
+    depends on FAMILY_STM32F4
 
 config BOARD
-    string
-
-config FLASH_FILESYSTEM_SIZE
-    string
-
-choice
-    prompt "Board Selection"
-
-source "$(BOARD_DIR)/*.kconfig"
-
-endchoice
-
-
-source "kconfig/flash.kconfig"
-source "$(BOARD_DIR)/*.defaults"
-
-endmenu
+    def_string "Stm32_F429_Discovery"
+    depends on STM32F429I_Discovery

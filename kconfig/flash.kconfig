@@ -1,5 +1,5 @@
 # This file is part of MSOS project. This is simple OS for embedded development devices.
-# Copyright (C) 2019 Mateusz Stadnik
+# Copyright (C) 2020 Mateusz Stadnik
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,45 +14,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-menu "Hardware Platform configuration"
-
-choice
-    prompt "MCU Family: "
-    default FAMILY_STM32F1
-
-    config X86_64_STUB
-    bool "X86_64 (emulated)"
-    help
-        Enable support for X86_64 compilation, but to be executed in simulated environment.
-        This is not implemented yet.
-
-    config FAMILY_STM32F1
-    bool "STM32F1xx"
-    help
-        Enable support for ST STM32F1xx MCUs family.
-
-    config FAMILY_STM32F4
-    bool "STM32F4xx"
-    help
-        Enable support for ST STM32F4xx MCUs family.
-
-endchoice
-
-config BOARD
-    string
+menu "Flash configuration"
 
 config FLASH_FILESYSTEM_SIZE
-    string
+    string "<- Filesystem size"
+    help
+        Size of filesystem placed in internal flash memory value[B, K], ie. 100B, 10K
 
-choice
-    prompt "Board Selection"
+menu "Advanced"
 
-source "$(BOARD_DIR)/*.kconfig"
-
-endchoice
-
-
-source "kconfig/flash.kconfig"
-source "$(BOARD_DIR)/*.defaults"
+endmenu
 
 endmenu

@@ -21,7 +21,14 @@ menuconfig:
 	( \
 		mkdir -p bin; \
 		cd bin; \
-		srctree=.. python3 ../scripts/kconfig/menuconfig.py Kconfig \
+		srctree=.. BOARD_DIR=boards/** python3 ../scripts/kconfig/menuconfig.py Kconfig \
+	)
+
+.PHONY: build
+build:
+	( \
+		cd bin; \
+		make
 	)
 
 generate_tests:

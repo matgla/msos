@@ -24,8 +24,8 @@ endfunction()
 
 
 function(get_linker_script linker_script linker_scripts_directory)
-    set (${linker_script} ${user_boards_path}/Stm32_Black_Pill/linker_script.ld PARENT_SCOPE)
-    set (${linker_scripts_directory} ${user_boards_path}/Stm32_Black_Pill PARENT_SCOPE)
+    # set (${linker_script} "" PARENT_SCOPE)#$${user_boards_path}/Stm32_Black_Pill/linker_script.ld PARENT_SCOPE)
+    # set (${linker_scripts_directory} "" PARENT_SCOPE)#${user_boards_path}/Stm32_Black_Pill PARENT_SCOPE)
 endfunction()
 
 function(add_device_hal_library hal_device_library)

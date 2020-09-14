@@ -19,4 +19,5 @@ _kernel_ram_end = ORIGIN(KERNEL_RAM) + LENGTH(KERNEL_RAM); */
 _ram_start = ORIGIN(RAM);
 _ram_end = ORIGIN(RAM) + LENGTH(RAM);
 
-INCLUDE devices/arm/stm32/stm32f1/stm32f10x_common.ld
+INCLUDE devices/arm/stm32/stm32_common.ld
+

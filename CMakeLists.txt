@@ -56,6 +56,9 @@ else ()
     set (ENABLE_SEMIHOSTING OFF)
 endif ()
 
+# this configures board, which is needed for HAL
+add_subdirectory(arch)
+
 find_package(hal REQUIRED)
 
 enable_language(ASM C CXX)
@@ -79,6 +82,7 @@ set(msos_system_include_directories CACHE INTERNAL "")
 set(msos_system_include_directories ${msos_system_include_directories} ${PROJECT_SOURCE_DIR}/include/msos/posix CACHE INTERNAL "")
 set(msos_system_include_directories ${msos_system_include_directories} ${PROJECT_SOURCE_DIR}/include/msos/libc CACHE INTERNAL "")
 set(msos_system_include_directories ${msos_system_include_directories} ${PROJECT_SOURCE_DIR}/include/msos/os CACHE INTERNAL "")
+
 
 include(${board_path}/device_tree/configure_device_tree.cmake)
 configure_device_tree()
