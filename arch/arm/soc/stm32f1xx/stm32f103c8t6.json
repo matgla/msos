@@ -1,9 +1,0 @@
-{
-    "parent": "stm32f1xx",
-    "flash": {
-        "size": "64K"
-    },
-    "ram": {
-        "size": "20K"
-    }
-}

@@ -16,21 +16,4 @@
 
 # Configure SOC
 
-message("mcu: ${mcu}")
-
-find_package (Python COMPONENTS Interpreter)
-
-execute_process(
-    COMMAND ${Python_EXECUTABLE} ${PROJECT_SOURCE_DIR}/scripts/generate_soc.py --soc=${mcu} --input=${CMAKE_CURRENT_SOURCE_DIR} --output=${CMAKE_CURRENT_BINARY_DIR}/generated_soc
-    RESULT_VARIABLE rc
-)
-
-include (${CMAKE_CURRENT_BINARY_DIR}/generated_soc/soc_config.cmake)
-
-if (rc)
-    message (FATAL_ERROR "SOC generation failed")
-endif ()
-
-if (${arch} STREQUAL "ARM")
-    add_subdirectory(arm)
-endif ()
+set (user_socs_config "${CMAKE_CURRENT_SOURCE_DIR}" CACHE INTERNAL "")
