@@ -57,7 +57,7 @@ else ()
 endif ()
 
 # this configures board, which is needed for HAL
-add_subdirectory(arch)
+add_subdirectory(socs)
 
 find_package(hal REQUIRED)
 

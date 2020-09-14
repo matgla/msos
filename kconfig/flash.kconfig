@@ -16,8 +16,10 @@
 
 menu "Flash configuration"
 
-config FLASH_FILESYSTEM_SIZE
+config PARAM_ARRAY.MEMORY.SECTIONS.FLASH.PARTS$ARRAY.NAME$FS_FLASH.SIZE$$
+
     string "<- Filesystem size"
+    default FLASH_FILESYSTEM_SIZE
     help
         Size of filesystem placed in internal flash memory value[B, K], ie. 100B, 10K
 
