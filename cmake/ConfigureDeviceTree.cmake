@@ -16,15 +16,15 @@
 
 
 function(add_device_tree config_file)
-    message(STATUS "Configuring device tree from: ${board_configuration_path}")
+    message(STATUS "Configuring device tree from: ${config_file}")
 
     execute_process(
         COMMAND
-        python3 ${PROJECT_SOURCE_DIR}/scripts/generate_device_tree.py --input ${board_configuration_path} --output ${CMAKE_CURRENT_BINARY_DIR}/device_tree
+        python3 ${PROJECT_SOURCE_DIR}/scripts/generate_device_tree.py --input ${config_file} --output ${CMAKE_CURRENT_BINARY_DIR}/device_tree
         RESULT_VARIABLE result
     )
 
-    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${board_configuration_path})
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${config_file})
 
     if(NOT result EQUAL 0)
         message(FATAL_ERROR "Device tree generator failed")

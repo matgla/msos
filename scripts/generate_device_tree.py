@@ -204,6 +204,7 @@ if not os.path.exists(args.output_directory):
 
 cmakelists_file = args.output_directory + "/CMakeLists.txt"
 cpp_file = args.output_directory + "/device_tree.cpp"
+
 with open(args.input_file) as description_file:
     desc = json.loads(description_file.read())
     drivers = process_next(desc)

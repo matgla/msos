@@ -86,7 +86,7 @@ set(msos_system_include_directories ${msos_system_include_directories} ${PROJECT
 
 include(ConfigureDeviceTree)
 
-add_device_tree(${board_config_path}/device_tree/device_tree.json)
+add_device_tree(${board_configuration_path}/device_tree/device_tree.json)
 
 add_subdirectory(src)
 add_subdirectory(modules)
