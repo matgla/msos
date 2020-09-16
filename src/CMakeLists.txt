@@ -183,7 +183,7 @@ if (${vendor} STREQUAL "STM32")
         COMMAND cp ${executable_file} ${executable_file}.tmp
         COMMAND ${CMAKE_COMMAND} -E "cat" ${executable_file}.tmp ${PROJECT_BINARY_DIR}/rootfs.img > ${executable_file}
         COMMAND echo "ROMFS generated!"
-        # VERBATIM
+        VERBATIM
     )
 endif()
 

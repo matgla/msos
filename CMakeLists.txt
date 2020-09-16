@@ -84,8 +84,9 @@ set(msos_system_include_directories ${msos_system_include_directories} ${PROJECT
 set(msos_system_include_directories ${msos_system_include_directories} ${PROJECT_SOURCE_DIR}/include/msos/os CACHE INTERNAL "")
 
 
-include(${board_path}/device_tree/configure_device_tree.cmake)
-configure_device_tree()
+include(ConfigureDeviceTree)
+
+add_device_tree(${board_config_path}/device_tree/device_tree.json)
 
 add_subdirectory(src)
 add_subdirectory(modules)
