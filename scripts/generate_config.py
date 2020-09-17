@@ -33,18 +33,16 @@ args, rest = parser.parse_known_args()
 to_parse = []
 
 def process_symbol(symbol, value):
-    print("s: ", symbol)
     obj = {}
     current_obj = obj
     for part in symbol:
         if part.startswith("KEY$"):
-            print ("this is key")
+            pass
         elif part.endswith("$ARRAY"):
             part = part.replace("$ARRAY", "")
             current_obj[part.lower()] = []
             current_obj = current_obj[part.lower()]
         elif part.find("$") != -1:
-            print("part: ", part)
             part = part.split('$')
             part = [i for i in part if i]
             key = part[0].lower()
@@ -54,13 +52,11 @@ def process_symbol(symbol, value):
             else:
                 val = part[1].lower()
 
-            print(current_obj)
             if isinstance(current_obj, dict):
                 current_obj.update({key: val})
             else:
                 current_obj.append({key: val})
                 current_obj = current_obj[-1]
-                print("c: ", current_obj)
 
         else:
             if isinstance(current_obj, dict):
@@ -90,12 +86,10 @@ def merge(old, new):
 def generate_json():
     config = {}
     for entity in to_parse:
-        # print ("entity: ", entity)
         splitted_name = entity["name"].split('.')
         if splitted_name[0] == "PARAM":
             pass
         if splitted_name[0] == "PARAM_ARRAY":
-            print(entity)
             obj = process_symbol(splitted_name[1:], entity["value"])
             merge(config, obj)
 

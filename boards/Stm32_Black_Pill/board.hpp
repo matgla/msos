@@ -16,14 +16,11 @@
 
 #pragma once
 
-// #include <devices/arm/stm32/stm32f1/stm32f103c8t6/gpio.hpp>
-// #include <devices/arm/stm32/stm32f1/stm32f103c8t6/usart.hpp>
-// #include <devices/arm/stm32/stm32f1/stm32f103c8t6/i2c.hpp>
-#include <devices/arm/stm32/stm32f1/stm32f103c8t6/usart.hpp>
 #include <hal/interfaces/usart.hpp>
 
-#include <devices/arm/stm32/stm32f1/stm32f103c8t6/usart.hpp>
-#include <devices/arm/stm32/stm32f1/stm32f103c8t6/i2c.hpp>
+#include <stm32f103c8t6_usart.hpp>
+#include <stm32f103c8t6_i2c.hpp>
+#include <stm32f103c8t6_gpio.hpp>
 
 namespace board
 {
@@ -32,15 +29,6 @@ void board_init();
 
 namespace gpio
 {
-
-// extern hal::gpio::DigitalOutputPin LED_GREEN; = hal::devices::gpio::PB1::OutputType;
-// using LED_RED = hal::devices::gpio::PB0::OutputType;
-// using LED_YELLOW = hal::devices::gpio::PA7::OutputType;
-// using LED_BLUE = hal::devices::gpio::PA3::OutputType;
-
-// using LEFT_KEY = hal::devices::gpio::PA12::InputType;
-// using MID_KEY = hal::devices::gpio::PB14::InputType;
-// using RIGHT_KEY = hal::devices::gpio::PA15::InputType;
 
 using VGA_RED_PIN_1 = hal::devices::gpio::PA0;
 using VGA_RED_PIN_2 = hal::devices::gpio::PA1;
@@ -55,7 +43,6 @@ using VGA_HSYNC = hal::devices::gpio::PB10;
 using VGA_VSYNC = hal::devices::gpio::PB11;
 
 using LED = hal::devices::gpio::PB12;
-
 
 }
 

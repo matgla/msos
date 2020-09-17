@@ -19,9 +19,6 @@
 
 #include <stm32f10x.h>
 
-#include <devices/arm/stm32/stm32f1/stm32f103c8t6/usart.hpp>
-#include <devices/arm/stm32/stm32f1/stm32f103c8t6/gpio.hpp>
-
 namespace board
 {
 

@@ -20,6 +20,24 @@ project(msos NONE)
 
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 
+file (GLOB config ${PROJECT_BINARY_DIR}/.config)
+
+find_package (Python3 COMPONENTS Interpreter)
+
+set (ENV{srctree} ${PROJECT_SOURCE_DIR})
+set (ENV{BOARD_DIR} boards/**)
+
+if (NOT config)
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E env srctree=${PROJECT_SOURCE_DIR} BOARD_DIR=boards/** ${Python_EXECUTABLE} ${PROJECT_SOURCE_DIR}/scripts/kconfig/guiconfig.py ${PROJECT_SOURCE_DIR}/Kconfig
+    )
+endif ()
+
+add_custom_target(menuconfig
+    COMMAND ${CMAKE_COMMAND} -E env srctree=${PROJECT_SOURCE_DIR} BOARD_DIR=boards/** ${Python_EXECUTABLE} ${PROJECT_SOURCE_DIR}/scripts/kconfig/menuconfig.py ${PROJECT_SOURCE_DIR}/Kconfig
+    VERBATIM
+)
+
 include (GenerateConfig)
 generate_config()
 
@@ -86,7 +104,7 @@ set(msos_system_include_directories ${msos_system_include_directories} ${PROJECT
 
 include(ConfigureDeviceTree)
 
-add_device_tree(${board_configuration_path}/device_tree/device_tree.json)
+add_device_tree(${board_configuration_path}/device_tree.json)
 
 add_subdirectory(src)
 add_subdirectory(modules)
