@@ -43,6 +43,8 @@ function (add_module module_name module_library)
 
         find_file (GENERATE_BINARY generate_binary.py ${PROJECT_SOURCE_DIR}/scripts)
 
+        add_dependencies(${module_name} api_generator)
+
         add_custom_command(
             TARGET ${module_name}
             POST_BUILD
@@ -51,7 +53,7 @@ function (add_module module_name module_library)
             generate_wrapper_code --elf_filename=$<TARGET_FILE:${module_name}> --module_name=${module_name}
             --objcopy=${CMAKE_OBJCOPY} --as_executable --api=${generated_api_file}
             COMMAND echo "Module generated: ${module_name}"
-            DEPENDS ${GENERATE_BINARY} ${module_name} venv.stamp "${generated_api_file}"
+            DEPENDS ${GENERATE_BINARY} ${module_name} venv.stamp api_generator
             VERBATIM
         )
 
