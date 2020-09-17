@@ -123,10 +123,7 @@ int _write(int fd, const char* ptr, int len)
     const auto* scheduler = msos::kernel::process::Scheduler::get();
     if (scheduler == nullptr)
     {
-        if (board::interfaces::usarts()[0])
-        {
-            board::interfaces::usarts()[0]->write(std::string_view(ptr, static_cast<std::size_t>(len)));
-        }
+        board::USART_1::write(std::string_view(ptr, static_cast<std::size_t>(len)));
         return len;
     }
 

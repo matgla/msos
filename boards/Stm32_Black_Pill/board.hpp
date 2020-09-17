@@ -18,9 +18,9 @@
 
 #include <hal/interfaces/usart.hpp>
 
-#include <stm32f103c8t6_usart.hpp>
 #include <stm32f103c8t6_i2c.hpp>
 #include <stm32f103c8t6_gpio.hpp>
+#include <stm32f103c8t6_usart.hpp>
 
 namespace board
 {
@@ -46,11 +46,6 @@ using LED = hal::devices::gpio::PB12;
 
 }
 
-namespace interfaces
-{
-
-std::array<hal::interfaces::Usart*, 1>& usarts();
-
-}
+using USART_1 = hal::interfaces::Usart1;
 
 }

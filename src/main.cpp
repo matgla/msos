@@ -118,9 +118,6 @@ int main()
     board::board_init();
     hal::core::Core::initializeClocks();
 
-    auto usart = board::interfaces::usarts()[0];
-    usart->init(9600);
-
     msos::system_config();
 
     spawn_root_process(&kernel_process, NULL, 4048);
