@@ -30,19 +30,19 @@ void board_init();
 namespace gpio
 {
 
-using VGA_RED_PIN_1 = hal::devices::gpio::PA0;
-using VGA_RED_PIN_2 = hal::devices::gpio::PA1;
+static inline auto& VGA_RED_PIN_1 = hal::gpio::PA0;
+static inline auto& VGA_RED_PIN_2 = hal::gpio::PA1;
 
-using VGA_GREEN_PIN_1 = hal::devices::gpio::PA4;
-using VGA_GREEN_PIN_2 = hal::devices::gpio::PA5;
+static inline auto& VGA_GREEN_PIN_1 = hal::gpio::PA4;
+static inline auto& VGA_GREEN_PIN_2 = hal::gpio::PA5;
 
-using VGA_BLUE_PIN_1 = hal::devices::gpio::PB8;
-using VGA_BLUE_PIN_2 = hal::devices::gpio::PB9;
+static inline auto& VGA_BLUE_PIN_1 = hal::gpio::PB8;
+static inline auto& VGA_BLUE_PIN_2 = hal::gpio::PB9;
 
-using VGA_HSYNC = hal::devices::gpio::PB10;
-using VGA_VSYNC = hal::devices::gpio::PB11;
+static inline auto& VGA_HSYNC = hal::gpio::PB10;
+static inline auto& VGA_VSYNC = hal::gpio::PB11;
 
-using LED = hal::devices::gpio::PB12;
+static inline auto& LED = hal::gpio::PB12;
 
 }
 

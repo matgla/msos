@@ -31,8 +31,8 @@ void board_init();
 
 namespace gpio
 {
-using LED_GREEN = hal::devices::gpio::PA5::OutputType;
-using TEST = hal::devices::gpio::PB12::OutputType;
+using LED_GREEN = hal::gpio::PA5::OutputType;
+using TEST = hal::gpio::PB12::OutputType;
 }
 
 namespace interfaces
