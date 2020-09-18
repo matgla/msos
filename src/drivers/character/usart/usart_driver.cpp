@@ -45,8 +45,8 @@ UsartDriver::UsartDriver(int usart_number)
 
 void UsartDriver::load()
 {
-    board::USART_1::init(115200);
-    board::USART_1::on_data([this](const uint8_t byte) {
+    board::interfaces::usarts()[usart_number_]->init(115200);
+    board::interfaces::usarts()[usart_number_]->on_data([this](const uint8_t byte) {
         char c = static_cast<char>(byte);
         if (c == 127)
         {
@@ -54,7 +54,7 @@ void UsartDriver::load()
             {
                 if (echo_)
                 {
-                    board::USART_1::write("\b \b");
+                    board::interfaces::usarts()[usart_number_]->write("\b \b");
                 }
                 --readed_before_newline_;
             }
@@ -70,7 +70,7 @@ void UsartDriver::load()
         char data[] = {c, '\0'};
         if (echo_)
         {
-            board::USART_1::write(data);
+            board::interfaces::usarts()[usart_number_]->write(data);
         }
         buffer_.push(c);
         ++readed_before_newline_;
@@ -80,6 +80,11 @@ void UsartDriver::load()
 void UsartDriver::unload()
 {
 
+}
+
+hal::interfaces::Usart& UsartDriver::get()
+{
+    return *board::interfaces::usarts()[usart_number_];
 }
 
 UsartDriver::BufferType& UsartDriver::buffer()
@@ -106,11 +111,6 @@ void UsartDriver::unlock()
 void UsartDriver::echo(bool enable)
 {
     echo_ = enable;
-}
-
-void UsartDriver::write(const gsl::span<const uint8_t>& data)
-{
-    board::USART_1::write(data);
 }
 
 } // namespace character

@@ -43,14 +43,13 @@ public:
 
     std::unique_ptr<fs::IFile> file(std::string_view path, int flags) override;
 
+    hal::interfaces::Usart& get();
     BufferType& buffer();
 
     void lock();
     void unlock();
 
     void echo(bool enable);
-
-    void write(const gsl::span<const uint8_t>& data);
 
 private:
     int usart_number_;
