@@ -1,0 +1,12 @@
+{
+    "memory": {
+        "sections": {
+            "flash": {
+                "subsections": [{
+                    "name": "fs_flash",
+                    "size": "256K"
+                }]
+            }
+        }
+    }
+}
