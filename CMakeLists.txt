@@ -111,7 +111,7 @@ add_subdirectory(modules)
 
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/scripts/generate_device_tree.py)
 
-if (BUILD_MSOS_UT OR NOT DISABLE_ST_TESTS)
+if (BUILD_MSOS_UT OR MSOS_ENABLE_ST)
     include (CTest)
     enable_testing()
     add_subdirectory(test)

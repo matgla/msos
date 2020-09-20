@@ -51,7 +51,7 @@ public:
 
     void echo(bool enable);
 
-private:
+// private:
     int usart_number_;
     int readed_before_newline_;
     BufferType buffer_;

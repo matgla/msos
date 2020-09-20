@@ -1,5 +1,5 @@
 # This file is part of MSOS project. This is simple OS for embedded development devices.
-# Copyright (C) 2019 Mateusz Stadnik
+# Copyright (C) 2020 Mateusz Stadnik
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,8 +14,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-mainmenu "MSOS Kernel Configuration"
+menu "Tests configuration"
 
-source "./boards/Kconfig"
-source "./kconfig/compiler.kconfig"
-source "./kconfig/tests.kconfig"
+    config BUILD_ST
+    bool "enable ST"
+    select ENABLE_ST
+    help
+        Build with system integration tests
+
+    config BUILD_UT
+    bool "enable UT"
+    help
+        Build with unit tests
+
+config MSOS_ENABLE_ST
+    bool
+
+endmenu

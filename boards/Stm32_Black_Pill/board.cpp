@@ -26,7 +26,7 @@ namespace interfaces
 {
     std::array<hal::interfaces::Usart*, 1>& usarts()
     {
-        static std::array<hal::interfaces::Usart*, 1> usarts_{&hal::devices::interfaces::Usart1};
+        static std::array<hal::interfaces::Usart*, 1> usarts_{&hal::interfaces::USART_1()};
         return usarts_;
     }
 }
