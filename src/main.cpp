@@ -118,6 +118,9 @@ int main()
     board::board_init();
     hal::core::Core::initializeClocks();
 
+    hal::gpio::PA5().init(hal::gpio::Output::PushPull, hal::gpio::Speed::Fast, hal::gpio::PullUpPullDown::Up);
+    hal::gpio::PA5().set_high();
+
     auto usart = board::interfaces::usarts()[0];
     usart->init(9600);
 
