@@ -43,6 +43,11 @@
 
 #include "msos/usart_printer.hpp"
 
+extern "C"
+{
+extern uint32_t _kernel_ram_start;
+} // extern "C"
+
 
 constexpr std::size_t default_stack_size = 728;
 static msos::dl::DynamicLinker dynamic_linker;
@@ -199,8 +204,8 @@ pid_t spawn_root_process(void (*start_routine) (void *), void *arg, std::size_t 
 
 int exec_process(ExecInfo* info)
 {
-    std::string_view path_to_executable(info->path);
-    eul::filesystem::path path = eul::filesystem::path(info->path).lexically_normal();
+    eul::filesystem::path path(info->path);
+    path = path.lexically_normal();
 
     msos::fs::Vfs& root_fs = msos::fs::Vfs::instance();
 
@@ -208,8 +213,10 @@ int exec_process(ExecInfo* info)
 
     std::unique_ptr<msos::fs::IFile> file = root_fs.get(path.c_str(), 0);
 
+
     if (!file)
     {
+        printf ("File not found\n");
         errno = ENOENT;
         return -1;
     }
@@ -230,11 +237,12 @@ int exec_process(ExecInfo* info)
 
     if (info->entries)
     {
-        module = dynamic_linker.load_module(module_address, msos::dl::LoadingModeCopyData, info->entries, info->number_of_entries, ec);
+        module = dynamic_linker.load_module(module_address, msos::dl::LoadingModeCopyText, info->entries, info->number_of_entries, ec);
+        writer << "Module loaded" << endl;
     }
     else
     {
-        module = dynamic_linker.load_module(module_address, msos::dl::LoadingModeCopyData, env, ec);
+        module = dynamic_linker.load_module(module_address, msos::dl::LoadingModeCopyText, env, ec);
         if (ec)
         {
             writer << ec.message() << endl;
@@ -242,6 +250,8 @@ int exec_process(ExecInfo* info)
     }
     if (module)
     {
+        writer << "Module exists: " << hex << module->start_address_ << endl;
+
         int rc = module->execute(info->argc, info->argv);
         dynamic_linker.unload_module(module);
         return rc;
@@ -262,10 +272,11 @@ static bool is_first = true;
 
 int exec(const char* path, int argc, char* argv[], const SymbolEntry* entries, int number_of_entries)
 {
+    printf("I am here\n");
     if (is_first)
     {
         std::size_t address_of_lot_getter = reinterpret_cast<std::size_t>(&get_lot_at);
-        std::size_t* lot_in_memory = reinterpret_cast<std::size_t*>(0x20000000);
+        std::size_t* lot_in_memory = reinterpret_cast<std::size_t*>(&_kernel_ram_start);
         *lot_in_memory = address_of_lot_getter;
         is_first = false;
     }
@@ -281,6 +292,8 @@ int exec(const char* path, int argc, char* argv[], const SymbolEntry* entries, i
     optind = 0;
     optopt = '?';
     opterr = 1;
+    optarg = nullptr;
+    printf("Execute process\n");
     int rc = exec_process(info);
     delete info;
     return rc;
@@ -292,7 +305,7 @@ pid_t spawn_exec(const char* path, void *arg, const SymbolEntry* entries, int nu
     if (is_first)
     {
         std::size_t address_of_lot_getter = reinterpret_cast<std::size_t>(&get_lot_at);
-        std::size_t* lot_in_memory = reinterpret_cast<std::size_t*>(0x20000000);
+        std::size_t* lot_in_memory = reinterpret_cast<std::size_t*>(&_kernel_ram_start);
         *lot_in_memory = address_of_lot_getter;
         is_first = false;
     }

@@ -19,8 +19,9 @@
 #include <array>
 
 // #include <hal/interfaces/usart.hpp>
-#include <devices/arm/stm32/stm32f4/stm32f429/usart.hpp>
-#include <devices/arm/stm32/stm32f4/stm32f429/i2c.hpp>
+#include <stm32f429zit6_usart.hpp>
+#include <stm32f429zit6_gpio.hpp>
+#include <stm32f429zit6_i2c.hpp>
 
 namespace board
 {

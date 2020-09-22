@@ -63,3 +63,4 @@ target_link_libraries(msos_arch_armv7m
         msos_curses
 )
 
+add_dependencies(msos_arch_armv7m api_generator)

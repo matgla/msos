@@ -39,7 +39,7 @@ public:
     int execute(int argc, const char *argv[]) const;
     int execute() const;
 
-private:
+// private:
     std::size_t start_address_;
     Module module_;
 };

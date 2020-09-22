@@ -66,6 +66,7 @@ void read_configuration_file()
 
 int app_start()
 {
+    printf("Start sheel\n");
     read_configuration_file();
 
     char buffer[100] = {};
@@ -83,6 +84,7 @@ int app_start()
     while (std::string_view(buffer).find("exit") == std::string_view::npos)
     {
         write(1, "> \0", 2);
+        std::memset(buffer, 0, sizeof(buffer));
         fgets(buffer, sizeof(buffer), stdin);
         std::string_view request(buffer);
 
@@ -154,6 +156,16 @@ int app_start()
                     eul::filesystem::path path_to_binary(next_dir);
                     path_to_binary += parser.get_command();
                     argv[0] = const_cast<char*>(path_to_binary.c_str());
+                    for (int i = 0; i < argc; ++i)
+                    {
+                        printf("ARGV[%d]: ", i);
+                        for (size_t y = 0; y <= strlen(argv[i]); ++y)
+                        {
+                            printf("%d[%c], ", argv[i][y], argv[i][y]);
+                        }
+                        printf("\n");
+                    }
+
                     command_found = true;
                     if (exec(path_to_binary.c_str(), argc, argv, NULL, 0) == -1 && errno == ENOENT)
                     {

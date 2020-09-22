@@ -179,6 +179,7 @@ if (${vendor} STREQUAL "STM32")
         POST_BUILD
         COMMAND rm -f ${PROJECT_BINARY_DIR}/rootfs.img
         COMMAND genromfs -f ${PROJECT_BINARY_DIR}/rootfs.img -d ${PROJECT_BINARY_DIR}/rootfs -v -V msos_romfs
+        COMMAND cp ${executable_file} ${executable_file}_orig.tmp
         COMMAND ${truncate_exec} --size ${flash_size} ${executable_file}
         COMMAND cp ${executable_file} ${executable_file}.tmp
         COMMAND ${CMAKE_COMMAND} -E "cat" ${executable_file}.tmp ${PROJECT_BINARY_DIR}/rootfs.img > ${executable_file}

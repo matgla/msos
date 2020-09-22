@@ -103,6 +103,7 @@ void kernel_process(void*)
     vfs.mount_fs("/dev", &devfs);
 
     msos::apps::AppRegistry& apps = msos::apps::AppRegistry::get_instance();
+
     vfs.mount_fs("/bin", &apps);
 
     exec("/bin/msos_shell.bin", 0, NULL, NULL, 0);
@@ -115,18 +116,16 @@ void kernel_process(void*)
 
 int main()
 {
+
     board::board_init();
     hal::core::Core::initializeClocks();
 
-    hal::gpio::PA5().init(hal::gpio::Output::PushPull, hal::gpio::Speed::Fast, hal::gpio::PullUpPullDown::Up);
-    hal::gpio::PA5().set_high();
-
-    auto usart = board::interfaces::usarts()[0];
-    usart->init(9600);
+    hal::gpio::PG13().init(hal::gpio::Output::PushPull, hal::gpio::Speed::Fast, hal::gpio::PullUpPullDown::Up);
+    hal::gpio::PG13().set_high();
 
     msos::system_config();
 
-    spawn_root_process(&kernel_process, NULL, 4048);
+    spawn_root_process(&kernel_process, NULL, 4096);
 
     while (true)
     {

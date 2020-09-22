@@ -31,6 +31,10 @@ namespace apps
 AppRegistry& AppRegistry::get_instance()
 {
     static AppRegistry a;
+    for (const auto& app : a.apps_)
+    {
+        printf("app: %s\n", app.name.data());
+    }
     return a;
 }
 
@@ -79,8 +83,10 @@ std::unique_ptr<fs::IFile> AppRegistry::get(const eul::filesystem::path& path, i
 
     for (const auto& app : apps_)
     {
+        printf("seearch %s\n", app.name.data());
         if (app.name == path.native())
         {
+            printf("Return app\n");
             return std::make_unique<AppFile>(app);
         }
     }

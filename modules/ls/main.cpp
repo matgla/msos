@@ -28,7 +28,18 @@ int main(int argc, char *argv[])
 {
     int c;
 
+    printf("Hej: %d\n", argc);
+
+    for (int i = 0; i < argc; ++i)
+    {
+        printf("argv[%d]: %s\n", i, argv[i]);
+    }
     msos::ls::Config config;
+
+    printf ("Getopt\n");
+    if (argc > 1)
+    {
+
 
     while ((c = getopt(argc, argv, "l")) != -1)
     {
@@ -45,12 +56,15 @@ int main(int argc, char *argv[])
             } break;
         }
     }
-
+    }
+    printf("After getopt\n");
     /* directory not specified */
-    if (optind >= argc)
+    if (optind >= argc || argc == 1)
     {
+        printf ("Cwd\n");
         char cwd[255] = {0};
         getcwd(cwd, sizeof(cwd));
+        printf ("Cwd: %s\n", cwd);
 
         msos::ls::print_directory(cwd, config);
         return 0;

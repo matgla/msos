@@ -86,6 +86,7 @@ std::unique_ptr<fs::IFile> AppFile::clone() const
 
 const char* AppFile::data() const
 {
+    printf ("File: %s\n", entry_.name.data());
     return reinterpret_cast<const char*>(entry_.address);
 }
 
